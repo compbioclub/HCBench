@@ -1,5 +1,4 @@
-# HCBench
-Benchmarking Haplotype- and Clone-specific Copy Number Calling
+# HCBench (Haplotype- and Clone-specific copy number Benchmarking)
 
 - parser
   + output files from CNA caller
