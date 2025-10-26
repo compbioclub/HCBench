@@ -1,5 +1,5 @@
 site_name: HCBench Documentation
-repo_url: https://github.com/compbioclub/HCBench
+repo_url: https://compbioclub.github.io/HCBench
 nav:
   - Home: index.md
   - Parsers:
