@@ -1,0 +1,11 @@
+site_name: HCBench Documentation
+repo_url: https://github.com/compbioclub/HCBench
+nav:
+  - Home: index.md
+  - Parsers:
+      - CHISEL: parsers/chisel.md
+      - SEACON: parsers/seacon.md
+      - SIGNALS: parsers/signals.md
+      - CNRein: parsers/cnrein.md
+theme:
+  name: material

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import os
 import pandas as pd
 
 class BaseParser(ABC):
@@ -14,6 +15,10 @@ class BaseParser(ABC):
     def _read(self, sep="\t") -> pd.DataFrame:
         return pd.read_csv(self.input_path, sep=sep)
 
-    def _save(self, df: pd.DataFrame):
-        df.to_csv(self.output_path)
-        print(f"[hcbench] {self.__class__.__name__} → {self.output_path}")
+    def _check_output_path(self):
+        output_dir = os.path.dirname(self.output_path)
+        if output_dir and not os.path.exists(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
+            print(f"[hcbench] Created output directory: {output_dir}")
+        else:
+            print(f"[hcbench] Output directory verified: {output_dir}")

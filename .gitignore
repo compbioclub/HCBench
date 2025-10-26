@@ -37,6 +37,7 @@ examples/
 *.DS_Store
 Thumbs.db
 
+
 data/
 !data/example_inputs/    # 保留示例输入文件
 *.tsv
@@ -69,3 +70,5 @@ pytest_cache/
 Icon?
 ehthumbs.db
 desktop.ini
+
+
