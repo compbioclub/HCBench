@@ -7,5 +7,6 @@ nav:
       - SEACON: parsers/seacon.md
       - SIGNALS: parsers/signals.md
       - CNRein: parsers/cnrein.md
+      - Alleloscope: parsers/alleloscope.md
 theme:
   name: material
