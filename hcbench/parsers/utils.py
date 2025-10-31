@@ -36,3 +36,16 @@ def split_and_process_haplotype(wide_df: pd.DataFrame):
         "major": major,       
         "combined": combined  
     }
+
+def split_region(row_label, bin_size):
+        try:
+            chrom, pos = row_label.split(":")
+            start, end = map(int, pos.split("-"))
+        except Exception:
+            return [row_label]
+
+        bins = []
+        for s in range(start, end, bin_size):
+            e = min(s + bin_size, end)
+            bins.append(f"{chrom}:{s}-{e}")
+        return bins
