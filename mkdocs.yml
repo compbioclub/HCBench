@@ -1,4 +1,4 @@
-site_name: HCBench Documentation
+site_name: HCBench
 repo_url: https://compbioclub.github.io/HCBench
 nav:
   - Home: index.md
@@ -8,5 +8,7 @@ nav:
       - SIGNALS: parsers/signals.md
       - CNRein: parsers/cnrein.md
       - Alleloscope: parsers/alleloscope.md
+  - GTbench:
+      - Overview: gtbench/index.md
 theme:
   name: material

@@ -35,7 +35,7 @@ minor_major.csv       # if split_haplotype=True
 ```
 
 - `haplotype_combined.csv` — the main CNA matrix (regions × cells)
-   Each value represents the combined haplotype copy number in the form `"Major|Minor"`.
+   Each value represents the combined haplotype copy number in the form `"hap1|hap2"`.
 - `clusters.csv` — maps each cell to its corresponding clone ID, if available.
 
 ------
@@ -95,17 +95,3 @@ write.csv(linplot, file = "cluster.csv", row.names = TRUE)
 This will create a `cluster.csv` file that can be used as input to `AlleloscopeParser.get_cluster()` in Python.
 
 ------
-
-## 🧬 Notes
-
-- The parser automatically converts 0-based start positions to 1-based, following standard genomic conventions.
-
-- All region identifiers are formatted as:
-
-  ```
-  chrN:start-end
-  ```
-
-- Each cell column in the resulting `haplotype_combined.csv` represents one single cell.
-
-- If `split_haplotype=True`, additional per-haplotype and major/minor copy number matrices will be generated automatically.
