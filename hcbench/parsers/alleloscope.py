@@ -1,10 +1,13 @@
+import shutil
+from tracemalloc import start
 import numpy as np
 import pandas as pd
 import os
 
 from .cna_parser_base import CNAParser
-from .utils import split_region
-
+from .utils import map_cell_to_barcode, read_table_auto, split_all_regions
+from ..utils import process_variant_data
+from hcbench.realbench import realbench
 
 class AlleloscopeParser(CNAParser):
     """
@@ -16,19 +19,22 @@ class AlleloscopeParser(CNAParser):
 
     def __init__(
         self,
+        *args,
         genotypes_rds_path,
         seg_table_rds_path,
-        output_path,
+        barcode_path=None,
         bin_size=None,
         add_chr_prefix=True,
-        start_plus_one=True
+        start_offset=1,
+         **kwargs
     ):
-        super().__init__(input_path=None, output_path=output_path)
+        super().__init__(input_path=None,*args, **kwargs)
         self.genotypes_rds_path = genotypes_rds_path
         self.seg_table_rds_path = seg_table_rds_path
         self.bin_size = bin_size
         self.add_chr_prefix = add_chr_prefix
-        self.start_plus_one = start_plus_one
+        self.start_offset = start_offset
+        self.barcode_path = barcode_path
 
     def before_pivot(self):
         """
@@ -56,6 +62,14 @@ class AlleloscopeParser(CNAParser):
         region_names = gt.columns.astype(str)
         gt_values = gt.values
         nrow, ncol = gt_values.shape
+
+        if self.barcode_path is not None:
+            cell_df = pd.DataFrame({"CELL": cell_names})
+
+            mapped_df = map_cell_to_barcode(
+                cell_df, barcode_path=self.barcode_path, cell_col="CELL"
+            )
+            cell_names = mapped_df["CELL"].tolist()
 
         # Generate allele-specific center table
         max_idx = int(np.nanmax(gt_values))
@@ -99,7 +113,7 @@ class AlleloscopeParser(CNAParser):
         seg_table.columns = [c.lower() for c in seg_table.columns]
         seg_table["region_label"] = seg_table.apply(
             lambda r: f"{'chr' if self.add_chr_prefix else ''}{r['chr']}:"
-                      f"{int(float(r['start'])) + (1 if self.start_plus_one else 0)}-"
+                      f"{int(float(r['start'])) + self.start_offset}-"
                       f"{int(float(r['end']))}",
             axis=1
         )
@@ -113,32 +127,26 @@ class AlleloscopeParser(CNAParser):
         # Optional: split regions by bin size
         if self.bin_size is not None:
             print(f"[hcbench] Splitting regions by bin size = {self.bin_size}")
-            new_rows, new_index = [], []
-            for idx, label in enumerate(out_t.index):
-                for sub in split_region(label, self.bin_size):
-                    new_rows.append(out_t.iloc[idx].copy())
-                    new_index.append(sub)
-
-            out_t = pd.DataFrame(new_rows, columns=out_t.columns, index=new_index)
+            out_t = split_all_regions(out_t, self.bin_size)
 
         out_t.index.name = "region"
         return out_t
 
-    def run(self):
-        """
-        Main entry point for parsing Alleloscope output.
-        Converts the RDS files into a unified haplotype CNA matrix.
-        """
-        print("[hcbench] Parsing Alleloscope RDS files...")
-        df = self.before_pivot()
+    # def run(self):
+    #     """
+    #     Main entry point for parsing Alleloscope output.
+    #     Converts the RDS files into a unified haplotype CNA matrix.
+    #     """
+    #     print("[hcbench] Parsing Alleloscope RDS files...")
+    #     df = self.before_pivot()
 
-        self._check_output_path()
-        output_file = os.path.join(self.output_path, "haplotype_combined.csv")
-        df.to_csv(output_file)
-        print(f"[hcbench] {self.__class__.__name__} parsed CNA file saved to {output_file}")
+    #     self._check_output_path()
+    #     output_file = os.path.join(self.output_path, "haplotype_combined.csv")
+    #     df.to_csv(output_file)
+    #     print(f"[hcbench] {self.__class__.__name__} parsed CNA file saved to {output_file}")
 
-        if self.split_haplotype:
-            self._postprocess_haplotype(df)
+    #     if self.split_haplotype:
+    #         self._postprocess_haplotype(df)
 
     def get_cluster(self, cluster_file_path):
         """
@@ -153,11 +161,86 @@ class AlleloscopeParser(CNAParser):
         print("[hcbench] Parsing Alleloscope cluster file...")
 
         cluster_df = pd.read_csv(cluster_file_path, index_col=0)
+
         result_df = pd.DataFrame({
             "cell_id": cluster_df.index.to_list(),
             "clone_id": cluster_df["x"]
         })
 
+        if self.barcode_path is not None:
+            result_df = map_cell_to_barcode(result_df, self.barcode_path, "cell_id")
+
         result_file = os.path.join(self.output_path, "clusters.csv")
         result_df.to_csv(result_file, index=False)
         print(f"[hcbench] Cluster file saved to {result_file}")
+
+    def get_bin_counts(self, counts_path,start_offset = 1):
+        
+        df = read_table_auto(counts_path)
+
+        df.rename(columns={df.columns[0]: "region"}, inplace=True)
+
+        chrom, start, end = df["region"].str.split("-", expand=True)[0], df["region"].str.split("-", expand=True)[1], df["region"].str.split("-", expand=True)[2]
+
+        df['region'] = (
+            chrom.astype(str)
+            + ":" + (start.astype(int) + start_offset).astype(str)
+            + "-" + end.astype(str)
+        )
+
+        df.set_index('region', inplace=True)
+
+
+        if self.barcode_path is not None:
+            cell_df = pd.DataFrame({"CELL": df.columns.tolist()})
+
+            mapped_df = map_cell_to_barcode(
+                cell_df, barcode_path=self.barcode_path, cell_col="CELL"
+            )
+
+            df.columns = mapped_df["CELL"].tolist()
+
+
+        self._check_output_path()
+
+        output_file = os.path.join(self.output_path, "bin_counts.csv")
+        df.to_csv(output_file)
+
+        print(f"[hcbench] Bin Counts file saved to {output_file}")
+
+    def get_VAF_matrix(self, vaf_file_path, output_path = None,min_dp=1, min_cells=1, prefix = "cellSNP"):
+        
+        if output_path is not None:
+            output_vaf = os.path.join(output_path, "VAF")
+        else:
+            output_vaf = os.path.join(self.output_path, "VAF")
+
+        os.makedirs(output_vaf, exist_ok=True)
+
+
+        # src_variants = os.path.join(vaf_file_path, f"cellSNP.variants.tsv")
+        # dst_variants = os.path.join(output_vaf, f"{prefix}.variants.tsv")
+
+        src_sample = os.path.join(vaf_file_path, f"cellSNP.samples.tsv")
+        dst_samples = os.path.join(output_vaf, f"{prefix}.samples.tsv")
+
+        src_AD = os.path.join(vaf_file_path, f"cellSNP.tag.AD.mtx")
+        dst_AD = os.path.join(output_vaf, f"{prefix}.AD.mtx")
+
+        src_DP = os.path.join(vaf_file_path, f"cellSNP.tag.DP.mtx")
+        dst_DP = os.path.join(output_vaf, f"{prefix}.DP.mtx")
+
+        variant_info = realbench.RealBench.load_vcf_pos(f"{vaf_file_path}/cellSNP.base.vcf.gz")
+        print(f"Loaded {len(variant_info)} variants.")
+        variant_info.to_csv(os.path.join(output_vaf, f"{prefix}.variants.tsv"), sep="\t", index=False)
+
+
+        # shutil.copy2(src_variants, dst_variants)
+        shutil.copy2(src_sample, dst_samples)
+        shutil.copy2(src_AD, dst_AD)
+        shutil.copy2(src_DP, dst_DP)
+
+        process_variant_data(output_vaf, output_vaf, min_dp=min_dp, min_cells=min_cells, prefix = prefix )
+
+
+        
