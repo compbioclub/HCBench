@@ -1401,79 +1401,79 @@ def phase_to_binary(hap1_df: pd.DataFrame, hap2_df: pd.DataFrame) -> Tuple[pd.Da
     return h1, h2
 
 
-# def eval_mismatch_switch_gt(g1: pd.DataFrame, g2: pd.DataFrame,
-#                             h1: pd.DataFrame, h2: pd.DataFrame, tool_name: str) -> List[Dict]:
-#     # g1 = g1.dropna(axis=1, how='all'); g2 = g2.dropna(axis=1, how='all')
+def eval_mismatch_switch_gt(g1: pd.DataFrame, g2: pd.DataFrame,
+                            h1: pd.DataFrame, h2: pd.DataFrame, tool_name: str) -> List[Dict]:
+    # g1 = g1.dropna(axis=1, how='all'); g2 = g2.dropna(axis=1, how='all')
 
-#     # idx = g1.index.intersection(h1.index)
-#     # col = g1.columns.intersection(h1.columns)
-#     # g1, g2, h1, h2 = g1.loc[idx, col], g2.loc[idx, col], h1.loc[idx, col], h2.loc[idx, col]
+    # idx = g1.index.intersection(h1.index)
+    # col = g1.columns.intersection(h1.columns)
+    # g1, g2, h1, h2 = g1.loc[idx, col], g2.loc[idx, col], h1.loc[idx, col], h2.loc[idx, col]
 
-#     # col = g1.columns
+    # col = g1.columns
 
-#     # prefixes = col.str.extract(r"(^[^_]+)_")[0].unique()
-#     results = []
-
-
-#     grp_cols = g1.columns.intersection(h1.columns)
-#     g1_g, g2_g = g1[grp_cols], g2[grp_cols]
-#     h1_g,  h2_g = h1[grp_cols],  h2[grp_cols]
-
-#     # mismatch
-#     # mask_1 = (g1_g != -1) & (h1_g != -1)
-#     # mask_2 = (g2_g != -1) & (h2_g != -1)
-
-#     mask_1 = g1_g != -1; mask_2 = g2_g != -1
-
-#     print(f"mismatch total diff {(mask_1 != mask_2).sum().sum()}")
-#     print(f"mask1: { mask_1.sum().sum()}")
-#     print(f"mask2: { mask_2.sum().sum()}")
+    # prefixes = col.str.extract(r"(^[^_]+)_")[0].unique()
+    results = []
 
 
-#     mm = ((h1_g != g1_g) & mask_1).sum().sum()
-#     pm = ((h2_g != g2_g) & mask_2).sum().sum()
+    grp_cols = g1.columns.intersection(h1.columns)
+    g1_g, g2_g = g1[grp_cols], g2[grp_cols]
+    h1_g,  h2_g = h1[grp_cols],  h2[grp_cols]
 
-#     total_m = mask_1.sum().sum()
-#     print(f"mask1: { mask_1.sum().sum()}")
-#     print(f"mask2: { mask_2.sum().sum()}")
+    # mismatch
+    # mask_1 = (g1_g != -1) & (h1_g != -1)
+    # mask_2 = (g2_g != -1) & (h2_g != -1)
 
+    mask_1 = g1_g != -1; mask_2 = g2_g != -1
 
-#     # switch error
-#     nrow, ncol = g1_g.shape
-#     total_sw = 0; sw_1 = 0; sw_2 = 0
-
-
-#     g1_n = g1_g.to_numpy()
-#     g2_n = g2_g.to_numpy()
-#     h1_n = h1_g.to_numpy()
-#     h2_n = h2_g.to_numpy()
-
-#     g1_cur, g1_next = g1_n[:, :-1], g1_n[:, 1:]
-#     g2_cur, g2_next = g2_n[:, :-1], g2_n[:, 1:]
-#     h1_cur, h1_next = h1_n[:, :-1], h1_n[:, 1:]
-#     h2_cur, h2_next = h2_n[:, :-1], h2_n[:, 1:]
-
-#     valid1 = (g1_cur != -1) & (g1_next != -1)
-#     # hap2 相邻 bin 同时有效
-#     valid2 = (g2_cur != -1) & (g2_next != -1)
+    print(f"mismatch total diff {(mask_1 != mask_2).sum().sum()}")
+    print(f"mask1: { mask_1.sum().sum()}")
+    print(f"mask2: { mask_2.sum().sum()}")
 
 
-#     sw1_mask = ((g1_cur != h1_cur) | (g1_next != h1_next)) & valid1
-#     sw2_mask = ((g2_cur != h2_cur) | (g2_next != h2_next)) & valid2
+    mm = ((h1_g != g1_g) & mask_1).sum().sum()
+    pm = ((h2_g != g2_g) & mask_2).sum().sum()
 
-#     total_sw = valid1.sum()
-#     sw_1 = sw1_mask.sum()
+    total_m = mask_1.sum().sum()
+    print(f"mask1: { mask_1.sum().sum()}")
+    print(f"mask2: { mask_2.sum().sum()}")
 
-#     results.append({
-#         "tool_name": tool_name,
-#         "mismatch_count": int(mm),
-#         "total": int(total_m),
-#         "mismatch_ratio": (mm / total_m) if total_m > 0 else None,
-#         "switch_error_count": int(sw_1),
-#         "total_switch_compare_count": int(total_sw),
-#         "switch_error_ratio": (sw_1 / total_sw) if total_sw > 0 else None,
-#     })
-#     return results
+
+    # switch error
+    nrow, ncol = g1_g.shape
+    total_sw = 0; sw_1 = 0; sw_2 = 0
+
+
+    g1_n = g1_g.to_numpy()
+    g2_n = g2_g.to_numpy()
+    h1_n = h1_g.to_numpy()
+    h2_n = h2_g.to_numpy()
+
+    g1_cur, g1_next = g1_n[:, :-1], g1_n[:, 1:]
+    g2_cur, g2_next = g2_n[:, :-1], g2_n[:, 1:]
+    h1_cur, h1_next = h1_n[:, :-1], h1_n[:, 1:]
+    h2_cur, h2_next = h2_n[:, :-1], h2_n[:, 1:]
+
+    valid1 = (g1_cur != -1) & (g1_next != -1)
+    # hap2 相邻 bin 同时有效
+    valid2 = (g2_cur != -1) & (g2_next != -1)
+
+
+    sw1_mask = ((g1_cur != h1_cur) | (g1_next != h1_next)) & valid1
+    sw2_mask = ((g2_cur != h2_cur) | (g2_next != h2_next)) & valid2
+
+    total_sw = valid1.sum()
+    sw_1 = sw1_mask.sum()
+
+    results.append({
+        "tool_name": tool_name,
+        "mismatch_count": int(mm),
+        "total": int(total_m),
+        "mismatch_ratio": (mm / total_m) if total_m > 0 else None,
+        "switch_error_count": int(sw_1),
+        "total_switch_compare_count": int(total_sw),
+        "switch_error_ratio": (sw_1 / total_sw) if total_sw > 0 else None,
+    })
+    return results
 
 
 
