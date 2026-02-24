@@ -523,6 +523,108 @@ class GTBench:
         return pr, cr
 
     # ========= 7) hcPhasing =========
+    # def hcPhasing(
+    #     self,
+    #     tool_hap1_cna_files: List[str],
+    #     tool_hap2_cna_files: List[str],
+    #     tool_names: List[str],
+    #     ground_truth_hap1_file: str,
+    #     ground_truth_hap2_file: str,
+    #     outprefix = "hcPhasing",
+    #     profile_bin_size = 100000,
+    #     mask_both = True,
+    #     output_all = False
+    # ) -> pd.DataFrame:
+
+    #     print("read gt")
+    #     g1_r = read_and_drop_empty(ground_truth_hap1_file)
+    #     g2_r = read_and_drop_empty(ground_truth_hap2_file)
+
+    #     g1_r.set_index("region",inplace=True)
+    #     g2_r.set_index("region",inplace=True)
+
+    #     rows = []
+    #     for f_h1, f_h2, name in zip(tool_hap1_cna_files, tool_hap2_cna_files, tool_names):
+    #         t1 = read_and_drop_empty(f_h1)
+    #         t2 = read_and_drop_empty(f_h2)
+
+    #         t1 = split_all_regions(t1.set_index("region"), profile_bin_size)
+    #         t2 = split_all_regions(t2.set_index("region"), profile_bin_size)
+    #         g1, t1 =  align(g1_r, t1)
+    #         g2, t2 =  align(g2_r, t2)
+
+    #         print(f"After align change shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
+
+    #         g1_bin, g2_bin = self._phase_to_binary(g1, g2)
+
+    #         h1_bin, h2_bin = self._phase_to_binary(t1, t2)
+
+    #         eval_fn = self._eval_mismatch_switch_both if mask_both else self._eval_mismatch_switch_gt
+
+    #         part_a = eval_fn(g1_bin, g2_bin, h1_bin, h2_bin, name)
+    #         part_b = eval_fn(g2_bin, g1_bin, h1_bin, h2_bin, name)
+
+    #         df_a = pd.DataFrame(part_a)
+    #         df_b = pd.DataFrame(part_b)
+
+    #         if df_a.empty and df_b.empty:
+    #             continue
+    #         if df_a.empty:
+    #             rows.extend(part_b)
+    #             continue
+    #         if df_b.empty:
+    #             rows.extend(part_a)
+    #             continue
+
+    #         for c in ["mismatch_count", "mismatch_ratio", "total",
+    #               "switch_error_count", "total_switch_compare_count", "switch_error_ratio"]:
+    #             if c in df_a.columns:
+    #                 df_a[c] = pd.to_numeric(df_a[c], errors="coerce")
+    #             if c in df_b.columns:
+    #                 df_b[c] = pd.to_numeric(df_b[c], errors="coerce")
+
+    #         total_a = float(df_a["mismatch_count"].sum())
+    #         total_b = float(df_b["mismatch_count"].sum())
+
+    #         best = df_b if total_b < total_a else df_a
+    #         rows.extend(best.to_dict("records"))
+
+    #     df = pd.DataFrame(rows)
+    #     df.to_csv(os.path.join(self.output_dir, f"{outprefix}_perclone.csv"), index=False)
+
+    #     if output_all and not df.empty:
+    #         num_cols = ["mismatch_count", "total", "switch_error_count", "total_switch_compare_count"]
+    #         for c in num_cols:
+    #             if c in df.columns:
+    #                 df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
+
+    #         tool_sum = (
+    #             df.groupby("tool_name", as_index=False)[
+    #                 ["mismatch_count", "total", "switch_error_count", "total_switch_compare_count"]
+    #             ].sum()
+    #         )
+
+    #         tool_sum["mismatch_ratio"] = np.where(
+    #             tool_sum["total"] > 0,
+    #             tool_sum["mismatch_count"] / tool_sum["total"],
+    #             np.nan
+    #         )
+    #         tool_sum["switch_error_ratio"] = np.where(
+    #             tool_sum["total_switch_compare_count"] > 0,
+    #             tool_sum["switch_error_count"] / tool_sum["total_switch_compare_count"],
+    #             np.nan
+    #         )
+
+    #         tool_sum = tool_sum[
+    #             ["tool_name",
+    #             "mismatch_count", "total", "mismatch_ratio",
+    #             "switch_error_count", "total_switch_compare_count", "switch_error_ratio"]
+    #         ]
+    #         tool_sum.to_csv(os.path.join(self.output_dir, f"{outprefix}_total.csv"), index=False)
+
+    #     return df
+
+    # ========= 7) hcPhasing =========
     def hcPhasing(
         self,
         tool_hap1_cna_files: List[str],
@@ -561,66 +663,8 @@ class GTBench:
 
             eval_fn = self._eval_mismatch_switch_both if mask_both else self._eval_mismatch_switch_gt
 
-            part_a = eval_fn(g1_bin, g2_bin, h1_bin, h2_bin, name)
-            part_b = eval_fn(g2_bin, g1_bin, h1_bin, h2_bin, name)
-
-            df_a = pd.DataFrame(part_a)
-            df_b = pd.DataFrame(part_b)
-
-            if df_a.empty and df_b.empty:
-                continue
-            if df_a.empty:
-                rows.extend(part_b)
-                continue
-            if df_b.empty:
-                rows.extend(part_a)
-                continue
-
-            for c in ["mismatch_count", "mismatch_ratio", "total",
-                  "switch_error_count", "total_switch_compare_count", "switch_error_ratio"]:
-                if c in df_a.columns:
-                    df_a[c] = pd.to_numeric(df_a[c], errors="coerce")
-                if c in df_b.columns:
-                    df_b[c] = pd.to_numeric(df_b[c], errors="coerce")
-
-            total_a = float(df_a["mismatch_count"].sum())
-            total_b = float(df_b["mismatch_count"].sum())
-
-            best = df_b if total_b < total_a else df_a
-            rows.extend(best.to_dict("records"))
-
-        df = pd.DataFrame(rows)
-        df.to_csv(os.path.join(self.output_dir, f"{outprefix}_perclone.csv"), index=False)
-
-        if output_all and not df.empty:
-            num_cols = ["mismatch_count", "total", "switch_error_count", "total_switch_compare_count"]
-            for c in num_cols:
-                if c in df.columns:
-                    df[c] = pd.to_numeric(df[c], errors="coerce").fillna(0)
-
-            tool_sum = (
-                df.groupby("tool_name", as_index=False)[
-                    ["mismatch_count", "total", "switch_error_count", "total_switch_compare_count"]
-                ].sum()
-            )
-
-            tool_sum["mismatch_ratio"] = np.where(
-                tool_sum["total"] > 0,
-                tool_sum["mismatch_count"] / tool_sum["total"],
-                np.nan
-            )
-            tool_sum["switch_error_ratio"] = np.where(
-                tool_sum["total_switch_compare_count"] > 0,
-                tool_sum["switch_error_count"] / tool_sum["total_switch_compare_count"],
-                np.nan
-            )
-
-            tool_sum = tool_sum[
-                ["tool_name",
-                "mismatch_count", "total", "mismatch_ratio",
-                "switch_error_count", "total_switch_compare_count", "switch_error_ratio"]
-            ]
-            tool_sum.to_csv(os.path.join(self.output_dir, f"{outprefix}_total.csv"), index=False)
+            
+            # tool_sum.to_csv(os.path.join(self.output_dir, f"{outprefix}_total.csv"), index=False)
 
         return df
 

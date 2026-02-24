@@ -1671,3 +1671,57 @@ def eval_mismatch_switch_both(g1: pd.DataFrame, g2: pd.DataFrame,
         "switch_error_ratio": (sw_1 / total_sw) if total_sw > 0 else None,
     })
     return results
+
+def _flip_phase(x: np.ndarray) -> np.ndarray:
+    x = x.copy()
+    m0 = (x == 0)
+    m1 = (x == 1)
+    x[m0] = 1
+    x[m1] = 0
+    return x
+
+def mismatch_error(gt, pred):
+    """
+    gt, pred: (n_cell, n_bin)
+    return: (n_cell,)
+    """
+    assert pred.shape == gt.shape
+
+    # not flip
+    d0 = np.mean(pred != gt, axis=1) # (n_cell,)
+
+    # flip
+    pf = _flip_phase(pred)
+    d1 = np.mean(pf != gt, axis=1) # (n_cell,)
+
+    return np.minimum(d0, d1) # (n_cell,)
+
+def switch_error(gt, pred):
+    """
+    gt, pred: (n_cell, n_bin)
+    return: (n_cell,)
+    """
+    assert pred.shape == gt.shape
+
+    ps = (pred[:,1:] != pred[:,:-1]) # (n_cell, n_bin-1)
+    gs = (gt[:,1:] != gt[:,:-1]) # (n_cell, n_bin-1)
+
+    d0 = np.mean(ps != gs, axis=1) # (n_cell,)
+
+    return d0
+
+def _mask_by_mode(pred, gt, mode) -> np.ndarray:
+
+    if mode == "heterozygous-only":
+
+        return (pred != -1) & (gt != -1)
+    elif mode == "homozygous-inclusive":
+
+        return np.ones(pred.shape[-1], dtype=bool)
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
+
+
+def simu_cell_mismatch_error(pred_CN, actual_CN, mode):
+
+    pass
