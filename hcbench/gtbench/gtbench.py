@@ -20,7 +20,7 @@ from hcbench.utils import align, align_cna_bins, annotate_segments, categorize_a
 from sklearn.metrics import adjusted_rand_score as adjustedRandIndex, mean_squared_error
 from sklearn.metrics import adjusted_mutual_info_score as AMI
 from hcbench.parsers.utils import split_all_regions
-from ..utils import count_unique_cells
+from ..utils import count_unique_cells, simu_cell_mismatch_error, simu_cell_switch_error, simu_clone_mismatch_error, simu_clone_switch_error
 from ..realbench.utils import create_lazac_input,get_final_parsimony_score
 
 class GTBench:
@@ -634,8 +634,8 @@ class GTBench:
         ground_truth_hap2_file: str,
         outprefix = "hcPhasing",
         profile_bin_size = 100000,
-        mask_both = True,
-        output_all = False
+        mode = "heterozygous-only",
+        is_clone = False,
     ) -> pd.DataFrame:
 
         print("read gt")
@@ -657,16 +657,27 @@ class GTBench:
 
             print(f"After align change shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
 
-            g1_bin, g2_bin = self._phase_to_binary(g1, g2)
-
-            h1_bin, h2_bin = self._phase_to_binary(t1, t2)
-
-            eval_fn = self._eval_mismatch_switch_both if mask_both else self._eval_mismatch_switch_gt
-
             
-            # tool_sum.to_csv(os.path.join(self.output_dir, f"{outprefix}_total.csv"), index=False)
+            g1_bin, _ = self._phase_to_binary(g1, g2)
 
-        return df
+            t1_bin, _ = self._phase_to_binary(t1, t2)
+
+
+            eval_mismatch_fn = simu_clone_mismatch_error if is_clone else simu_cell_mismatch_error
+            eval_switch_fn = simu_clone_switch_error if is_clone else simu_cell_switch_error
+
+            mismatch_error_result = eval_mismatch_fn(t1_bin, g1_bin, mode)
+            switch_error_result = eval_switch_fn(t1_bin, g1_bin, mode)
+
+            label = "clone_label" if is_clone else "cell"
+            result = pd.merge(mismatch_error_result, switch_error_result, on=label, how="outer")
+            result["tool_name"] = name
+            rows.extend(result.to_dict("records"))
+            
+        result_df = pd.DataFrame(rows)
+        result_df.to_csv(os.path.join(self.output_dir, f"{outprefix}_{mode}.csv"), index=False)
+
+        return result_df
 
     @staticmethod
     def _phase_to_binary(hap1_df: pd.DataFrame, hap2_df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:

@@ -1680,48 +1680,160 @@ def _flip_phase(x: np.ndarray) -> np.ndarray:
     x[m1] = 0
     return x
 
-def mismatch_error(gt, pred):
+def mismatch_error(gt, pred,mask=None):
     """
     gt, pred: (n_cell, n_bin)
+    mask: None or (n_cell, n_bin)
     return: (n_cell,)
     """
     assert pred.shape == gt.shape
 
+    if mask is None:
+        mask = np.ones_like(pred, dtype=bool)
+
+    denom = mask.sum(axis=1).astype(float)
+    denom[denom == 0] = np.nan
+
     # not flip
-    d0 = np.mean(pred != gt, axis=1) # (n_cell,)
+    mism0 = ((pred != gt) & mask).sum(axis=1) / denom # (n_cell,)
 
     # flip
     pf = _flip_phase(pred)
-    d1 = np.mean(pf != gt, axis=1) # (n_cell,)
+    mism1 = ((pf != gt) & mask).sum(axis=1) / denom # (n_cell,)
 
-    return np.minimum(d0, d1) # (n_cell,)
+    return np.minimum(mism0, mism1) # (n_cell,)
 
-def switch_error(gt, pred):
+def switch_error(gt, pred,mask=None):
     """
     gt, pred: (n_cell, n_bin)
+    mask: None or (n_cell, n_bin)
     return: (n_cell,)
     """
     assert pred.shape == gt.shape
+
+    if mask is None:
+        mask = np.ones_like(pred, dtype=bool)
+
+    mask_pair = mask[:, 1:] & mask[:, :-1]
 
     ps = (pred[:,1:] != pred[:,:-1]) # (n_cell, n_bin-1)
     gs = (gt[:,1:] != gt[:,:-1]) # (n_cell, n_bin-1)
 
-    d0 = np.mean(ps != gs, axis=1) # (n_cell,)
+    denom = mask_pair.sum(axis=1).astype(float)
+    denom[denom == 0] = np.nan
 
-    return d0
+    return ((ps != gs) & mask_pair).sum(axis=1) / denom
 
-def _mask_by_mode(pred, gt, mode) -> np.ndarray:
+def _mask_by_mode(pred, gt, mode):
+
+    if pred.shape != gt.shape:
+        raise ValueError(f"Shape mismatch: pred{pred.shape} vs gt{gt.shape}")
 
     if mode == "heterozygous-only":
 
         return (pred != -1) & (gt != -1)
-    elif mode == "homozygous-inclusive":
+    elif mode == "homozygous-inclusive-pred":
 
-        return np.ones(pred.shape[-1], dtype=bool)
+        return (gt != -1)
+    elif mode == "homozygous-inclusive-all":
+
+        return np.ones_like(pred, dtype=bool)
     else:
         raise ValueError(f"Unknown mode: {mode}")
 
 
 def simu_cell_mismatch_error(pred_CN, actual_CN, mode):
 
-    pass
+    pred, gt = align(pred_CN, actual_CN)
+
+    pred_arr = pred.to_numpy().T
+    gt_arr = gt.to_numpy().T
+
+    mask = _mask_by_mode(pred_arr, gt_arr, mode)
+
+    n_cell = pred_arr.shape[0]
+    out = mismatch_error(gt_arr, pred_arr, mask)
+
+    mask = _mask_by_mode(pred_arr, gt_arr, mode)
+
+    out = np.full(n_cell, np.nan)
+
+    return pd.DataFrame({
+            "cell": pred.columns,
+            "mismatch_ratio": out
+            })
+
+
+def simu_clone_mismatch_error(pred_CN, actual_CN, mode):
+
+    pred, gt = align(pred_CN, actual_CN)
+
+    col = gt.columns
+    prefixes = col.str.extract(r"(^[^_]+)_")[0].unique()
+
+    results = []
+    for pref in prefixes:
+        gt_cols = [c for c in col if c.startswith(f"{pref}_")]
+        _pred, _gt = pred[gt_cols], gt[gt_cols]
+        result = simu_cell_mismatch_error(_pred, _gt, mode)
+        mismatch_error = result['mismatch_ratio'].mean()
+        results.append({
+            "clone_label": pref,
+            "mismatch_ratio": mismatch_error,
+        })
+        
+    return pd.DataFrame(results)
+       
+
+def simu_cell_switch_error(pred_CN, actual_CN, mode):
+
+    pred, gt = align(pred_CN, actual_CN)
+
+    pred_arr = pred.to_numpy().T
+    gt_arr = gt.to_numpy().T
+
+    mask = _mask_by_mode(pred_arr, gt_arr, mode)
+
+    n_cell = pred_arr.shape[0]
+    out = switch_error(gt_arr, pred_arr, mask)
+
+    mask = _mask_by_mode(pred_arr, gt_arr, mode)
+
+    out = np.full(n_cell, np.nan)
+
+    return pd.DataFrame({
+                "cell": pred.columns,
+                "switch_error_ratio": out
+            })
+                     
+
+
+def simu_clone_switch_error(pred_CN, actual_CN, mode):
+
+    pred, gt = align(pred_CN, actual_CN)
+
+    col = gt.columns
+    prefixes = col.str.extract(r"(^[^_]+)_")[0].unique()
+
+    results = []
+    for pref in prefixes:
+        gt_cols = [c for c in col if c.startswith(f"{pref}_")]
+        _pred, _gt = pred[gt_cols], gt[gt_cols]
+        result = simu_cell_switch_error(_pred, _gt, mode)
+        switch_error = result['switch_error_ratio'].mean()
+        results.append({
+            "clone_label": pref,
+            "switch_error_ratio": switch_error,
+        })
+        
+    return pd.DataFrame(results)
+
+
+def real_cell_mismatch_error(pred_A_CN, pred_B_CN, mode):
+
+    return simu_cell_mismatch_error(pred_A_CN, pred_B_CN, mode)
+
+def real_cell_switch_error(pred_A_CN, pred_B_CN, mode):
+
+    return simu_cell_switch_error(pred_A_CN, pred_B_CN, mode)
+

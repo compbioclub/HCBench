@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Optional
 import scipy
 from .utils import align_cna_bins, align_tables, calculate_llr, compute_rd_cn_l1, count_unique_cells, create_lazac_input, evaluate_clustering_results, extract_vaf_by_binary_mask, get_final_parsimony_score, get_top_clusters, map_region_to_variants, match_snvs_to_bins
 from hcbench.gtbench import gtbench
-from ..utils import align, annotate_segments, categorize_and_save, check_binsize, eval_mismatch_switch_both, eval_mismatch_switch_gt, eval_mismatch_switch_homorozygous_included, evaluate_haplotype_predictions, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_segment_metric, get_segment_metric_both, get_segment_overlap_ratio, intersect_cells_from_cna, phase_to_binary, process_folder_for_metrics, read_and_drop_empty
+from ..utils import align, annotate_segments, categorize_and_save, check_binsize, eval_mismatch_switch_both, eval_mismatch_switch_gt, eval_mismatch_switch_homorozygous_included, evaluate_haplotype_predictions, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_segment_metric, get_segment_metric_both, get_segment_overlap_ratio, intersect_cells_from_cna, phase_to_binary, process_folder_for_metrics, read_and_drop_empty, real_cell_mismatch_error, real_cell_switch_error
 import subprocess
 from hcbench.parsers.utils import map_cell_to_barcode
 import itertools
@@ -883,7 +883,7 @@ class RealBench:
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         outprefix = "hcPhasing",
-        mask_type = "heterozygous-only"
+        mode = "heterozygous-only",
     ) -> pd.DataFrame:
 
         rows = []
@@ -905,48 +905,22 @@ class RealBench:
 
                 print(f"After align change shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
 
-                g1_bin, g2_bin = phase_to_binary(g1_df, g2_df)
+                g1_bin, _ = phase_to_binary(g1_df, g2_df)
 
-                h1_bin, h2_bin = phase_to_binary(t1_df, t2_df)
+                t1_bin, _ = phase_to_binary(t1_df, t2_df)
 
-                if mask_type == "heterozygous-only":
-                    eval_fn = eval_mismatch_switch_both
-                elif mask_type == "homorozygous-included":
-                    eval_fn = eval_mismatch_switch_homorozygous_included
-                else:
-                    eval_fn = eval_mismatch_switch_gt
+                mismatch_error_result = real_cell_mismatch_error(t1_bin, g1_bin, mode)
+                switch_error_result = real_cell_switch_error(t1_bin, g1_bin, mode)
 
-                part_a = eval_fn(g1_bin, g2_bin, h1_bin, h2_bin, name)
-                part_b = eval_fn(g2_bin, g1_bin, h1_bin, h2_bin, name)
+                result = pd.merge(mismatch_error_result, switch_error_result, on="cell", how="outer")
 
-                df_a = pd.DataFrame(part_a)
-                df_b = pd.DataFrame(part_b)
+                result["tool_name"] = name
 
-                if df_a.empty and df_b.empty:
-                    continue
-                if df_a.empty:
-                    rows.extend(part_b)
-                    continue
-                if df_b.empty:
-                    rows.extend(part_a)
-                    continue
-
-                for c in ["mismatch_count", "mismatch_ratio", "total",
-                    "switch_error_count", "total_switch_compare_count", "switch_error_ratio"]:
-                    if c in df_a.columns:
-                        df_a[c] = pd.to_numeric(df_a[c], errors="coerce")
-                    if c in df_b.columns:
-                        df_b[c] = pd.to_numeric(df_b[c], errors="coerce")
-
-                total_a = float(df_a["mismatch_count"].sum())
-                total_b = float(df_b["mismatch_count"].sum())
-
-                best = df_b if total_b < total_a else df_a
-                best['GT_tool'] = name1
-                rows.extend(best.to_dict("records"))
+                result['GT_tool'] = name1
+                rows.extend(result.to_dict("records"))
 
         df = pd.DataFrame(rows)
-        df.to_csv(os.path.join(self.output_dir, f"{outprefix}.csv"), index=False)
+        df.to_csv(os.path.join(self.output_dir, f"{outprefix}_{mode}.csv"), index=False)
 
         return df
 
