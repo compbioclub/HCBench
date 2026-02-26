@@ -1745,6 +1745,7 @@ def _mask_by_mode(pred, gt, mode):
 def simu_cell_mismatch_error(pred_CN, actual_CN, mode):
 
     pred, gt = align(pred_CN, actual_CN)
+    print(f"Aligned CN shapes: pred {pred.shape}, gt {gt.shape} \n {pred.head()}")
 
     pred_arr = pred.to_numpy().T
     gt_arr = gt.to_numpy().T
@@ -1753,10 +1754,6 @@ def simu_cell_mismatch_error(pred_CN, actual_CN, mode):
 
     n_cell = pred_arr.shape[0]
     out = mismatch_error(gt_arr, pred_arr, mask)
-
-    mask = _mask_by_mode(pred_arr, gt_arr, mode)
-
-    out = np.full(n_cell, np.nan)
 
     return pd.DataFrame({
             "cell": pred.columns,
@@ -1794,12 +1791,7 @@ def simu_cell_switch_error(pred_CN, actual_CN, mode):
 
     mask = _mask_by_mode(pred_arr, gt_arr, mode)
 
-    n_cell = pred_arr.shape[0]
     out = switch_error(gt_arr, pred_arr, mask)
-
-    mask = _mask_by_mode(pred_arr, gt_arr, mode)
-
-    out = np.full(n_cell, np.nan)
 
     return pd.DataFrame({
                 "cell": pred.columns,
@@ -1830,10 +1822,14 @@ def simu_clone_switch_error(pred_CN, actual_CN, mode):
 
 
 def real_cell_mismatch_error(pred_A_CN, pred_B_CN, mode):
+    result = simu_cell_mismatch_error(pred_A_CN, pred_B_CN, mode)
+    mismatch_error = result['mismatch_ratio'].mean()
 
-    return simu_cell_mismatch_error(pred_A_CN, pred_B_CN, mode)
+    return mismatch_error, result
 
 def real_cell_switch_error(pred_A_CN, pred_B_CN, mode):
+    result = simu_cell_switch_error(pred_A_CN, pred_B_CN, mode)
+    switch_error = result['switch_error_ratio'].mean()
 
-    return simu_cell_switch_error(pred_A_CN, pred_B_CN, mode)
+    return switch_error, result
 

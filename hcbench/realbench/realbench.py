@@ -894,25 +894,30 @@ class RealBench:
             for f_h1, f_h2, name in zip(tool_hap1_cna_files, tool_hap2_cna_files, tool_names):
                 t1 = read_and_drop_empty(f_h1)
                 t2 = read_and_drop_empty(f_h2)
+                print(f"shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
+
 
                 g1_df, t1_df = align_cna_bins(g1.copy(), t1.copy())
                 g2_df, t2_df = align_cna_bins(g2.copy(), t2.copy())
 
-                # g1_df.set_index("region",inplace=True)
-                # t1_df.set_index("region",inplace=True)
-                # g2_df.set_index("region",inplace=True)
-                # t1_df.set_index("region",inplace=True)
+                g1_df.set_index("region",inplace=True)
+                t1_df.set_index("region",inplace=True)
+                g2_df.set_index("region",inplace=True)
+                t2_df.set_index("region",inplace=True)
 
-                print(f"After align change shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
+                print(f"After align change shape: {g1_df.shape}, hap1 shape: {t1_df.shape},hap2 shape: {t2_df.shape}")
 
                 g1_bin, _ = phase_to_binary(g1_df, g2_df)
 
                 t1_bin, _ = phase_to_binary(t1_df, t2_df)
 
-                mismatch_error_result = real_cell_mismatch_error(t1_bin, g1_bin, mode)
-                switch_error_result = real_cell_switch_error(t1_bin, g1_bin, mode)
+                mismatch_error,_ = real_cell_mismatch_error(t1_bin, g1_bin, mode)
+                switch_error,_ = real_cell_switch_error(t1_bin, g1_bin, mode)
 
-                result = pd.merge(mismatch_error_result, switch_error_result, on="cell", how="outer")
+                result = pd.DataFrame({
+                    "mismatch_ratio": [mismatch_error],
+                    "switch_error_ratio": [switch_error]
+                })
 
                 result["tool_name"] = name
 

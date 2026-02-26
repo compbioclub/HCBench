@@ -1425,3 +1425,25 @@ class GTBench:
         print(f"Parsimony Score is saved to {out}")
 
         return df
+
+    def cellnum(
+        self,
+        tool_cna_files: List[str],
+        tool_names: List[str],
+        outfile: str = "cell_num.csv",    
+    ):
+        results = []
+
+        for path, name in zip(tool_cna_files, tool_names):
+            pred = read_and_drop_empty(path)
+            cell_count = len(set(pred.columns[1:]))
+
+            results.append({"Tool": name, "cell_num": cell_count})
+            print(results)
+
+        df = pd.DataFrame(results)
+        out = os.path.join(self.output_dir, outfile)
+        df.to_csv(out, index=False)
+
+        return df
+        
