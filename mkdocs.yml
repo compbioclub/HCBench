@@ -3,11 +3,12 @@ repo_url: https://compbioclub.github.io/HCBench
 nav:
   - Home: index.md
   - Parsers:
+      - Overview: parsers/index.md
       - CHISEL: parsers/chisel.md
-      - SEACON: parsers/seacon.md
-      - SIGNALS: parsers/signals.md
-      - CNRein: parsers/cnrein.md
       - Alleloscope: parsers/alleloscope.md
+      - SIGNALS: parsers/signals.md
+      - SEACON: parsers/seacon.md
+      - CNRein: parsers/cnrein.md
   - GTbench:
       - Overview: gtbench/index.md
   - Realbench:

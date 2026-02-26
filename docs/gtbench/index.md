@@ -9,6 +9,7 @@
 
 | Submodule        | Description                                                  | Core Metrics                             |
 | ---------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| [clusterConsistency](clusterConsistency.md) | Provide a global assessment of clone detection | AMI, ARI                    |
 | `cndetect`       | Evaluates copy number (CN) detection accuracy                | RMSE, ACC, SCC                           |
 | `cnclass`        | Calculates CN state classification metrics                   | AUROC, AUPRC, ACC, Precision, Recall, F1 |
 | `hccnchange`     | Evaluates correctness of CN changes between parent and child clones | RMSE, ACC                                |
@@ -17,7 +18,6 @@
 | `hconsetcn`      | Evaluates accuracy of inferred parental CN                   | RMSE, ACC                                |
 | `hcPhasing`      | Evaluates haplotype phasing accuracy                         | Mismatch Error, Switch Error             |
 | `mirrorsubclone` | Evaluates mirror-subclone CNA detection accuracy             | RMSE, ACC                                |
-| `subdetect`      | Measures clustering accuracy across clones                   | AMI, ARI                                 |
 
 ------
 

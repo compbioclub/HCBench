@@ -154,11 +154,11 @@ class GTBench:
         df.to_csv(out, index=False)
         return df
 
-    @staticmethod
-    def _align_for_csv(gdf: pd.DataFrame, pdf: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        cols = gdf.columns.intersection(pdf.columns)
+    # @staticmethod
+    # def _align_for_csv(gdf: pd.DataFrame, pdf: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    #     cols = gdf.columns.intersection(pdf.columns)
 
-        return gdf.loc[:, cols], pdf.loc[:, cols]
+    #     return gdf.loc[:, cols], pdf.loc[:, cols]
 
     # ========= 3) hccnchange =========
     def hccnchange(

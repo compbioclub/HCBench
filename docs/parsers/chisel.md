@@ -5,9 +5,7 @@ This module provides ChiselParser, specialized for parsing CHISEL outputs and ex
 Key features:
 
 - Run the existing  pipeline on CHISEL CNA tables
-- Optional **two-pass** execution to export two different value columns into:
-  - `clone_level/`
-  - `cell_level/`
+- Optional **two-pass** execution to export two different value columns into: `clone_level/`,`cell_level/`
 - Parse CHISEL cluster assignments into a standardized `clusters.csv`
 - Export bin-level count matrices as `bin_counts.csv`
 - Convert a cellSNP-like VAF long table into sparse matrix outputs
@@ -132,58 +130,49 @@ ChiselParser(
 )
 ```
 
-**Parameters**
+**`input_path`**: Path to the CHISEL CNA output table (long format), the output directory of CHISEL typically looks like this:
 
-- **`input_path`**
+```
+demo_output/chisel/
+├── calls/
+│   └── calls.tsv
+```
 
-   Path to the CHISEL CNA output table (long format), the output directory of CHISEL typically looks like this:
+ An example of `calls.tsv`:
 
-  ```
-  demo_output/chisel/
-  ├── calls/
-  │   └── calls.tsv
-  ```
+```
+#CHR	START	END	CELL	NORM_COUNT	COUNT	RDR	A_COUNT	B_COUNT	BAF	CLUSTER	HAP_CN	CORRECTED_HAP_CN
+chr1	0	1000000	AAACAGGTACAT	16269	1590	0.7594	76	67	0.4685	55	1|1	1|1
+chr1	0	1000000	AAATTTGCCTTA	16269	3003	1.3324	74	195	0.7249	55	6|2	6|2
+chr1	0	1000000	AACACATCCATC	16269	1587	0.9759	78	78	0.5	55	1|1	1|1
+```
 
-   An example of `calls.tsv`:
+ The **required columns** are:
 
-  ```
-  #CHR	START	END	CELL	NORM_COUNT	COUNT	RDR	A_COUNT	B_COUNT	BAF	CLUSTER	HAP_CN	CORRECTED_HAP_CN
-  chr1	0	1000000	AAACAGGTACAT	16269	1590	0.7594	76	67	0.4685	55	1|1	1|1
-  chr1	0	1000000	AAATTTGCCTTA	16269	3003	1.3324	74	195	0.7249	55	6|2	6|2
-  chr1	0	1000000	AACACATCCATC	16269	1587	0.9759	78	78	0.5	55	1|1	1|1
-  ```
-
-   The **required columns** are:
-  
-  ```
-  #CHR, START, END, CELL, CORRECTED_HAP_CN
-  ```
+```
+#CHR, START, END, CELL, CORRECTED_HAP_CN
+```
 
 ​	Please ensure these column names are spelled exactly as shown.
 
-- **`output_path`**
-   Base output directory.
-   If `value_cols` contains two columns, `ChiselParser` will automatically write to:
+**`output_path`**: base output directory.
+If `value_cols` contains two columns, `ChiselParser` will automatically write to:
 
-  - `{output_path}/clone_level`
-  - `{output_path}/cell_level`
+- `{output_path}/clone_level`
+- `{output_path}/cell_level`
 
-- **`barcode_path`** (optional)
-   Path to a barcode mapping file used to remap cell.
-   Mapping is applied in:
+**`barcode_path`** (optional): Path to a barcode mapping file used to remap cell.
+Mapping is applied in:
 
-  - CNA table
-  - cluster table
-  - counts table
+- CNA table
+- cluster table
+- counts table
 
-- **`value_cols`** (optional)
-   Enables two-pass execution. Must be a `list`/`tuple` of **length 2**, e.g.:
+**`value_cols`** (optional): Enables two-pass execution. Must be a `list`/`tuple` of **length 2**, e.g.:
 
 ```
   value_cols=['CORRECTED_HAP_CN','HAP_CN']
 ```
-
-  Behavior:
 
   - `value_cols[0]` → written under `clone_level/`
   - `value_cols[1]` → written under `cell_level/`
@@ -211,22 +200,16 @@ Parses a CHISEL cluster mapping file and writes a standardized CSV.
 
 **Input**
 
-- `cluster_file_path`: TSV file containing at least:
-  - `#CELL`
-  - `CLUSTER`
+- `cluster_file_path`: TSV file containing at least:`#CELL`,`CLUSTER`
 
-**Output**
+**Output **writes to:
 
-Writes to:
+- `{self.output_path}/clusters.csv`, for example: 
 
-- `{self.output_path}/clusters.csv`
-
-CSV schema:
-
-| column   | meaning                             |
-| -------- | ----------------------------------- |
+|  column  |               meaning               |
+| :------: | :---------------------------------: |
 | cell_id  | cell identifier (possibly remapped) |
-| clone_id | CHISEL cluster/clone label          |
+| clone_id |     CHISEL cluster/clone label      |
 
 ------
 
@@ -234,9 +217,7 @@ CSV schema:
 
 Creates a region-by-cell wide matrix of per-bin counts.
 
-**Output**
-
-Writes to:
+**Output** writes to:
 
 - `{self.output_path}/bin_counts.csv`
 
@@ -256,35 +237,40 @@ Converts a cellSNP-like VAF long table into sparse matrix outputs using `long_to
 
 `vaf_file_path` must be a **tab-separated file with no header** and exactly 5 columns:
 
-| column index | meaning          |
-| ------------ | ---------------- |
-| 0            | chromosome       |
-| 1            | genomic position |
-| 2            | cell identifier  |
-| 3            | allele A count   |
-| 4            | allele B count   |
+| column index |     meaning      |
+| :----------: | :--------------: |
+|      0       |    chromosome    |
+|      1       | genomic position |
+|      2       | cell identifier  |
+|      3       |  allele A count  |
+|      4       |  allele B count  |
 
 **Parameters**
 
-- `output_path` (optional)
-  - If provided: outputs under `{output_path}/VAF`
-  - Else: outputs under `{self.output_path}/VAF`
-- `min_dp`
-  - filter low depth (typically `Acount + Bcount`)
-- `min_cells`
-  - filter sites supported by too few cells
-- `prefix`
-  - output file prefix (default: `cellSNP`)
+`output_path` (optional)
+
+- If provided: outputs under `{output_path}/VAF`, else: outputs under `{self.output_path}/VAF`
+
+`min_dp`
+
+- filter low depth (typically `Acount + Bcount`)
+
+`min_cells`
+
+- filter sites supported by too few cells
+
+`prefix`
+
+- output file prefix (default: `cellSNP`)
 
 **Output**
 
 Creates a `VAF/` directory containing files:
 
-  ```
+```
 .../VAF/
-  cellSNP_*.mtx
-  ...
-  ```
+└──cellSNP_*.mtx
+```
 
 
 
