@@ -10,19 +10,17 @@
       
       
       
-        <link rel="next" href="parsers/">
       
-      
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
     
     
       
-        <title>HCBench</title>
+        <title>clusterConsistency - HCBench</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.84d31ad4.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
       
       
 
@@ -41,7 +39,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -60,7 +58,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#hcbench" class="md-skip">
+        <a href="#function" class="md-skip">
           Skip to content
         </a>
       
@@ -76,7 +74,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="HCBench" class="md-header__button md-logo" aria-label="HCBench" data-md-component="logo">
+    <a href="../.." title="HCBench" class="md-header__button md-logo" aria-label="HCBench" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -96,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              clusterConsistency
             
           </span>
         </div>
@@ -186,7 +184,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="HCBench" class="md-nav__button md-logo" aria-label="HCBench" data-md-component="logo">
+    <a href="../.." title="HCBench" class="md-nav__button md-logo" aria-label="HCBench" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -213,32 +211,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Home
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -249,53 +225,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    <span class="md-ellipsis">
-      🗺️ Overview
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    <span class="md-ellipsis">
-      📦 Installation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
-    <span class="md-ellipsis">
-      📌 Citation
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -345,7 +274,7 @@
   
   
     <li class="md-nav__item">
-      <a href="parsers/" class="md-nav__link">
+      <a href="../../parsers/" class="md-nav__link">
         
   
   
@@ -368,7 +297,7 @@
   
   
     <li class="md-nav__item">
-      <a href="parsers/chisel/" class="md-nav__link">
+      <a href="../../parsers/chisel/" class="md-nav__link">
         
   
   
@@ -391,7 +320,7 @@
   
   
     <li class="md-nav__item">
-      <a href="parsers/alleloscope/" class="md-nav__link">
+      <a href="../../parsers/alleloscope/" class="md-nav__link">
         
   
   
@@ -414,7 +343,7 @@
   
   
     <li class="md-nav__item">
-      <a href="parsers/signals/" class="md-nav__link">
+      <a href="../../parsers/signals/" class="md-nav__link">
         
   
   
@@ -437,7 +366,7 @@
   
   
     <li class="md-nav__item">
-      <a href="parsers/seacon/" class="md-nav__link">
+      <a href="../../parsers/seacon/" class="md-nav__link">
         
   
   
@@ -460,7 +389,7 @@
   
   
     <li class="md-nav__item">
-      <a href="parsers/cnrein/" class="md-nav__link">
+      <a href="../../parsers/cnrein/" class="md-nav__link">
         
   
   
@@ -528,7 +457,7 @@
   
   
     <li class="md-nav__item">
-      <a href="gtbench/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -596,7 +525,7 @@
   
   
     <li class="md-nav__item">
-      <a href="realbench/" class="md-nav__link">
+      <a href="../../realbench/" class="md-nav__link">
         
   
   
@@ -636,8 +565,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -646,27 +573,63 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#function" class="md-nav__link">
     <span class="md-ellipsis">
-      🗺️ Overview
+      Function
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
+  <a href="#parameters" class="md-nav__link">
     <span class="md-ellipsis">
-      📦 Installation
+      Parameters
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#citation" class="md-nav__link">
+  <a href="#input-file-format" class="md-nav__link">
     <span class="md-ellipsis">
-      📌 Citation
+      Input File Format
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Type
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#returns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Returns
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example
     </span>
   </a>
   
@@ -688,23 +651,134 @@
 
 
 
-<h1 id="hcbench">HCBench</h1>
-<p>Welcome to the official documentation of HCBench.</p>
-<h2 id="overview">🗺️ Overview</h2>
-<p><img src="assets/HCDSIM_Figure1_3.png" style="zoom: 50%;" /></p>
-<p><code>hcbench</code> is organized around three main components:</p>
-<ol>
-<li><a href="parsers/"><strong>HCBench-parser</strong></a>: standardizing CNA results from different callers</li>
-<li><a href="gtbench/"><strong>HCBench-sim</strong></a>: evaluating detection accuracy against simulated ground truth datasets from HCDSIM</li>
-<li><a href="realbench/"><strong>HCBench-real</strong></a>: assessing pairwise consistency between callers using large-scale real-world datasets</li>
-</ol>
-<h2 id="installation">📦 Installation</h2>
-<pre><code>pip install git+https://github.com/compbioclub/HCBench.git@main
+  <h1>clusterConsistency</h1>
+
+<h2 id="function">Function</h2>
+<pre><code class="language-python">clusterConsistency(
+    tool_clone_files: List[str],
+    tool_names: List[str],
+) -&gt; pd.DataFrame
 </code></pre>
-<h2 id="citation">📌 Citation</h2>
-<p>If you use HCBench in your research, please cite the following paper:</p>
-<pre><code>
+<p>For each tool, the function loads  <code>clusters.csv</code>file and calculates:</p>
+<ul>
+<li><strong>ARI</strong>: Adjusted Rand Index between <code>cell_id</code> and <code>clone_id</code></li>
+<li><strong>AMI</strong>: Adjusted Mutual Information between <code>cell_id</code> and <code>clone_id</code></li>
+</ul>
+<p>It aggregates results across tools into a single table, writes it to:</p>
+<ul>
+<li><code>{self.output_dir}/clustering_result.csv</code></li>
+</ul>
+<p>and returns the result as a DataFrame.</p>
+<hr />
+<h2 id="parameters">Parameters</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tool_clone_files</code></td>
+<td><code>List[str]</code></td>
+<td>List of file paths, one per tool. Each file should be a CSV containing at least <code>cell_id</code> and <code>clone_id</code> columns.</td>
+</tr>
+<tr>
+<td><code>tool_names</code></td>
+<td><code>List[str]</code></td>
+<td>List of tool names aligned with <code>tool_clone_files</code> (same length and order).</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="input-file-format">Input File Format</h2>
+<p>Each <code>tool_clone_files[i]</code> is expected to be a CSV with at least:</p>
+<ul>
+<li><code>cell_id</code>: string cell identifier, expected format like <code>"&lt;cluster&gt;_&lt;rest&gt;"</code> so that <code>cell_id.split("_")[0]</code> yields the reference cluster label</li>
+<li><code>clone_id</code>: clone assignment label from the tool</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-csv">cell_id,clone_id
+A_cell0001,1
+A_cell0002,1
+B_cell0003,2
 </code></pre>
+<p>From this, the function derives:</p>
+<ul>
+<li><code>clusters1 = ["A", "A", "B"]</code></li>
+<li><code>clusters2 = ["1", "1", "2"]</code></li>
+</ul>
+<hr />
+<h2 id="return-type">Return Type</h2>
+<ul>
+<li><code>pd.DataFrame</code></li>
+</ul>
+<hr />
+<h2 id="returns">Returns</h2>
+<p>A DataFrame with one row per tool:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tool</code></td>
+<td>Tool name from <code>tool_names</code></td>
+</tr>
+<tr>
+<td><code>ARI</code></td>
+<td>Adjusted Rand Index between derived clusters and <code>clone_id</code></td>
+</tr>
+<tr>
+<td><code>AMI</code></td>
+<td>Adjusted Mutual Information between derived clusters and <code>clone_id</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="output">Output</h2>
+<ul>
+<li>Writes a CSV summary to:
+  <code>os.path.join(self.output_dir, "clustering_result.csv")</code></li>
+</ul>
+<hr />
+<h2 id="example">Example</h2>
+<pre><code class="language-python">from hcbench.gtbench import gtbench
+
+# Suppose self.output_dir = &quot;out/gt_output&quot;
+
+gtbench_runner = gtbench.GTBench(
+    output_dir=f&quot;out/gt_output/&quot;)
+
+tool_clone_files = [
+    &quot;out/chisel/clusters.csv&quot;,
+    &quot;out/alleloscope/clusters.csv&quot;,
+    &quot;out/signals/clusters.csv&quot;,
+]
+tool_names = [&quot;CHISEL&quot;, &quot;Alleloscope&quot;, &quot;SIGNALS&quot;]
+
+# Call from within your class instance that has self.output_dir (out/gt_output/) defined
+df = gtbench_runner.clusterConsistency(
+    tool_clone_files=tool_clone_files,
+    tool_names=tool_names,
+)
+
+print(df)
+# Expected output (values are illustrative):
+#           Tool     ARI     AMI
+# 0       CHISEL  0.230   0.301
+# 1  Alleloscope  0.5321  0.4880
+# 2      SIGNALS  0.8123  0.7451
+</code></pre>
+<p>After running, you will also find:</p>
+<pre><code>out/gt_output/clustering_result.csv
+</code></pre>
+<p>containing the same summary table.</p>
 
 
 
@@ -753,10 +827,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": ".", "features": [], "search": "assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.f55a23d4.min.js"></script>
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
       
     
   </body>

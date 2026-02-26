@@ -9,10 +9,10 @@
       
       
       
-        <link rel="prev" href="../..">
+        <link rel="prev" href="../">
       
       
-        <link rel="next" href="../seacon/">
+        <link rel="next" href="../alleloscope/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -277,6 +277,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -456,12 +479,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../seacon/" class="md-nav__link">
+      <a href="../alleloscope/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    SEACON
+    Alleloscope
     
   </span>
   
@@ -502,12 +525,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../cnrein/" class="md-nav__link">
+      <a href="../seacon/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    CNRein
+    SEACON
     
   </span>
   
@@ -525,12 +548,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../alleloscope/" class="md-nav__link">
+      <a href="../cnrein/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Alleloscope
+    CNRein
     
   </span>
   
@@ -842,9 +865,7 @@
 <p>Key features:</p>
 <ul>
 <li>Run the existing  pipeline on CHISEL CNA tables</li>
-<li>Optional <strong>two-pass</strong> execution to export two different value columns into:</li>
-<li><code>clone_level/</code></li>
-<li><code>cell_level/</code></li>
+<li>Optional <strong>two-pass</strong> execution to export two different value columns into: <code>clone_level/</code>,<code>cell_level/</code></li>
 <li>Parse CHISEL cluster assignments into a standardized <code>clusters.csv</code></li>
 <li>Export bin-level count matrices as <code>bin_counts.csv</code></li>
 <li>Convert a cellSNP-like VAF long table into sparse matrix outputs</li>
@@ -932,54 +953,37 @@ AAACCTGAGTAATCCC,1924
     **kwargs
 )
 </code></pre>
-<p><strong>Parameters</strong></p>
-<ul>
-<li><strong><code>input_path</code></strong></li>
-</ul>
-<p>Path to the CHISEL CNA output table (long format), the output directory of CHISEL typically looks like this:</p>
-<p><code>demo_output/chisel/
-  ├── calls/
-  │   └── calls.tsv</code></p>
+<p><strong><code>input_path</code></strong>: Path to the CHISEL CNA output table (long format), the output directory of CHISEL typically looks like this:</p>
+<pre><code>demo_output/chisel/
+├── calls/
+│   └── calls.tsv
+</code></pre>
 <p>An example of <code>calls.tsv</code>:</p>
-<p><code>#CHR  START   END CELL    NORM_COUNT  COUNT   RDR A_COUNT B_COUNT BAF CLUSTER HAP_CN  CORRECTED_HAP_CN
-  chr1  0   1000000 AAACAGGTACAT    16269   1590    0.7594  76  67  0.4685  55  1|1 1|1
-  chr1  0   1000000 AAATTTGCCTTA    16269   3003    1.3324  74  195 0.7249  55  6|2 6|2
-  chr1  0   1000000 AACACATCCATC    16269   1587    0.9759  78  78  0.5 55  1|1 1|1</code></p>
+<pre><code>#CHR    START   END CELL    NORM_COUNT  COUNT   RDR A_COUNT B_COUNT BAF CLUSTER HAP_CN  CORRECTED_HAP_CN
+chr1    0   1000000 AAACAGGTACAT    16269   1590    0.7594  76  67  0.4685  55  1|1 1|1
+chr1    0   1000000 AAATTTGCCTTA    16269   3003    1.3324  74  195 0.7249  55  6|2 6|2
+chr1    0   1000000 AACACATCCATC    16269   1587    0.9759  78  78  0.5 55  1|1 1|1
+</code></pre>
 <p>The <strong>required columns</strong> are:</p>
-<p><code>#CHR, START, END, CELL, CORRECTED_HAP_CN</code></p>
+<pre><code>#CHR, START, END, CELL, CORRECTED_HAP_CN
+</code></pre>
 <p>​   Please ensure these column names are spelled exactly as shown.</p>
+<p><strong><code>output_path</code></strong>: base output directory.
+If <code>value_cols</code> contains two columns, <code>ChiselParser</code> will automatically write to:</p>
 <ul>
-<li>
-<p><strong><code>output_path</code></strong>
-   Base output directory.
-   If <code>value_cols</code> contains two columns, <code>ChiselParser</code> will automatically write to:</p>
-</li>
-<li>
-<p><code>{output_path}/clone_level</code></p>
-</li>
-<li>
-<p><code>{output_path}/cell_level</code></p>
-</li>
-<li>
-<p><strong><code>barcode_path</code></strong> (optional)
-   Path to a barcode mapping file used to remap cell.
-   Mapping is applied in:</p>
-</li>
-<li>
-<p>CNA table</p>
-</li>
-<li>cluster table</li>
-<li>
-<p>counts table</p>
-</li>
-<li>
-<p><strong><code>value_cols</code></strong> (optional)
-   Enables two-pass execution. Must be a <code>list</code>/<code>tuple</code> of <strong>length 2</strong>, e.g.:</p>
-</li>
+<li><code>{output_path}/clone_level</code></li>
+<li><code>{output_path}/cell_level</code></li>
 </ul>
+<p><strong><code>barcode_path</code></strong> (optional): Path to a barcode mapping file used to remap cell.
+Mapping is applied in:</p>
+<ul>
+<li>CNA table</li>
+<li>cluster table</li>
+<li>counts table</li>
+</ul>
+<p><strong><code>value_cols</code></strong> (optional): Enables two-pass execution. Must be a <code>list</code>/<code>tuple</code> of <strong>length 2</strong>, e.g.:</p>
 <pre><code>  value_cols=['CORRECTED_HAP_CN','HAP_CN']
 </code></pre>
-<p>Behavior:</p>
 <ul>
 <li><code>value_cols[0]</code> → written under <code>clone_level/</code></li>
 <li><code>value_cols[1]</code> → written under <code>cell_level/</code></li>
@@ -1000,39 +1004,34 @@ AAACCTGAGTAATCCC,1924
 <p>Parses a CHISEL cluster mapping file and writes a standardized CSV.</p>
 <p><strong>Input</strong></p>
 <ul>
-<li><code>cluster_file_path</code>: TSV file containing at least:</li>
-<li><code>#CELL</code></li>
-<li><code>CLUSTER</code></li>
+<li><code>cluster_file_path</code>: TSV file containing at least:<code>#CELL</code>,<code>CLUSTER</code></li>
 </ul>
-<p><strong>Output</strong></p>
-<p>Writes to:</p>
+<p><strong>Output </strong>writes to:</p>
 <ul>
-<li><code>{self.output_path}/clusters.csv</code></li>
+<li><code>{self.output_path}/clusters.csv</code>, for example: </li>
 </ul>
-<p>CSV schema:</p>
 <table>
 <thead>
 <tr>
-<th>column</th>
-<th>meaning</th>
+<th style="text-align: center;">column</th>
+<th style="text-align: center;">meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>cell_id</td>
-<td>cell identifier (possibly remapped)</td>
+<td style="text-align: center;">cell_id</td>
+<td style="text-align: center;">cell identifier (possibly remapped)</td>
 </tr>
 <tr>
-<td>clone_id</td>
-<td>CHISEL cluster/clone label</td>
+<td style="text-align: center;">clone_id</td>
+<td style="text-align: center;">CHISEL cluster/clone label</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h3 id="chiselparserget_bin_counts"><code>ChiselParser.get_bin_counts()</code></h3>
 <p>Creates a region-by-cell wide matrix of per-bin counts.</p>
-<p><strong>Output</strong></p>
-<p>Writes to:</p>
+<p><strong>Output</strong> writes to:</p>
 <ul>
 <li><code>{self.output_path}/bin_counts.csv</code></li>
 </ul>
@@ -1050,50 +1049,55 @@ AAACCTGAGTAATCCC,1924
 <table>
 <thead>
 <tr>
-<th>column index</th>
-<th>meaning</th>
+<th style="text-align: center;">column index</th>
+<th style="text-align: center;">meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>0</td>
-<td>chromosome</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">chromosome</td>
 </tr>
 <tr>
-<td>1</td>
-<td>genomic position</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">genomic position</td>
 </tr>
 <tr>
-<td>2</td>
-<td>cell identifier</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">cell identifier</td>
 </tr>
 <tr>
-<td>3</td>
-<td>allele A count</td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">allele A count</td>
 </tr>
 <tr>
-<td>4</td>
-<td>allele B count</td>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">allele B count</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Parameters</strong></p>
+<p><code>output_path</code> (optional)</p>
 <ul>
-<li><code>output_path</code> (optional)</li>
-<li>If provided: outputs under <code>{output_path}/VAF</code></li>
-<li>Else: outputs under <code>{self.output_path}/VAF</code></li>
-<li><code>min_dp</code></li>
+<li>If provided: outputs under <code>{output_path}/VAF</code>, else: outputs under <code>{self.output_path}/VAF</code></li>
+</ul>
+<p><code>min_dp</code></p>
+<ul>
 <li>filter low depth (typically <code>Acount + Bcount</code>)</li>
-<li><code>min_cells</code></li>
+</ul>
+<p><code>min_cells</code></p>
+<ul>
 <li>filter sites supported by too few cells</li>
-<li><code>prefix</code></li>
+</ul>
+<p><code>prefix</code></p>
+<ul>
 <li>output file prefix (default: <code>cellSNP</code>)</li>
 </ul>
 <p><strong>Output</strong></p>
 <p>Creates a <code>VAF/</code> directory containing files:</p>
-<p><code>.../VAF/
-  cellSNP_*.mtx
-  ...</code></p>
+<pre><code>.../VAF/
+└──cellSNP_*.mtx
+</code></pre>
 
 
 
