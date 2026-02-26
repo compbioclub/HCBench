@@ -10,5 +10,7 @@ nav:
       - Alleloscope: parsers/alleloscope.md
   - GTbench:
       - Overview: gtbench/index.md
+  - Realbench:
+      - Overview: realbench/index.md
 theme:
   name: material

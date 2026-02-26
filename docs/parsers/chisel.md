@@ -154,10 +154,10 @@ ChiselParser(
   ```
 
    The **required columns** are:
-
+  
   ```
-#CHR, START, END, CELL, CORRECTED_HAP_CN
-```
+  #CHR, START, END, CELL, CORRECTED_HAP_CN
+  ```
 
 ​	Please ensure these column names are spelled exactly as shown.
 
@@ -179,9 +179,9 @@ ChiselParser(
 - **`value_cols`** (optional)
    Enables two-pass execution. Must be a `list`/`tuple` of **length 2**, e.g.:
 
-  ```
+```
   value_cols=['CORRECTED_HAP_CN','HAP_CN']
-  ```
+```
 
   Behavior:
 
@@ -280,11 +280,11 @@ Converts a cellSNP-like VAF long table into sparse matrix outputs using `long_to
 
 Creates a `VAF/` directory containing files:
 
-```
+  ```
 .../VAF/
   cellSNP_*.mtx
   ...
-```
+  ```
 
 
 
