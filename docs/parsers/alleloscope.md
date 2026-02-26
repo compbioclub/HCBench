@@ -1,5 +1,100 @@
 # Alleloscope Parser
 
+This module provides `AlleloscopeParser`, specialized for parsing **Alleloscope** outputs and exporting standardized matrices and helper files used by hcbench workflows.
+
+Key features:
+
+- Read Alleloscope **RDS** outputs (genotypes and segmentation table) and convert them into a unified haplotype level CNA matrix
+- Optional region splitting by a user defined `bin_size`
+- Parse Alleloscope cluster assignments into a standardized `clusters.csv`
+- Export bin-level count matrices as `bin_counts.csv`
+- Convert a cellSNP-like VAF long table into sparse matrix outputs
+
+## 🚀 Quick Example
+
+### Parse the CNA Matrix from RDS
+
+```python
+from hcbench.parsers.alleloscope import AlleloscopeParser
+
+allelo_output = "/output/alleloscope/"
+genotypes_rds = "/demo_output/alleloscope/genotypes.rds"
+seg_table_rds = "/demo_output/alleloscope/seg_table.rds"
+
+alleloscope_parser = AlleloscopeParser(
+    output_path=allelo_output,
+    genotypes_rds_path=genotypes_rds,
+    seg_table_rds_path=seg_table_rds,
+    barcode_path=None,
+    bin_size=100000,          # set an integer to split regions, e.g. 100000
+    start_offset=1,         # shift start coordinate by +1 if needed
+)
+
+alleloscope_parser.run()
+```
+
+After running, the parser will read the two RDS files and save results to the output directory, typically containing files, for example:
+
+```
+/output/alleloscope/
+  haplotype_combined.csv
+  haplotype_1.csv
+  haplotype_2.csv
+  minor.csv
+  major.csv
+  minor_major.csv
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## 📂 Input Files
 
 The input directory of **Alleloscope** typically contains two `.rds` files and one optional cluster file:

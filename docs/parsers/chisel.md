@@ -10,7 +10,7 @@ Key features:
   - `cell_level/`
 - Parse CHISEL cluster assignments into a standardized `clusters.csv`
 - Export bin-level count matrices as `bin_counts.csv`
-- Convert a cellSNP-like VAF long table into sparse matrix outputs via `long_to_mtx`
+- Convert a cellSNP-like VAF long table into sparse matrix outputs
 
 ## 🚀 Quick Example
 
