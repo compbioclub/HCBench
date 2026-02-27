@@ -1,5 +1,40 @@
-
 # SIGNALS Parser
+
+This module provides `SignalsParser`, specialized for parsing Signals outputs and exporting standardized matrices and helper files used by hcbench workflows.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 📂 Input Files
 
