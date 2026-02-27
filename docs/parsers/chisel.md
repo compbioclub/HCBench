@@ -10,9 +10,9 @@ Key features:
 - Export bin-level count matrices as `bin_counts.csv`
 - Convert a cellSNP-like VAF long table into sparse matrix outputs
 
-## 🚀 Quick Example
+## 🚀 Quick Start
 
-### 🧬 Parse the CNA Matrix
+### 🧬  1. Parse the CNA Matrix
 
 ```
 from hcbench.parsers.chisel import ChiselParser
@@ -49,7 +49,7 @@ After running, the parser will read `calls.tsv` and results are saved to the out
 
 ------
 
-### 🧬 Parse the Cluster File
+### 🧬  2. Parse the Cluster File
 
 If you have a CHISEL cluster mapping file (commonly named `mapping.tsv`), you can parse it separately using the new `get_cluster()` method:
 
@@ -85,7 +85,7 @@ AAACCTGAGATCTGCT,1484
 AAACCTGAGTAATCCC,1924
 ```
 
-### 🧬 Parse the bin counts matrix
+### 🧬 3. Parse the bin counts matrix
 
 ```
 chisel_parser.get_bin_counts()
@@ -98,7 +98,7 @@ After running this command, the following standardized file will be created:
 └──bin_counts.csv
 ```
 
-### 🧬 Parse the VAF sparse matrices
+### 🧬 4. Parse the VAF sparse matrices
 
 ```
 chisel_parser.get_VAF_matrix(
