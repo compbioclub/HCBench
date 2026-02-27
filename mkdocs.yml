@@ -11,6 +11,9 @@ nav:
       - CNRein: parsers/cnrein.md
   - GTbench:
       - Overview: gtbench/index.md
+      - clusterConsistency : gtbench/clusterConsistency.md
+      - cloneSizebycluster : gtbench/cloneSizebycluster.md
+      - cellprofile : gtbench/cellprofile.md
   - Realbench:
       - Overview: realbench/index.md
 theme:

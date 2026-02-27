@@ -1,5 +1,249 @@
-
 # SEACON Parser
+
+This module provides `SeaconParser`, specialized for parsing SEACON outputs and exporting standardized matrices and helper files used by hcbench workflows.
+
+Key features:
+
+- Read SEACON CNA tables and automatically preprocess copy number values by replacing commas with pipes (`|`).
+- generate `minor.csv`, `major.csv`, and combined `minor_major.csv` outputs by default.
+- Export bin-level count matrices as `bin_counts.csv`, dynamically mapped to the standard regions extracted from the CNA output.
+- Convert a headerless, tab-separated VAF long table into sparse matrix outputs.
+
+## 🚀 Quick Start
+
+### 🧬 1. Parse the CNA Matrix
+
+```
+from hcbench.parsers.seacon import SeaconParser
+
+seacon_input = "/demo_output/seacon/cna_output.tsv"
+seacon_output = "/output/seacon/"
+
+seacon_parser = SeaconParser(
+    input_path=seacon_input, 
+    output_path=seacon_output,
+)
+seacon_parser.run()
+```
+
+After running, the parser will read the input file, split the haplotypes, and save the standardized files to the output directory. The output directory typically contains:
+
+```
+/output/seacon/
+├── minor.csv             
+├── major.csv             
+└── minor_major.csv       
+```
+
+- `minor_major.csv` — combined CNA matrix (regions × cells).
+
+  Each value represents the combined haplotype copy number.
+
+------
+
+### 🧬 2. Parse the bin counts matrix
+
+**⚠️ Important:** This method requires the `minor_major.csv` file to already exist in your output directory to properly extract the `region` index. Ensure you run the main parser pipeline first.
+
+```
+counts_file = "/demo_output/seacon/counts.tsv"
+
+seacon_parser.get_bin_counts(counts_path=counts_file)
+```
+
+After running this command, the following standardized file will be created:
+
+```
+/output/seacon/
+└── bin_counts.csv
+```
+
+------
+
+### 🧬 3. Parse the VAF sparse matrices
+
+This method expects a tab-separated VAF file with **no header**.
+
+Python
+
+```
+seacon_parser.get_VAF_matrix(
+    vaf_file_path="/demo_output/seacon/vaf.tsv",
+    min_dp=3,
+    min_cells=10,
+    prefix="cellSNP"
+)
+```
+
+After running this command, the following standardized directory and Matrix Market files will be created:
+
+Plaintext
+
+```
+/output/seacon/
+├── VAF/
+│   ├── cellSNP_AD.mtx
+│   ├── cellSNP_DP.mtx
+│   └── ...
+```
+
+## ⚙️ Initialization
+
+Python
+
+```
+SeaconParser(
+    input_path: str,
+    output_path: str,
+    chrom_col: str = "chrom",
+    start_col: str = "start",
+    end_col: str = "end",
+    cell_col: str = "cell",
+    value_col: str = "CN",
+    start_offset: int = 0,
+    add_chr_prefix: bool = False,
+    output_haplotype: bool = False,
+    **kwargs
+)
+```
+
+**`input_path`**: Path to the SEACON CNA output table.
+
+The **required columns** based on the default configuration are:
+
+```
+chrom, start, end, cell, CN
+```
+
+**`output_path`**: Base output directory where the standardized matrices will be saved.
+
+## 🧠 Core Methods
+
+### `SeaconParser.run()`
+
+Executes the standard pipeline for the CNA matrix:
+
+------
+
+### `SeaconParser.get_bin_counts(counts_path)`
+
+Creates a region-by-cell wide matrix of per-bin counts.
+
+**Input**
+
+- `counts_path`: Path to the counts table. The parser expects a table with cells in rows, so it transposes the dataframe automatically.
+
+**Output** writes to:
+
+- `{self.output_path}/bin_counts.csv`.
+
+This is a wide matrix:
+
+- rows: `region` (dynamically matched from `minor_major.csv`).
+- columns: cells.
+- values: counts.
+
+------
+
+### `SeaconParser.get_VAF_matrix(vaf_file_path, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")`
+
+Converts a tab-separated VAF table into sparse matrix outputs using `long_to_mtx()`.
+
+**Input format**
+
+`vaf_file_path` must be a **tab-separated file with no header** and exactly 5 columns. The parser automatically maps them to:
+
+| **column index** | **meaning** |
+| ---------------- | ----------- |
+| 0                | `chr`       |
+| 1                | `position`  |
+| 2                | `cell`      |
+| 3                | `Acount`    |
+| 4                | `Bcount`    |
+
+**Parameters**
+
+`output_path` (optional)
+
+- If provided: outputs under `{output_path}/VAF`, else outputs under `{self.output_path}/VAF`.
+
+```
+min_dp
+```
+
+- Filter low depth sites.
+
+```
+min_cells
+```
+
+- Filter sites supported by too few cells.
+
+```
+prefix
+```
+
+- Output file prefix (default: `cellSNP`).
+
+**Output**
+
+Creates a `VAF/` directory containing the Matrix Market (`.mtx`) files.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## 📂 Input Files
 

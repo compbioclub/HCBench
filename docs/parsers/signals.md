@@ -2,59 +2,16 @@
 
 This module provides `SignalsParser`, specialized for parsing Signals outputs and exporting standardized matrices and helper files used by hcbench workflows.
 
+Key features:
 
+- Run the existing pipeline on Signals CNA tables
+- Parse Signals cluster assignments into a standardized `clusters.csv`
+- Export bin-level count matrices as `bin_counts.csv`
+- Convert a VAF long table into sparse matrix outputs
 
+## 🚀 Quick Start
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 📂 Input Files
-
-The output directory of **SIGNALS** typically contains the R object `hscn.rds`, which stores haplotype-specific copy number data.
-
-```
-demo_output/signals/output/
-├── hscn.rds
-└── hscn_data.tsv   # exported for Python parser
-```
-
-- `hscn.rds` — main SIGNALS output file (R serialized object).
-- `hscn_data.tsv` — exported tab-delimited file containing per-cell phased copy number states.
-
-Because the SIGNALS parser in HCBench operates in Python,
- you need to **first export** the data component from the RDS file into a `.tsv` file using R.
-
-------
-
-## 🧬 Exporting hscn_data.tsv from R
+### 🧬 Exporting hscn_data.tsv from R
 
 Run the following R code to extract and save the `hscn$data` component:
 
@@ -75,62 +32,208 @@ write.table(
 
 This will produce the file `hscn_data.tsv`, which is then used as input for the parser.
 
-------
+### 🧬 1. Parse the CNA Matrix
 
-## 📤 Output Files
-
-After parsing, results are saved in the specified output directory:
-
-```
-haplotype_combined.csv
-```
-
-- `haplotype_combined.csv` — standardized CNA matrix (regions × cells).
-   Each entry represents the phased haplotype-specific copy number state of a cell.
-
-If `split_haplotype=True` is enabled in the base class,
- additional files such as `haplotype_1.csv`, `haplotype_2.csv`, and `minor_major.csv` will also be generated.
-
-------
-
-## ⚙️ Key Parameters
-
-| Parameter        | Description                                            | Default             |
-| ---------------- | ------------------------------------------------------ | ------------------- |
-| `chrom_col`      | Column name for chromosome.                            | `"chr"`             |
-| `start_col`      | Column name for region start.                          | `"start"`           |
-| `end_col`        | Column name for region end.                            | `"end"`             |
-| `cell_col`       | Column name for cell identifier.                       | `"cell_id"`         |
-| `value_col`      | Column name for the haplotype-phased CN value.         | `"state_AS_phased"` |
-| `start_plus_one` | Whether to convert 0-based to 1-based coordinates.     | `False`             |
-| `add_chr_prefix` | Whether to ensure chromosome names begin with `"chr"`. | `True`              |
-
-------
-
-## 🚀 Example Usage
-
-```
+```python
 from hcbench.parsers.signals import SignalsParser
 
-signals_input = "/demo_output/signals/output/hscn_data.tsv"
+signals_input = "/demo_output/signals/output/hscn_data.csv"
 signals_output = "/output/signals/"
 
-signals_parser = SignalsParser(
-    input_path=signals_input,
-    output_path=signals_output
-)
+signals_parser = SignalsParser(input_path=signals_input, output_path=signals_output)
 signals_parser.run()
 ```
 
-After running, the parser reads the exported `hscn_data.tsv`, extracts the `"state_AS_phased"` column as the haplotype-level copy number signal, and saves the standardized file:
+After running, the parser will read the input file and results are saved to the output directory, typically containing the following files:
 
 ```
-haplotype_combined.csv
+/output/signals/
+├── haplotype_combined.csv
+├── haplotype_1.csv       
+├── haplotype_2.csv       
+├── minor.csv             
+├── major.csv             
+└── minor_major.csv
 ```
 
-in your chosen output directory.
+- `haplotype_combined.csv` — main CNA matrix (regions × cells).
+
+
+
+### 🧬 2. Parse the Cluster File
+
+If you have a Signals cluster mapping file, you can parse it separately using the `get_cluster()` method:
+
+```
+cluster_file = "/demo_output/signals/clusters.csv"
+signals_parser.get_cluster(cluster_file)
+```
+
+An example of the input cluster file:
+
+```
+cell_id,clone_id
+AAACCTGAGAAGGACA,CloneA
+AAACCTGAGATCTGCT,CloneB
+AAACCTGAGTAATCCC,CloneA
+```
+
+After running this command, the following standardized file will be created:
+
+```
+/output/signals/
+└── clusters.csv
+```
+
+
+
+### 🧬 3. Parse the bin counts matrix
+
+Unlike the CHISEL parser, the Signals parser requires the explicit path to the bin counts file:
+
+```
+bin_count_file = "hmmcopy_results/reads.csv.gz"
+signals_parser.get_bin_counts(bin_count_file)
+```
+
+After running this command, the following standardized file will be created:
+
+```
+/output/signals/
+└── bin_counts.csv
+```
 
 ------
+
+### 🧬 4. Parse the VAF sparse matrices
+
+```
+signals_parser.get_VAF_matrix(
+    vaf_file_path="hscn_pipeline_apptainer/results/counthaps/allele_counts_all.csv.gz",
+    min_dp=3,
+    min_cells=10,
+)
+```
+
+After running this command, the following standardized directory and files will be created:
+
+```
+/output/signals/
+├── VAF/
+│   └── cellSNP_*.mtx
+```
+
+
+
+## ⚙️ Initialization
+
+```
+SignalsParser(
+    input_path: str,
+    output_path: str,
+    **kwargs
+)
+```
+
+**`input_path`**: Path to the Signals CNA output. An example of the expected input format:
+
+```
+chr start   end reads   copy    state   cell_id alleleA alleleB totalcounts BAF state_min   A   B   state_AS_phased state_AS    LOH phase   state_phase state_BAF
+1   5000001 10000000    34762   NA  2   clone1_cell1    677 193 870 0.22183908045977    1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
+1   20000001    25000000    34200   NA  2   clone1_cell1    639 222 861 0.257839721254355   1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
+1   30000001    35000000    42510   NA  2   clone1_cell1    807 203 1010    0.200990099009901   1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
+```
+
+The **required columns** are:
+
+```
+chr, start, end, cell_id, state_AS_phased
+```
+
+**`output_path`**: Base output directory where the standardized matrices will be saved.
+
+## 🧠 Core Methods
+
+### `SignalsParser.run()`
+
+Executes the standard pipeline for the CNA matrix:
+
+------
+
+### `SignalsParser.get_cluster(cluster_file_path)`
+
+Parses a Signals cluster mapping file and writes a standardized CSV.
+
+**Input**
+
+- `cluster_file_path`: CSV file containing at least the columns: `cell_id`, `clone_id`.
+
+**Output** writes to:
+
+- `{self.output_path}/clusters.csv`, strictly retaining these two columns.
+
+------
+
+### `SignalsParser.get_bin_counts(bin_count_file_path)`
+
+Creates a region-by-cell wide matrix of per-bin counts. Note that this initializes an internal temporary parser specifically configured for the `hg38` reference genome and targets the `reads` column without adding chromosome prefixes.
+
+**Input**
+
+- `bin_count_file_path`: Path to the raw bin counts CSV file.
+
+**Output** writes to:
+
+- `{self.output_path}/bin_counts.csv`
+
+This is a wide matrix:
+
+- rows: `region`
+- columns: cells
+- values: counts
+
+------
+
+### `SignalsParser.get_VAF_matrix(vaf_file_path, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")`
+
+Converts a VAF long table into sparse matrix outputs.
+
+**Parameters**
+
+`output_path` (optional)
+
+- If provided: outputs under `{output_path}/VAF`, else outputs under `{self.output_path}/VAF`.
+
+```
+min_dp
+```
+
+- Filter low depth sites.
+
+```
+min_cells
+```
+
+- Filter sites supported by too few cells.
+
+```
+prefix
+```
+
+- Output file prefix (default: `cellSNP`).
+
+**Output**
+
+Creates a `VAF/` directory containing the Matrix Market (`.mtx`) files:
+
+Plaintext
+
+```
+.../VAF/
+└── cellSNP_*.mtx
+```
+
+
 
 ## 🧩 Example of hscn_data.tsv
 

@@ -145,11 +145,91 @@ AlleloscopeParser(
 
 ## 🧠 Core Methods
 
+### `AlleloscopeParser.run()`
 
+Executes the standard pipeline for the CNA matrix:
 
+- Reads the provided `genotypes_rds_path` and `seg_table_rds_path`.
+- Standardizes genomic regions based on `start_offset` and `add_chr_prefix`.
+- Optionally splits regions into smaller bins if `bin_size` is provided.
+- Writes the unified haplotype matrices directly into `output_path`.
 
+------
 
+### `AlleloscopeParser.get_cluster(cluster_file_path)`
 
+Parses an Alleloscope cluster mapping file and writes a standardized CSV.
+
+**Input**
+
+- `cluster_file_path`: CSV file containing at least the cell identifiers and their corresponding cluster/clone IDs.
+
+**Output** writes to:
+
+- `{self.output_path}/clusters.csv`, ensuring `cell_id` and `clone_id` column formatting.
+
+------
+
+### `AlleloscopeParser.get_bin_counts(counts_file)`
+
+Creates a region-by-cell wide matrix of per-bin counts.
+
+**Input**
+
+- `counts_file`: Path to the raw bin counts TSV file.
+
+**Output** writes to:
+
+- `{self.output_path}/bin_counts.csv`
+
+This is a wide matrix:
+
+- rows: `region`
+- columns: cells
+- values: counts
+
+------
+
+### `AlleloscopeParser.get_VAF_matrix(vaf_file_path, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")`
+
+Converts cellSNP-like VAF outputs into sparse matrix outputs.
+
+**Input format**
+
+`vaf_file_path` must be a directory containing cellSNP-style outputs such as:
+
+- `cellSNP.samples.tsv`
+- `cellSNP.tag.AD.mtx`
+- `cellSNP.tag.DP.mtx`
+- `cellSNP.base.vcf.gz`
+
+**Parameters**
+
+`output_path` (optional)
+
+- If provided: outputs under `{output_path}/VAF`, else outputs under `{self.output_path}/VAF`.
+
+```
+min_dp
+```
+
+- Filter low depth sites.
+
+```
+min_cells
+```
+
+- Filter sites supported by too few cells.
+
+```
+prefix
+```
+
+- Output file prefix (default: `cellSNP`).
+
+**Output**
+
+Creates a `VAF/` directory containing the sparse matrix (`.mtx`) files.
 
 
 

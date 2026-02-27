@@ -6,16 +6,28 @@ Each parser converts heterogeneous output formats from different algorithms (CHI
 
 ------
 
-### 📖 Overview
+### 🎯 Common Standardized Outputs
 
-| Parser                           | Input Type                      | Input Format       | Output                                  |
-| -------------------------------- | ------------------------------- | ------------------ | --------------------------------------- |
-| [CHISEL](chisel.md)      | `calls.tsv` + `mapping.tsv`     | Tab-delimited text | Standardized CNA matrix + clone mapping |
-| [Alleloscope](alleloscope.md) | `.rds` files                    | R serialized data  | Standardized CNA matrix + clusters      |
-| [CNRein](cnrein.md)                       | `CNReinPrediction.csv`          | CSV                | Standardized CNA matrix                 |
-| [SEACON](seacon.md)                       | `calls.tsv`                     | Tab-delimited text | Standardized CNA matrix                 |
-| [SIGNALS](signals.md)                      | `hscn.rds` (exported to `.tsv`) | Tab-delimited text | Standardized CNA matrix                 |
+While each tool requires different input files and formats, every parser in this suite is designed to output a canonical directory structure. Depending on the specific methods called, a fully processed output directory will typically contain:
+
+**CNA Matrices**: `haplotype_combined.csv`, or split `minor.csv`, `major.csv`, and `minor_major.csv` matrices (regions × cells).
+
+**Cluster Mapping**: `clusters.csv` containing standardized `cell_id` and `clone_id` columns.
+
+**Bin Counts / RDR**: `bin_counts.csv` or `bin_rdr.csv` formatted as a wide matrix of regions by cells.
+
+**Sparse VAF Matrices**: A `VAF/` directory containing standard Matrix Market (`.mtx`) files for Allelic Depth (AD) and Read Depth (DP).
+
+
+
+## 📖 Parsers Overview
+
+| **Parser**                                                   | **Main Input**                  | **Additional Inputs**                             | **Format Types**            | **Supported Outputs**                        |
+| ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------- | --------------------------- | -------------------------------------------- |
+| **[CHISEL](https://www.google.com/search?q=chisel.md)**      | `calls.tsv`                     | `mapping.tsv`, VAF table                          | Tab-delimited text          | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
+| **[Alleloscope](https://www.google.com/search?q=alleloscope.md)** | `.rds` files                    | `clusters.csv`, raw counts TSV, cellSNP directory | R serialized data, TSV, CSV | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
+| **[CNRein](https://www.google.com/search?q=cnrein.md)**      | `CNReinPrediction.csv`          | `.npz` arrays, split VCF files                    | CSV, NPZ, VCF               | CNA Matrix, Bin RDR, Sparse VAF              |
+| **[SEACON](https://www.google.com/search?q=seacon.md)**      | `calls.tsv`                     | `counts.tsv`, `vaf.tsv`                           | Tab-delimited text          | Split CNA Matrices, Bin Counts, Sparse VAF   |
+| **SIGNALS**                                                  | `hscn.rds` (exported to `.tsv`) | cluster file, bin counts, VAF table               | Tab-delimited text / CSV    | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
 
 All parsers generate outputs in the same canonical structure, making it possible to directly compare results across tools in the **HCBench** benchmarking pipeline.
-
-------

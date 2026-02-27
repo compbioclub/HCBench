@@ -1,79 +1,21 @@
 
 
-
 # CNRein Parser
 
-## 📂 Input Files
+This module provides `CNReinParser`, specialized for parsing **CNRein** outputs and exporting standardized matrices and helper files used by hcbench workflows.
 
-The output directory of **CNRein** typically includes a single main file that records per-cell haplotype-specific copy number information:
+Key features:
 
-```
-demo_output/cnrein/finalPrediction
-└── CNReinPrediction.csv
-```
+- Read CNRein prediction tables and merge separate haplotype columns into a unified haplotype-level CNA matrix
+- Optional region splitting by a user-defined `bin_size`
+- Extract bin-level Read Depth Ratio (RDR) from `.npz` files into a standardized `bin_rdr.csv`
+- Convert a directory of separate chromosome VCF files into sparse VAF matrix outputs
 
-- `CNReinPrediction.csv` — main output file containing haplotype-level copy number information for each cell across all genomic regions.
+## 🚀 Quick Start
 
-An example of `CNReinPrediction.csv`:
+### 🧬 1. Parse the CNA Matrix
 
-```
-Cell barcode,Chromosome,Start,End,Haplotype 1,Haplotype 2
-TN1_3_S1_C85,1,800001,20100000,2,0
-TN1_3_S1_C85,1,20100001,29200000,3,1
-TN1_3_S1_C85,1,29200001,33100000,3,1
-TN1_3_S1_C85,1,33100001,34900000,3,1
-```
-
-The **required columns** are:
-
-```
-Chromosome, Start, End, Cell barcode, Haplotype 1, Haplotype 2
-```
-
-The parser combines the two haplotype columns (`Haplotype 1` and `Haplotype 2`) into a single unified field called `HAP_CN`,
- formatted as `"hap1|hap2"`, for example `"2|0"`.
-
-------
-
-## 📤 Output Files
-
-After parsing, the following file is generated in the specified output directory:
-
-```
-haplotype_combined.csv
-```
-
-- `haplotype_combined.csv` — the standardized CNA matrix (regions × cells).
-   Each entry represents the combined haplotype state of a cell in `"Haplotype 1|Haplotype 2"` format.
-
-If the `split_haplotype=True` option is used in the parser base class,
- additional per-haplotype and major/minor copy number matrices will also be generated automatically:
-
-```
-haplotype_1.csv
-haplotype_2.csv
-minor.csv
-major.csv
-minor_major.csv
-```
-
-------
-
-## ⚙️ Key Parameters
-
-| Parameter        | Description                                           | Default          |
-| ---------------- | ----------------------------------------------------- | ---------------- |
-| `chrom_col`      | Column name for chromosome.                           | `"Chromosome"`   |
-| `start_col`      | Column name for region start.                         | `"Start"`        |
-| `end_col`        | Column name for region end.                           | `"End"`          |
-| `cell_col`       | Column name for cell barcode.                         | `"Cell barcode"` |
-| `value_col`      | Column name for the combined haplotype CN value.      | `"HAP_CN"`       |
-| `start_plus_one` | Whether to convert 0-based to 1-based coordinates.    | `False`          |
-| `add_chr_prefix` | Whether to ensure `"chr"` prefix on chromosome names. | `True`           |
-
-------
-
-## 🚀 Example Usage
+Python
 
 ```
 from hcbench.parsers.cnrein import CNReinParser
@@ -83,25 +25,182 @@ cnrein_output = "/output/cnrein/"
 
 cnrein_parser = CNReinParser(
     input_path=cnrein_input,
-    output_path=cnrein_output
+    output_path=cnrein_output,
 )
 
 cnrein_parser.run()
 ```
 
-This will read `CNReinPrediction.csv`, merge `Haplotype 1` and `Haplotype 2` into the `HAP_CN` column,
- and save a standardized file named:
+After running, the parser will read the input table, merge the `Haplotype 1` and `Haplotype 2` columns into a `HAP_CN` column, and save the standardized files to the output directory:
+
+Plaintext
 
 ```
-haplotype_combined.csv
-haplotype_1.csv       # if split_haplotype=True
-haplotype_2.csv       # if split_haplotype=True
-minor.csv             # if split_haplotype=True
-major.csv             # if split_haplotype=True
-minor_major.csv       # if split_haplotype=True
+/output/cnrein/
+├── haplotype_combined.csv
+├── haplotype_1.csv       
+├── haplotype_2.csv       
+├── minor.csv             
+├── major.csv             
+└── minor_major.csv       
 ```
 
-in your output directory.
+- `haplotype_combined.csv` — main CNA matrix (regions × cells).
+
+  Each value represents the combined haplotype copy number in the form `"hap1|hap2"`.
 
 ------
+
+### 🧬 2. Parse the bin RDR matrix
+
+Unlike parsers that extract counts from a text file, CNRein stores RDR  and cell names in numpy `.npz` arrays.
+
+```
+counts_file = "/demo_output/cnrein//binScale/filtered_RDR_avg.npz"
+cells_file = "/demo_output/cnrein/initial/cellNames.npz"
+
+cnrein_parser.get_bin_rdr(
+    counts_path=counts_file, 
+    cell_name_path=cells_file
+)
+```
+
+After running this command, the following standardized file will be created:
+
+Plaintext
+
+```
+/output/cnrein/
+└── bin_rdr.csv
+```
+
+------
+
+### 🧬 3. Parse the VAF sparse matrices
+
+This method expects `vaf_file_dir` to be a directory containing 22 separate chromosome VCF files named precisely as `seperates_chr1.vcf.gz` through `seperates_chr22.vcf.gz`.
+
+```
+cnrein_parser.get_VAF_matrix(
+    vaf_file_dir="/demo_output/cnrein/vcf_output/",
+    min_dp=3,
+    min_cells=10,
+    prefix="cellSNP"
+)
+```
+
+After running this command, the following standardized directory and Matrix Market files will be created:
+
+Plaintext
+
+```
+/output/cnrein/
+├── VAF/
+│   ├── cellSNP_AD.mtx
+│   ├── cellSNP_DP.mtx
+│   └── ...
+```
+
+## ⚙️ Initialization
+
+```
+CNReinParser(
+    input_path: str,
+    output_path: str,
+    chrom_col: str = "Chromosome",
+    start_col: str = "Start",
+    end_col: str = "End",
+    cell_col: str = "Cell barcode",
+    value_col: str = "HAP_CN",
+    start_offset: int = 0,
+    add_chr_prefix: bool = True,
+    **kwargs
+)
+```
+
+**`input_path`**: Path to the CNRein prediction output table.
+
+The **required columns** based on the default configuration are:
+
+```
+Chromosome, Start, End, Cell barcode, HAP_CN
+```
+
+**`output_path`**: Base output directory where the standardized matrices will be saved.
+
+## 🧠 Core Methods
+
+### `CNReinParser.run()`
+
+Executes the standard pipeline for the CNA matrix:
+
+- Parses the table dynamically.
+- Writes the reshaped region-by-cell matrices directly into `output_path`.
+
+------
+
+### `CNReinParser.get_bin_rdr(counts_path, cell_name_path, cna_path=None)`
+
+Creates a region-by-cell wide matrix of per-bin Read Depth Ratios (RDR).
+
+**Input**
+
+- `counts_path`: Path to an `.npz` file containing the counts array (expected shape: `n_cells, n_bins`).
+- `cell_name_path`: Path to an `.npz` file containing the cell names array (expected shape: `n_cells,`).
+- `cna_path` (optional): Path to the `haplotype_combined.csv` file generated by `run()`. If not provided, it defaults to looking in the `output_path`. This is used to extract the correct `region` index.
+
+**Output** writes to:
+
+- `{self.output_path}/bin_rdr.csv`
+
+This is a wide matrix:
+
+- rows: `region`
+- columns: cells
+- values: RDR counts
+
+------
+
+### `CNReinParser.get_VAF_matrix(vaf_file_dir, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")`
+
+Converts split chromosome VCF files into sparse matrix outputs (AD and DP).
+
+**Input format**
+
+`vaf_file_dir` must be a directory containing exactly 22 gzipped VCF files named:
+
+- `seperates_chr1.vcf.gz`
+- `seperates_chr2.vcf.gz`
+- ...
+- `seperates_chr22.vcf.gz`
+
+**Parameters**
+
+`output_path` (optional)
+
+- If provided: outputs under `{output_path}/VAF`, else outputs under `{self.output_path}/VAF`.
+
+```
+min_dp
+```
+
+- Filter low depth sites.
+
+```
+min_cells
+```
+
+- Filter sites supported by too few cells.
+
+```
+prefix
+```
+
+- Output file prefix (default: `cellSNP`).
+
+**Output**
+
+Creates a `VAF/` directory containing the Matrix Market (`.mtx`) files.
+
+
 
