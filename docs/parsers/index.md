@@ -24,10 +24,10 @@ While each tool requires different input files and formats, every parser in this
 
 | **Parser**                                                   | **Main Input**                  | **Additional Inputs**                             | **Format Types**            | **Supported Outputs**                        |
 | ------------------------------------------------------------ | ------------------------------- | ------------------------------------------------- | --------------------------- | -------------------------------------------- |
-| **[CHISEL](https://www.google.com/search?q=chisel.md)**      | `calls.tsv`                     | `mapping.tsv`, VAF table                          | Tab-delimited text          | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
-| **[Alleloscope](https://www.google.com/search?q=alleloscope.md)** | `.rds` files                    | `clusters.csv`, raw counts TSV, cellSNP directory | R serialized data, TSV, CSV | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
-| **[CNRein](https://www.google.com/search?q=cnrein.md)**      | `CNReinPrediction.csv`          | `.npz` arrays, split VCF files                    | CSV, NPZ, VCF               | CNA Matrix, Bin RDR, Sparse VAF              |
-| **[SEACON](https://www.google.com/search?q=seacon.md)**      | `calls.tsv`                     | `counts.tsv`, `vaf.tsv`                           | Tab-delimited text          | Split CNA Matrices, Bin Counts, Sparse VAF   |
-| **SIGNALS**                                                  | `hscn.rds` (exported to `.tsv`) | cluster file, bin counts, VAF table               | Tab-delimited text / CSV    | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
+| **[CHISEL](chisel.md)**      | `calls.tsv`                     | `mapping.tsv`, VAF table                          | Tab-delimited text          | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
+| **[Alleloscope](alleloscope.md)** | `.rds` files                    | `clusters.csv`, raw counts TSV, cellSNP directory | R serialized data, TSV, CSV | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
+| **[CNRein](cnrein.md)**      | `CNReinPrediction.csv`          | `.npz` arrays, split VCF files                    | CSV, NPZ, VCF               | CNA Matrix, Bin RDR, Sparse VAF              |
+| **[SEACON](seacon.md)**      | `calls.tsv`                     | `counts.tsv`, `vaf.tsv`                           | Tab-delimited text          | Split CNA Matrices, Bin Counts, Sparse VAF   |
+| **[SIGNALS](signals.md)**                                                  | `hscn.rds` (exported to `.tsv`) | cluster file, bin counts, VAF table               | Tab-delimited text / CSV    | CNA Matrix, Clusters, Bin Counts, Sparse VAF |
 
 All parsers generate outputs in the same canonical structure, making it possible to directly compare results across tools in the **HCBench** benchmarking pipeline.
