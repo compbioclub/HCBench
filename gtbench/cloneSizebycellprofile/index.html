@@ -9,10 +9,6 @@
       
       
       
-        <link rel="prev" href="../alleloscope/">
-      
-      
-        <link rel="next" href="../seacon/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -20,7 +16,7 @@
     
     
       
-        <title>SIGNALS - HCBench</title>
+        <title>cloneSizebycellprofile - HCBench</title>
       
     
     
@@ -61,11 +57,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#signals-parser" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -98,7 +89,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              SIGNALS
+              cloneSizebycellprofile
             
           </span>
         </div>
@@ -237,20 +228,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -266,7 +255,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Parsers
@@ -280,7 +269,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../parsers/" class="md-nav__link">
         
   
   
@@ -303,7 +292,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../chisel/" class="md-nav__link">
+      <a href="../../parsers/chisel/" class="md-nav__link">
         
   
   
@@ -326,7 +315,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../alleloscope/" class="md-nav__link">
+      <a href="../../parsers/alleloscope/" class="md-nav__link">
         
   
   
@@ -346,32 +335,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    SIGNALS
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../parsers/signals/" class="md-nav__link">
         
   
   
@@ -382,155 +349,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Quick Start
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🚀 Quick Start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#exporting-hscn_datatsv-from-r" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 Exporting hscn_data.tsv from R
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#1-parse-the-cna-matrix" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 1. Parse the CNA Matrix
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-parse-the-cluster-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 2. Parse the Cluster File
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-parse-the-bin-counts-matrix" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 3. Parse the bin counts matrix
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-parse-the-vaf-sparse-matrices" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 4. Parse the VAF sparse matrices
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#initialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      ⚙️ Initialization
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧠 Core Methods
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🧠 Core Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserrun" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.run()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserget_clustercluster_file_path" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.get_cluster(cluster_file_path)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserget_bin_countsbin_count_file_path" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.get_bin_counts(bin_count_file_path)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserget_vaf_matrixvaf_file_path-output_pathnone-min_dp1-min_cells1-prefixcellsnp" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.get_VAF_matrix(vaf_file_path, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-of-hscn_datatsv" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧩 Example of hscn_data.tsv
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -543,7 +361,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../seacon/" class="md-nav__link">
+      <a href="../../parsers/seacon/" class="md-nav__link">
         
   
   
@@ -566,7 +384,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../cnrein/" class="md-nav__link">
+      <a href="../../parsers/cnrein/" class="md-nav__link">
         
   
   
@@ -634,7 +452,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../gtbench/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -657,7 +475,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../gtbench/clusterConsistency/" class="md-nav__link">
+      <a href="../clusterConsistency/" class="md-nav__link">
         
   
   
@@ -680,7 +498,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../gtbench/cloneSizebycluster/" class="md-nav__link">
+      <a href="../cloneSizebycluster/" class="md-nav__link">
         
   
   
@@ -703,7 +521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../gtbench/cellprofile/" class="md-nav__link">
+      <a href="../cellprofile/" class="md-nav__link">
         
   
   
@@ -811,145 +629,6 @@
   
   
   
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
-    <span class="md-ellipsis">
-      🚀 Quick Start
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🚀 Quick Start">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#exporting-hscn_datatsv-from-r" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 Exporting hscn_data.tsv from R
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#1-parse-the-cna-matrix" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 1. Parse the CNA Matrix
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-parse-the-cluster-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 2. Parse the Cluster File
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-parse-the-bin-counts-matrix" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 3. Parse the bin counts matrix
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-parse-the-vaf-sparse-matrices" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧬 4. Parse the VAF sparse matrices
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#initialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      ⚙️ Initialization
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧠 Core Methods
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="🧠 Core Methods">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserrun" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.run()
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserget_clustercluster_file_path" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.get_cluster(cluster_file_path)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserget_bin_countsbin_count_file_path" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.get_bin_counts(bin_count_file_path)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#signalsparserget_vaf_matrixvaf_file_path-output_pathnone-min_dp1-min_cells1-prefixcellsnp" class="md-nav__link">
-    <span class="md-ellipsis">
-      SignalsParser.get_VAF_matrix(vaf_file_path, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-of-hscn_datatsv" class="md-nav__link">
-    <span class="md-ellipsis">
-      🧩 Example of hscn_data.tsv
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -965,179 +644,9 @@
 
 
 
-<h1 id="signals-parser">SIGNALS Parser</h1>
-<p>This module provides <code>SignalsParser</code>, specialized for parsing Signals outputs and exporting standardized matrices and helper files used by hcbench workflows.</p>
-<p>Key features:</p>
-<ul>
-<li>Run the existing pipeline on Signals CNA tables</li>
-<li>Parse Signals cluster assignments into a standardized <code>clusters.csv</code></li>
-<li>Export bin-level count matrices as <code>bin_counts.csv</code></li>
-<li>Convert a VAF long table into sparse matrix outputs</li>
-</ul>
-<h2 id="quick-start">🚀 Quick Start</h2>
-<h3 id="exporting-hscn_datatsv-from-r">🧬 Exporting hscn_data.tsv from R</h3>
-<p>Run the following R code to extract and save the <code>hscn$data</code> component:</p>
-<pre><code>mnt &lt;- &quot;/demo_output/signals/output/&quot;
+  <h1>cloneSizebycellprofile</h1>
 
-hscn &lt;- readRDS(&quot;/demo_output/signals/hscn.rds&quot;)
-
-# Export the data component
-write.table(
-  hscn$data,
-  file = paste0(mnt, &quot;hscn_data.tsv&quot;),
-  sep = &quot;\t&quot;,
-  quote = FALSE,
-  row.names = FALSE
-)
-</code></pre>
-<p>This will produce the file <code>hscn_data.tsv</code>, which is then used as input for the parser.</p>
-<h3 id="1-parse-the-cna-matrix">🧬 1. Parse the CNA Matrix</h3>
-<pre><code class="language-python">from hcbench.parsers.signals import SignalsParser
-
-signals_input = &quot;/demo_output/signals/output/hscn_data.csv&quot;
-signals_output = &quot;/output/signals/&quot;
-
-signals_parser = SignalsParser(input_path=signals_input, output_path=signals_output)
-signals_parser.run()
-</code></pre>
-<p>After running, the parser will read the input file and results are saved to the output directory, typically containing the following files:</p>
-<pre><code>/output/signals/
-├── haplotype_combined.csv
-├── haplotype_1.csv       
-├── haplotype_2.csv       
-├── minor.csv             
-├── major.csv             
-└── minor_major.csv
-</code></pre>
-<ul>
-<li><code>haplotype_combined.csv</code> — main CNA matrix (regions × cells).</li>
-</ul>
-<h3 id="2-parse-the-cluster-file">🧬 2. Parse the Cluster File</h3>
-<p>If you have a Signals cluster mapping file, you can parse it separately using the <code>get_cluster()</code> method:</p>
-<pre><code>cluster_file = &quot;/demo_output/signals/clusters.csv&quot;
-signals_parser.get_cluster(cluster_file)
-</code></pre>
-<p>An example of the input cluster file:</p>
-<pre><code>cell_id,clone_id
-AAACCTGAGAAGGACA,CloneA
-AAACCTGAGATCTGCT,CloneB
-AAACCTGAGTAATCCC,CloneA
-</code></pre>
-<p>After running this command, the following standardized file will be created:</p>
-<pre><code>/output/signals/
-└── clusters.csv
-</code></pre>
-<h3 id="3-parse-the-bin-counts-matrix">🧬 3. Parse the bin counts matrix</h3>
-<p>Unlike the CHISEL parser, the Signals parser requires the explicit path to the bin counts file:</p>
-<pre><code>bin_count_file = &quot;hmmcopy_results/reads.csv.gz&quot;
-signals_parser.get_bin_counts(bin_count_file)
-</code></pre>
-<p>After running this command, the following standardized file will be created:</p>
-<pre><code>/output/signals/
-└── bin_counts.csv
-</code></pre>
-<hr />
-<h3 id="4-parse-the-vaf-sparse-matrices">🧬 4. Parse the VAF sparse matrices</h3>
-<pre><code>signals_parser.get_VAF_matrix(
-    vaf_file_path=&quot;hscn_pipeline_apptainer/results/counthaps/allele_counts_all.csv.gz&quot;,
-    min_dp=3,
-    min_cells=10,
-)
-</code></pre>
-<p>After running this command, the following standardized directory and files will be created:</p>
-<pre><code>/output/signals/
-├── VAF/
-│   └── cellSNP_*.mtx
-</code></pre>
-<h2 id="initialization">⚙️ Initialization</h2>
-<pre><code>SignalsParser(
-    input_path: str,
-    output_path: str,
-    **kwargs
-)
-</code></pre>
-<p><strong><code>input_path</code></strong>: Path to the Signals CNA output. An example of the expected input format:</p>
-<pre><code>chr start   end reads   copy    state   cell_id alleleA alleleB totalcounts BAF state_min   A   B   state_AS_phased state_AS    LOH phase   state_phase state_BAF
-1   5000001 10000000    34762   NA  2   clone1_cell1    677 193 870 0.22183908045977    1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
-1   20000001    25000000    34200   NA  2   clone1_cell1    639 222 861 0.257839721254355   1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
-1   30000001    35000000    42510   NA  2   clone1_cell1    807 203 1010    0.200990099009901   1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
-</code></pre>
-<p>The <strong>required columns</strong> are:</p>
-<pre><code>chr, start, end, cell_id, state_AS_phased
-</code></pre>
-<p><strong><code>output_path</code></strong>: Base output directory where the standardized matrices will be saved.</p>
-<h2 id="core-methods">🧠 Core Methods</h2>
-<h3 id="signalsparserrun"><code>SignalsParser.run()</code></h3>
-<p>Executes the standard pipeline for the CNA matrix:</p>
-<hr />
-<h3 id="signalsparserget_clustercluster_file_path"><code>SignalsParser.get_cluster(cluster_file_path)</code></h3>
-<p>Parses a Signals cluster mapping file and writes a standardized CSV.</p>
-<p><strong>Input</strong></p>
-<ul>
-<li><code>cluster_file_path</code>: CSV file containing at least the columns: <code>cell_id</code>, <code>clone_id</code>.</li>
-</ul>
-<p><strong>Output</strong> writes to:</p>
-<ul>
-<li><code>{self.output_path}/clusters.csv</code>, strictly retaining these two columns.</li>
-</ul>
-<hr />
-<h3 id="signalsparserget_bin_countsbin_count_file_path"><code>SignalsParser.get_bin_counts(bin_count_file_path)</code></h3>
-<p>Creates a region-by-cell wide matrix of per-bin counts. Note that this initializes an internal temporary parser specifically configured for the <code>hg38</code> reference genome and targets the <code>reads</code> column without adding chromosome prefixes.</p>
-<p><strong>Input</strong></p>
-<ul>
-<li><code>bin_count_file_path</code>: Path to the raw bin counts CSV file.</li>
-</ul>
-<p><strong>Output</strong> writes to:</p>
-<ul>
-<li><code>{self.output_path}/bin_counts.csv</code></li>
-</ul>
-<p>This is a wide matrix:</p>
-<ul>
-<li>rows: <code>region</code></li>
-<li>columns: cells</li>
-<li>values: counts</li>
-</ul>
-<hr />
-<h3 id="signalsparserget_vaf_matrixvaf_file_path-output_pathnone-min_dp1-min_cells1-prefixcellsnp"><code>SignalsParser.get_VAF_matrix(vaf_file_path, output_path=None, min_dp=1, min_cells=1, prefix="cellSNP")</code></h3>
-<p>Converts a VAF long table into sparse matrix outputs.</p>
-<p><strong>Parameters</strong></p>
-<p><code>output_path</code> (optional)</p>
-<ul>
-<li>If provided: outputs under <code>{output_path}/VAF</code>, else outputs under <code>{self.output_path}/VAF</code>.</li>
-</ul>
-<pre><code>min_dp
-</code></pre>
-<ul>
-<li>Filter low depth sites.</li>
-</ul>
-<pre><code>min_cells
-</code></pre>
-<ul>
-<li>Filter sites supported by too few cells.</li>
-</ul>
-<pre><code>prefix
-</code></pre>
-<ul>
-<li>Output file prefix (default: <code>cellSNP</code>).</li>
-</ul>
-<p><strong>Output</strong></p>
-<p>Creates a <code>VAF/</code> directory containing the Matrix Market (<code>.mtx</code>) files:</p>
-<p>Plaintext</p>
-<pre><code>.../VAF/
-└── cellSNP_*.mtx
-</code></pre>
-<h2 id="example-of-hscn_datatsv">🧩 Example of hscn_data.tsv</h2>
-<p>An example of the exported file may look like:</p>
-<pre><code>chr start   end reads   copy    state   cell_id alleleA alleleB totalcounts BAF state_min   A   B   state_AS_phased state_AS    LOH phase   state_phase state_BAF
-1   5000001 10000000    34762   NA  2   clone1_cell1    677 193 870 0.22183908045977    1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
-1   20000001    25000000    34200   NA  2   clone1_cell1    639 222 861 0.257839721254355   1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
-1   30000001    35000000    42510   NA  2   clone1_cell1    807 203 1010    0.200990099009901   1   1   1   1|1 1|1 NO  Balanced    Balanced    0.5
-</code></pre>
-<p>Each row corresponds to one genomic bin in a given single cell.</p>
-<p>The <strong><em>*required columns*</em></strong> are:</p>
-<p>```</p>
-<p>chr,start,end,cell_id,state_AS_phased</p>
-<p>```</p>
+<p>Function</p>
 
 
 

@@ -336,9 +336,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#common-standardized-outputs" class="md-nav__link">
     <span class="md-ellipsis">
-      📖 Overview
+      🎯 Common Standardized Outputs
     </span>
   </a>
   
@@ -346,6 +346,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parsers-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      📖 Parsers Overview
+    </span>
+  </a>
   
 </li>
       
@@ -541,6 +550,75 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gtbench/clusterConsistency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    clusterConsistency
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gtbench/cloneSizebycluster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloneSizebycluster
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gtbench/cellprofile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cellprofile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -651,9 +729,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#common-standardized-outputs" class="md-nav__link">
     <span class="md-ellipsis">
-      📖 Overview
+      🎯 Common Standardized Outputs
     </span>
   </a>
   
@@ -661,6 +739,15 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#parsers-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      📖 Parsers Overview
+    </span>
+  </a>
   
 </li>
       
@@ -686,51 +773,62 @@
 <p>Welcome to the <strong>HCBench Parser Suite</strong> — a unified framework for standardizing single-cell copy number alteration (CNA) outputs from multiple tools.</p>
 <p>Each parser converts heterogeneous output formats from different algorithms (CHISEL, Alleloscope, CNRein, SEACON, and SIGNALS) into a single consistent format suitable for downstream benchmarking and visualization.</p>
 <hr />
-<h3 id="overview">📖 Overview</h3>
+<h3 id="common-standardized-outputs">🎯 Common Standardized Outputs</h3>
+<p>While each tool requires different input files and formats, every parser in this suite is designed to output a canonical directory structure. Depending on the specific methods called, a fully processed output directory will typically contain:</p>
+<p><strong>CNA Matrices</strong>: <code>haplotype_combined.csv</code>, or split <code>minor.csv</code>, <code>major.csv</code>, and <code>minor_major.csv</code> matrices (regions × cells).</p>
+<p><strong>Cluster Mapping</strong>: <code>clusters.csv</code> containing standardized <code>cell_id</code> and <code>clone_id</code> columns.</p>
+<p><strong>Bin Counts / RDR</strong>: <code>bin_counts.csv</code> or <code>bin_rdr.csv</code> formatted as a wide matrix of regions by cells.</p>
+<p><strong>Sparse VAF Matrices</strong>: A <code>VAF/</code> directory containing standard Matrix Market (<code>.mtx</code>) files for Allelic Depth (AD) and Read Depth (DP).</p>
+<h2 id="parsers-overview">📖 Parsers Overview</h2>
 <table>
 <thead>
 <tr>
-<th>Parser</th>
-<th>Input Type</th>
-<th>Input Format</th>
-<th>Output</th>
+<th><strong>Parser</strong></th>
+<th><strong>Main Input</strong></th>
+<th><strong>Additional Inputs</strong></th>
+<th><strong>Format Types</strong></th>
+<th><strong>Supported Outputs</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="parsers/chisel.md">CHISEL</a></td>
-<td><code>calls.tsv</code> + <code>mapping.tsv</code></td>
-<td>Tab-delimited text</td>
-<td>Standardized CNA matrix + clone mapping</td>
-</tr>
-<tr>
-<td><a href="parsers/seacon.md">Alleloscope</a></td>
-<td><code>.rds</code> files</td>
-<td>R serialized data</td>
-<td>Standardized CNA matrix + clusters</td>
-</tr>
-<tr>
-<td><a href="parsers/cnrein.md">CNRein</a></td>
-<td><code>CNReinPrediction.csv</code></td>
-<td>CSV</td>
-<td>Standardized CNA matrix</td>
-</tr>
-<tr>
-<td><a href="parsers/seacon.md">SEACON</a></td>
+<td><strong><a href="chisel/">CHISEL</a></strong></td>
 <td><code>calls.tsv</code></td>
+<td><code>mapping.tsv</code>, VAF table</td>
 <td>Tab-delimited text</td>
-<td>Standardized CNA matrix</td>
+<td>CNA Matrix, Clusters, Bin Counts, Sparse VAF</td>
 </tr>
 <tr>
-<td><a href="parsers/signals.md">SIGNALS</a></td>
-<td><code>hscn.rds</code> (exported to <code>.tsv</code>)</td>
+<td><strong><a href="alleloscope/">Alleloscope</a></strong></td>
+<td><code>.rds</code> files</td>
+<td><code>clusters.csv</code>, raw counts TSV, cellSNP directory</td>
+<td>R serialized data, TSV, CSV</td>
+<td>CNA Matrix, Clusters, Bin Counts, Sparse VAF</td>
+</tr>
+<tr>
+<td><strong><a href="cnrein/">CNRein</a></strong></td>
+<td><code>CNReinPrediction.csv</code></td>
+<td><code>.npz</code> arrays, split VCF files</td>
+<td>CSV, NPZ, VCF</td>
+<td>CNA Matrix, Bin RDR, Sparse VAF</td>
+</tr>
+<tr>
+<td><strong><a href="seacon/">SEACON</a></strong></td>
+<td><code>calls.tsv</code></td>
+<td><code>counts.tsv</code>, <code>vaf.tsv</code></td>
 <td>Tab-delimited text</td>
-<td>Standardized CNA matrix</td>
+<td>Split CNA Matrices, Bin Counts, Sparse VAF</td>
+</tr>
+<tr>
+<td><strong><a href="signals/">SIGNALS</a></strong></td>
+<td><code>hscn.rds</code> (exported to <code>.tsv</code>)</td>
+<td>cluster file, bin counts, VAF table</td>
+<td>Tab-delimited text / CSV</td>
+<td>CNA Matrix, Clusters, Bin Counts, Sparse VAF</td>
 </tr>
 </tbody>
 </table>
 <p>All parsers generate outputs in the same canonical structure, making it possible to directly compare results across tools in the <strong>HCBench</strong> benchmarking pipeline.</p>
-<hr />
 
 
 

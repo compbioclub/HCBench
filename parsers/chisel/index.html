@@ -353,46 +353,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-example" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
-      🚀 Quick Example
+      🚀 Quick Start
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🚀 Quick Example">
+    <nav class="md-nav" aria-label="🚀 Quick Start">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parse-the-cna-matrix" class="md-nav__link">
+  <a href="#1-parse-the-cna-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the CNA Matrix
+      🧬 1. Parse the CNA Matrix
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse-the-cluster-file" class="md-nav__link">
+  <a href="#2-parse-the-cluster-file" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the Cluster File
+      🧬 2. Parse the Cluster File
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse-the-bin-counts-matrix" class="md-nav__link">
+  <a href="#3-parse-the-bin-counts-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the bin counts matrix
+      🧬 3. Parse the bin counts matrix
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse-the-vaf-sparse-matrices" class="md-nav__link">
+  <a href="#4-parse-the-vaf-sparse-matrices" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the VAF sparse matrices
+      🧬 4. Parse the VAF sparse matrices
     </span>
   </a>
   
@@ -632,6 +632,75 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gtbench/clusterConsistency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    clusterConsistency
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gtbench/cloneSizebycluster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cloneSizebycluster
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gtbench/cellprofile/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    cellprofile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -734,46 +803,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#quick-example" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
-      🚀 Quick Example
+      🚀 Quick Start
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🚀 Quick Example">
+    <nav class="md-nav" aria-label="🚀 Quick Start">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#parse-the-cna-matrix" class="md-nav__link">
+  <a href="#1-parse-the-cna-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the CNA Matrix
+      🧬 1. Parse the CNA Matrix
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse-the-cluster-file" class="md-nav__link">
+  <a href="#2-parse-the-cluster-file" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the Cluster File
+      🧬 2. Parse the Cluster File
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse-the-bin-counts-matrix" class="md-nav__link">
+  <a href="#3-parse-the-bin-counts-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the bin counts matrix
+      🧬 3. Parse the bin counts matrix
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#parse-the-vaf-sparse-matrices" class="md-nav__link">
+  <a href="#4-parse-the-vaf-sparse-matrices" class="md-nav__link">
     <span class="md-ellipsis">
-      🧬 Parse the VAF sparse matrices
+      🧬 4. Parse the VAF sparse matrices
     </span>
   </a>
   
@@ -870,8 +939,8 @@
 <li>Export bin-level count matrices as <code>bin_counts.csv</code></li>
 <li>Convert a cellSNP-like VAF long table into sparse matrix outputs</li>
 </ul>
-<h2 id="quick-example">🚀 Quick Example</h2>
-<h3 id="parse-the-cna-matrix">🧬 Parse the CNA Matrix</h3>
+<h2 id="quick-start">🚀 Quick Start</h2>
+<h3 id="1-parse-the-cna-matrix">🧬  1. Parse the CNA Matrix</h3>
 <pre><code>from hcbench.parsers.chisel import ChiselParser
 
 chisel_input = &quot;/demo_output/chisel/calls/calls.tsv&quot;
@@ -902,7 +971,7 @@ chisel_parser.run()
   Each value represents the combined haplotype copy number in the form <code>"hap1|hap2"</code>.</li>
 </ul>
 <hr />
-<h3 id="parse-the-cluster-file">🧬 Parse the Cluster File</h3>
+<h3 id="2-parse-the-cluster-file">🧬  2. Parse the Cluster File</h3>
 <p>If you have a CHISEL cluster mapping file (commonly named <code>mapping.tsv</code>), you can parse it separately using the new <code>get_cluster()</code> method:</p>
 <pre><code>cluster_file = &quot;/demo_output/chisel/clones/mapping.tsv&quot;
 chisel_parser.get_cluster(cluster_file)
@@ -925,14 +994,14 @@ AAACCTGAGAAGGACA,3233
 AAACCTGAGATCTGCT,1484
 AAACCTGAGTAATCCC,1924
 </code></pre>
-<h3 id="parse-the-bin-counts-matrix">🧬 Parse the bin counts matrix</h3>
+<h3 id="3-parse-the-bin-counts-matrix">🧬 3. Parse the bin counts matrix</h3>
 <pre><code>chisel_parser.get_bin_counts()
 </code></pre>
 <p>After running this command, the following standardized file will be created:</p>
 <pre><code>/output/chisel/
 └──bin_counts.csv
 </code></pre>
-<h3 id="parse-the-vaf-sparse-matrices">🧬 Parse the VAF sparse matrices</h3>
+<h3 id="4-parse-the-vaf-sparse-matrices">🧬 4. Parse the VAF sparse matrices</h3>
 <pre><code>chisel_parser.get_VAF_matrix(
     vaf_file_path=&quot;/demo_output/chisel/baf/baf.tsv&quot;,
     min_dp=3,
