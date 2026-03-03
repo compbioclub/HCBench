@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Segmentation - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Segmentation
             
           </span>
         </div>
@@ -666,31 +666,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output">
+    <nav class="md-nav" aria-label="Input File Format">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#gt_cna_file-gt-cna-matrix" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
+      gt_cna_file (GT CNA matrix)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
+  <a href="#tool-cna-files-tool_cna_files" class="md-nav__link">
     <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      Tool CNA files (tool_cna_files)
     </span>
   </a>
   
@@ -702,9 +693,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#processing-steps" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Processing Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Value
     </span>
   </a>
   
@@ -735,24 +744,24 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Segmentation</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">segmentation(
     self,
     gt_cna_file: str,
     tool_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
-) -&gt; pd.DataFrame
+    profile_bin_size=100000,
+    threshold=0.95,
+    outprefix: str = &quot;segmentation_&quot;,
+    level=&quot;cell&quot;,
+    changes_file: Optional[str] = &quot;&quot;
+)
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
-<ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
-</ul>
+<p>This function evaluates <strong>segmentation quality</strong> of CNA calls by comparing tool predictions against <strong>GT-derived CNA segments</strong>.</p>
+<p>It first derives CNA segments from the ground-truth CNA matrix using <code>annotate_segments(...)</code> (with optional CNV type detection). Then, for each tool, it converts the tool CNA matrix into a long format (region × cell), re-bins regions to a uniform resolution, and computes segmentation metrics using <code>get_segment_metric(...)</code>.</p>
+<p>A single metrics CSV is written to disk.</p>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -767,107 +776,148 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 <tr>
 <td><code>gt_cna_file</code></td>
 <td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
+<td>Path to GT CNA matrix CSV (regions × cells). The first column is treated as index when reading.</td>
 </tr>
 <tr>
 <td><code>tool_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of tool CNA profile CSVs. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used to label metric outputs.</td>
 </tr>
 <tr>
-<td><code>outfile</code></td>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split/standardize tool regions before metric computation. Default: <code>100000</code> (100kb).</td>
+</tr>
+<tr>
+<td><code>threshold</code></td>
+<td><code>float</code></td>
+<td>Threshold passed into <code>annotate_segments(...)</code> (used for segmentation/CNV detection sensitivity). Default: <code>0.95</code>.</td>
+</tr>
+<tr>
+<td><code>outprefix</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Prefix used for the output metrics filename. Default: <code>"segmentation_"</code>.</td>
+</tr>
+<tr>
+<td><code>level</code></td>
+<td><code>str</code></td>
+<td>Placeholder for evaluation level (<code>"cell"</code> or <code>"clone"</code>). Currently only <code>"cell"</code> path is active.</td>
+</tr>
+<tr>
+<td><code>changes_file</code></td>
+<td><code>Optional[str]</code></td>
+<td>Reserved for clone-level evaluation (commented out in current implementation). Default: <code>""</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
+<h3 id="gt_cna_file-gt-cna-matrix"><code>gt_cna_file</code> (GT CNA matrix)</h3>
+<p>Loaded as:</p>
+<pre><code class="language-python">gt_profile = pd.read_csv(gt_cna_file, index_col=0)
+</code></pre>
+<p>So the CSV is expected to be:</p>
 <ul>
-<li>rows: genomic regions (first column as index when reading)</li>
+<li>rows: genomic regions (in the index)</li>
 <li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
+<li>values: CNA states</li>
 </ul>
 <p>Example:</p>
-<pre><code class="language-csv">region,cell_001,cell_002,cell_003
-chr1:1-100000,1|1,1|1,2|1
-chr1:100001-200000,1|1,1|1,2|1
+<pre><code class="language-csv">region,cell_001,cell_002
+chr1:1-100000,1|1,1|1
+chr1:100001-200000,2|1,2|1
 </code></pre>
-<p>Implementation details from source:</p>
+<p>The GT matrix is transposed before segmentation annotation:</p>
+<pre><code class="language-python">gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold)
+</code></pre>
+<p><code>annotate_segments(...)</code> is expected to return a dataframe that includes (at minimum):</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li><code>Chrom</code></li>
+<li><code>Start</code></li>
+<li><code>End</code></li>
 </ul>
+<p>A region string is then constructed:</p>
+<pre><code class="language-python">gt_annotated_df[&quot;region&quot;] = (
+    gt_annotated_df[&quot;Chrom&quot;] + &quot;:&quot; +
+    gt_annotated_df[&quot;Start&quot;].astype(str) + &quot;-&quot; +
+    gt_annotated_df[&quot;End&quot;].astype(str)
+)
+</code></pre>
+<h3 id="tool-cna-files-tool_cna_files">Tool CNA files (<code>tool_cna_files</code>)</h3>
+<p>Loaded via:</p>
+<pre><code class="language-python">tool_cna_df = read_and_drop_empty(f)
+</code></pre>
+<p>Expected to include a <code>region</code> column plus one column per cell (wide CNA matrix).</p>
+<p>Example:</p>
+<pre><code class="language-csv">region,cell_001,cell_002
+chr1:1-100000,1|1,1|1
+chr1:100001-200000,2|1,2|1
+</code></pre>
+<hr />
+<h2 id="processing-steps">Processing Steps</h2>
+<p>For each tool:</p>
+<ol>
+<li>Convert wide CNA matrix to long format (one row per region × cell):</li>
+</ol>
+<pre><code class="language-python">tool_cna_df_long = (
+    pd.DataFrame(tool_cna_df)
+      .melt(id_vars=&quot;region&quot;, var_name=&quot;cell&quot;, value_name=&quot;value&quot;)
+      .dropna(subset=[&quot;value&quot;])
+)
+</code></pre>
+<ol>
+<li>Re-bin/split regions to <code>profile_bin_size</code> resolution:</li>
+</ol>
+<pre><code class="language-python">tool_cna_df_long = split_all_regions(tool_cna_df_long.set_index(&quot;region&quot;), profile_bin_size)
+tool_cna_df_long = tool_cna_df_long.reset_index().rename(columns={&quot;index&quot;: &quot;region&quot;})
+</code></pre>
+<ol>
+<li>Compute segmentation metrics comparing tool calls to GT segments:</li>
+</ol>
+<pre><code class="language-python">result2 = get_segment_metric(gt_annotated_df, tool_cna_df_long)
+result2[&quot;Tool&quot;] = name
+</code></pre>
+<ol>
+<li>Collect per-tool metric outputs and concatenate:</li>
+</ol>
+<pre><code class="language-python">metric_df = pd.concat(metric_results, ignore_index=True)
+</code></pre>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
-</tr>
-</tbody>
-</table>
+<p>A single CSV is written to <code>self.output_dir</code>:</p>
+<pre><code>os.path.join(self.output_dir, f&quot;{outprefix}metrics.csv&quot;)
+</code></pre>
+<p>Default:</p>
+<pre><code>{self.output_dir}/segmentation_metrics.csv
+</code></pre>
+<p>The output rows depend on what <code>get_segment_metric(...)</code> returns (e.g., overlap scores, breakpoint precision/recall, CNV-type metrics, etc.), with an added column:</p>
+<ul>
+<li><code>Tool</code></li>
+</ul>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>This function does <strong>not</strong> explicitly return a value (runtime return is <code>None</code>).</p>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
+bench.segmentation(
     gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
     tool_cna_files=[
+        &quot;/path/to/chisel/haplotype_combined.csv&quot;,
         &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    profile_bin_size=100000,
+    threshold=0.8,
+    outprefix=&quot;segmentation_&quot;,
 )
 </code></pre>
 

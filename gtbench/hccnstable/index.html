@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Hccnstable - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Hccnstable
             
           </span>
         </div>
@@ -666,31 +666,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output">
+    <nav class="md-nav" aria-label="Input File Format">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#tree_file-newick-tree" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
+      tree_file (Newick tree)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
+  <a href="#changes_file-segmentchange-table" class="md-nav__link">
     <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      changes_file (segment/change table)
     </span>
   </a>
   
@@ -702,9 +693,45 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#tool-cna-profile-format" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Tool CNA Profile Format
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluation Logic
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-table-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Table Schema
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Value
     </span>
   </a>
   
@@ -735,24 +762,28 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Hccnstable</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">hccnstable(
     self,
-    gt_cna_file: str,
-    tool_cna_files: List[str],
+    tool_hap1_cna_files: List[str],
+    tool_hap2_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    changes_file: str,
+    tree_file: str,
+    outfile: str = &quot;evolution_cn_stability_acc.csv&quot;,
+    profile_bin_size=100000
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
+<p>This function evaluates <strong>copy-number stability accuracy</strong> along a given phylogenetic tree.</p>
+<p>Given:</p>
 <ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
+<li>a <strong>tree</strong> (Newick format),</li>
+<li>a <strong>segment change table</strong> (<code>changes_file</code>),</li>
+<li>and each tool’s haplotype-specific CNA profiles (hap1/hap2),</li>
 </ul>
+<p>it builds a set of “stability checks” derived from the tree topology and then measures, for each tool, how often predicted CN states satisfy the expected stability constraints. Results are reported as <strong>ACC</strong> (mean of boolean check outcomes), stratified by change <code>Type</code>.</p>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,110 +796,192 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
+<td><code>tool_hap1_cna_files</code></td>
+<td><code>List[str]</code></td>
+<td>List of tool CNA profile CSVs for haplotype 1. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
-<td><code>tool_cna_files</code></td>
+<td><code>tool_hap2_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of tool CNA profile CSVs for haplotype 2. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used in result rows.</td>
+</tr>
+<tr>
+<td><code>changes_file</code></td>
+<td><code>str</code></td>
+<td>Path to the segment/change table used for stability checks (must include <code>Segment</code>, <code>Type</code>, and other fields used by internal helpers).</td>
+</tr>
+<tr>
+<td><code>tree_file</code></td>
+<td><code>str</code></td>
+<td>Path to the phylogenetic tree file in <strong>Newick</strong> format.</td>
 </tr>
 <tr>
 <td><code>outfile</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Output filename for the summary table. Default: <code>"evolution_cn_stability_acc.csv"</code>.</td>
+</tr>
+<tr>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split/standardize both segments and predictions. Default: <code>100000</code> (100kb).</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
-<ul>
-<li>rows: genomic regions (first column as index when reading)</li>
-<li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
-</ul>
-<p>Example:</p>
-<pre><code class="language-csv">region,cell_001,cell_002,cell_003
-chr1:1-100000,1|1,1|1,2|1
-chr1:100001-200000,1|1,1|1,2|1
+<h3 id="tree_file-newick-tree"><code>tree_file</code> (Newick tree)</h3>
+<p>Read using Biopython:</p>
+<pre><code class="language-python">tree = Phylo.read(tree_file, &quot;newick&quot;)
 </code></pre>
-<p>Implementation details from source:</p>
+<p>So the tree must be a valid Newick string/file (tip names must match whatever identifiers your stability logic expects).</p>
+<h3 id="changes_file-segmentchange-table"><code>changes_file</code> (segment/change table)</h3>
+<p>Loaded via:</p>
+<pre><code class="language-python">change_df = read_and_drop_empty(changes_file)
+</code></pre>
+<p>Expected to contain at least:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li><code>Segment</code>: genomic interval key used for binning and joining</li>
+<li><code>Type</code>: category label used for stratified reporting</li>
 </ul>
+<p>Optional:</p>
+<ul>
+<li><code>Haplotype</code>: if present, will be normalized via <code>self._normalize_hap_label(...)</code></li>
+</ul>
+<p>Preprocessing steps:</p>
+<ol>
+<li>Add a checklist derived from the tree:</li>
+</ol>
+<pre><code class="language-python">change_df = self._add_check_list(tree, change_df)
+</code></pre>
+<ol>
+<li>Re-bin segments:</li>
+</ol>
+<pre><code class="language-python">change_df = split_all_regions(change_df.set_index(&quot;Segment&quot;), profile_bin_size)
+change_df = change_df.reset_index().rename(columns={&quot;index&quot;: &quot;Segment&quot;})
+</code></pre>
+<ol>
+<li>Normalize haplotype labels if provided.</li>
+</ol>
+<hr />
+<h2 id="tool-cna-profile-format">Tool CNA Profile Format</h2>
+<p>Each file in <code>tool_hap1_cna_files</code> / <code>tool_hap2_cna_files</code> is expected to be a CNA matrix with:</p>
+<ul>
+<li><code>region</code> column</li>
+<li>remaining columns as cell IDs</li>
+<li>values: haplotype-specific CN states</li>
+</ul>
+<p>They are loaded and re-binned:</p>
+<pre><code class="language-python">p_h1 = split_all_regions(p_h1.set_index(&quot;region&quot;), profile_bin_size).reset_index()
+p_h2 = split_all_regions(p_h2.set_index(&quot;region&quot;), profile_bin_size).reset_index()
+</code></pre>
+<hr />
+<h2 id="evaluation-logic">Evaluation Logic</h2>
+<p>For each tool:</p>
+<ol>
+<li>Copy the processed change table:</li>
+</ol>
+<pre><code class="language-python">proc = change_df.copy()
+</code></pre>
+<ol>
+<li>Populate row-wise stability check outcomes using predictions:</li>
+</ol>
+<pre><code class="language-python">self._process_change_rows(proc, p_h1, p_h2)
+</code></pre>
+<p>This helper is expected to add/overwrite a column:</p>
+<ul>
+<li>
+<p><code>result</code>: a per-row boolean or numeric indicator (e.g., 1.0/0.0) showing whether the stability condition is satisfied for that row.</p>
+</li>
+<li>
+<p>Aggregate accuracy per <code>Type</code>:</p>
+</li>
+</ul>
+<pre><code class="language-python">acc = proc[proc[&quot;Type&quot;] == t][&quot;result&quot;].mean()
+</code></pre>
+<ol>
+<li>
+<p>Append one summary row per <code>(Tool × Type)</code>:</p>
+</li>
+<li>
+<p><code>Tool</code></p>
+</li>
+<li><code>Type</code></li>
+<li><code>ACC</code> (mean stability satisfaction rate)</li>
+</ol>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
-</tr>
-</tbody>
-</table>
+<p>A single CSV summary is written to <code>self.output_dir</code>:</p>
+<pre><code>os.path.join(self.output_dir, outfile)
+</code></pre>
+<p>Default:</p>
+<pre><code>{self.output_dir}/evolution_cn_stability_acc.csv
+</code></pre>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="output-table-schema">Output Table Schema</h2>
+<p>One row per <strong>(Tool × Type)</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tool</code></td>
+<td>Tool name</td>
+</tr>
+<tr>
+<td><code>Type</code></td>
+<td>Change/stability category from <code>changes_file</code></td>
+</tr>
+<tr>
+<td><code>ACC</code></td>
+<td>Mean of <code>result</code> for that type (stability accuracy rate)</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ul>
+<li>If <code>result</code> is boolean, pandas will treat <code>True/False</code> as <code>1/0</code> when computing <code>.mean()</code>.</li>
+<li>If a <code>Type</code> has no rows, it will not appear in the output (because types are taken from <code>proc['Type'].unique()</code>).</li>
+</ul>
+<hr />
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> with columns:</p>
+<ul>
+<li><code>Tool</code></li>
+<li><code>Type</code></li>
+<li><code>ACC</code></li>
+</ul>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
-    tool_cna_files=[
-        &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+df = bench.hccnstable(
+    tool_hap1_cna_files=[
+        &quot;/path/to/chisel/hap1.csv&quot;,
+        &quot;/path/to/signals/hap1.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_hap2_cna_files=[
+        &quot;/path/to/chisel/hap2.csv&quot;,
+        &quot;/path/to/signals/hap2.csv&quot;,
+    ],
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    changes_file=&quot;/path/to/gt/changes_stability.csv&quot;,
+    tree_file=&quot;/path/to/gt/tree.newick&quot;,
+    profile_bin_size=100000,
+    outfile=&quot;evolution_cn_stability_acc.csv&quot;,
 )
+
+print(df)
 </code></pre>
 
 

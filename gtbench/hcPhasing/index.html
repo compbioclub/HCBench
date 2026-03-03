@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>hcPhasing - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              hcPhasing
             
           </span>
         </div>
@@ -666,31 +666,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output">
+    <nav class="md-nav" aria-label="Input File Format">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#ground-truth-files-ground_truth_hap1_file-ground_truth_hap2_file" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
+      Ground truth files (ground_truth_hap1_file, ground_truth_hap2_file)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
+  <a href="#tool-prediction-files-tool_hap1_cna_files-tool_hap2_cna_files" class="md-nav__link">
     <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      Tool prediction files (tool_hap1_cna_files, tool_hap2_cna_files)
     </span>
   </a>
   
@@ -702,9 +693,45 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#processing-steps" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Processing Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-table-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Table Schema
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Value
     </span>
   </a>
   
@@ -735,24 +762,29 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>hcPhasing</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">hcPhasing(
     self,
-    gt_cna_file: str,
-    tool_cna_files: List[str],
+    tool_hap1_cna_files: List[str],
+    tool_hap2_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    ground_truth_hap1_file: str,
+    ground_truth_hap2_file: str,
+    outprefix=&quot;hcPhasing&quot;,
+    profile_bin_size=100000,
+    mode=&quot;heterozygous-only&quot;,
+    is_clone=False,
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
+<p>This function evaluates <strong>haplotype phasing accuracy</strong> of inferred haplotype-specific CNAs (hap1/hap2) against ground-truth haplotype CNAs.</p>
+<p>It converts both GT and tool haplotype CN profiles into a <strong>binary phasing representation</strong>, then computes:</p>
 <ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
+<li><strong>mismatch error</strong> (per cell or per clone)</li>
+<li><strong>switch error</strong> (per cell or per clone)</li>
 </ul>
+<p>It supports evaluation at <strong>cell-level</strong> (default) or <strong>clone-level</strong> (<code>is_clone=True</code>), and allows different evaluation modes (e.g., heterozygous-only).</p>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,54 +797,143 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
+<td><code>tool_hap1_cna_files</code></td>
+<td><code>List[str]</code></td>
+<td>List of tool CNA profile CSVs for inferred haplotype 1. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
-<td><code>tool_cna_files</code></td>
+<td><code>tool_hap2_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of tool CNA profile CSVs for inferred haplotype 2. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used in output rows.</td>
 </tr>
 <tr>
-<td><code>outfile</code></td>
+<td><code>ground_truth_hap1_file</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Path to ground-truth haplotype-1 CNA matrix CSV.</td>
+</tr>
+<tr>
+<td><code>ground_truth_hap2_file</code></td>
+<td><code>str</code></td>
+<td>Path to ground-truth haplotype-2 CNA matrix CSV.</td>
+</tr>
+<tr>
+<td><code>outprefix</code></td>
+<td><code>str</code></td>
+<td>Prefix for the output CSV filename. Default: <code>"hcPhasing"</code>.</td>
+</tr>
+<tr>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split/standardize regions before alignment. Default: <code>100000</code> (100kb).</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td><code>str</code></td>
+<td>Evaluation mode passed to mismatch/switch error functions. Default: <code>"heterozygous-only"</code>.</td>
+</tr>
+<tr>
+<td><code>is_clone</code></td>
+<td><code>bool</code></td>
+<td>If <code>True</code>, compute errors per clone label; otherwise per cell. Default: <code>False</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
-<ul>
-<li>rows: genomic regions (first column as index when reading)</li>
-<li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
-</ul>
-<p>Example:</p>
-<pre><code class="language-csv">region,cell_001,cell_002,cell_003
-chr1:1-100000,1|1,1|1,2|1
-chr1:100001-200000,1|1,1|1,2|1
+<h3 id="ground-truth-files-ground_truth_hap1_file-ground_truth_hap2_file">Ground truth files (<code>ground_truth_hap1_file</code>, <code>ground_truth_hap2_file</code>)</h3>
+<p>Loaded via <code>read_and_drop_empty(...)</code> and indexed by <code>region</code>:</p>
+<pre><code class="language-python">g1_r = read_and_drop_empty(ground_truth_hap1_file)
+g2_r = read_and_drop_empty(ground_truth_hap2_file)
+g1_r.set_index(&quot;region&quot;, inplace=True)
+g2_r.set_index(&quot;region&quot;, inplace=True)
 </code></pre>
-<p>Implementation details from source:</p>
+<p>Expected structure:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li><code>region</code> column</li>
+<li>remaining columns: cell IDs (or clone labels if evaluating clone-level elsewhere in your pipeline)</li>
+<li>values: haplotype-specific CNA states (numeric or string convertible, depending on <code>_phase_to_binary</code>)</li>
 </ul>
+<h3 id="tool-prediction-files-tool_hap1_cna_files-tool_hap2_cna_files">Tool prediction files (<code>tool_hap1_cna_files</code>, <code>tool_hap2_cna_files</code>)</h3>
+<p>Also expected to have:</p>
+<ul>
+<li><code>region</code> column</li>
+<li>cell/clone columns</li>
+<li>haplotype-specific CNA values</li>
+</ul>
+<hr />
+<h2 id="processing-steps">Processing Steps</h2>
+<p>For each tool:</p>
+<ol>
+<li>Read predicted haplotype profiles:</li>
+</ol>
+<pre><code class="language-python">t1 = read_and_drop_empty(f_h1)
+t2 = read_and_drop_empty(f_h2)
+</code></pre>
+<ol>
+<li>Re-bin regions to <code>profile_bin_size</code>:</li>
+</ol>
+<pre><code class="language-python">t1 = split_all_regions(t1.set_index(&quot;region&quot;), profile_bin_size)
+t2 = split_all_regions(t2.set_index(&quot;region&quot;), profile_bin_size)
+</code></pre>
+<ol>
+<li>Align predictions with GT on common regions and samples:</li>
+</ol>
+<pre><code class="language-python">g1, t1 = align(g1_r, t1)
+g2, t2 = align(g2_r, t2)
+</code></pre>
+<ol>
+<li>Convert haplotype CNAs to a binary phasing representation:</li>
+</ol>
+<pre><code class="language-python">g1_bin, _ = self._phase_to_binary(g1, g2)
+t1_bin, _ = self._phase_to_binary(t1, t2)
+</code></pre>
+<p><code>_phase_to_binary</code> is expected to encode phasing comparisons bin-wise (e.g., indicating whether hap1 &gt; hap2, hap1 &lt; hap2, or equal), producing matrices suitable for mismatch/switch evaluation.</p>
+<hr />
+<h2 id="error-metrics">Error Metrics</h2>
+<p>The function chooses evaluation routines based on <code>is_clone</code>:</p>
+<ul>
+<li>if <code>is_clone=False</code> (default):</li>
+<li><code>simu_cell_mismatch_error</code></li>
+<li><code>simu_cell_switch_error</code></li>
+<li>if <code>is_clone=True</code>:</li>
+<li><code>simu_clone_mismatch_error</code></li>
+<li><code>simu_clone_switch_error</code></li>
+</ul>
+<p>Both mismatch and switch error functions are called with:</p>
+<ul>
+<li>predicted binary matrix <code>t1_bin</code></li>
+<li>GT binary matrix <code>g1_bin</code></li>
+<li><code>mode</code> (e.g., <code>"heterozygous-only"</code>)</li>
+</ul>
+<pre><code class="language-python">mismatch_error_result = eval_mismatch_fn(t1_bin, g1_bin, mode)
+switch_error_result   = eval_switch_fn(t1_bin, g1_bin, mode)
+</code></pre>
+<p>The two result tables are merged on:</p>
+<ul>
+<li><code>cell</code> (cell-level), or</li>
+<li><code>clone_label</code> (clone-level)</li>
+</ul>
+<pre><code class="language-python">label = &quot;clone_label&quot; if is_clone else &quot;cell&quot;
+result = pd.merge(mismatch_error_result, switch_error_result, on=label, how=&quot;outer&quot;)
+result[&quot;tool_name&quot;] = name
+</code></pre>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
+<p>A single CSV is written to <code>self.output_dir</code>:</p>
+<pre><code>os.path.join(self.output_dir, f&quot;{outprefix}_{mode}.csv&quot;)
+</code></pre>
+<p>Default example:</p>
+<pre><code>{self.output_dir}/hcPhasing_heterozygous-only.csv
+</code></pre>
+<p>The output is <strong>long-format</strong>, with one row per cell/clone (depending on <code>is_clone</code>) per tool.</p>
+<hr />
+<h2 id="output-table-schema">Output Table Schema</h2>
+<p>Exact columns depend on what your mismatch/switch routines return, but typically include:</p>
 <table>
 <thead>
 <tr>
@@ -822,53 +943,51 @@ chr1:100001-200000,1|1,1|1,2|1
 </thead>
 <tbody>
 <tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
+<td><code>cell</code> or <code>clone_label</code></td>
+<td>Identifier used for per-sample evaluation</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
+<td>mismatch-related columns</td>
+<td>e.g., mismatch count / mismatch ratio</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
+<td>switch-related columns</td>
+<td>e.g., switch error count / switch error ratio</td>
+</tr>
+<tr>
+<td><code>tool_name</code></td>
+<td>Tool name</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> containing the merged mismatch + switch error results for all tools.</p>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
-    tool_cna_files=[
-        &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+df = bench.hcPhasing(
+    tool_hap1_cna_files=[
+        &quot;/path/to/chisel/hap1.csv&quot;,
+        &quot;/path/to/signals/hap1.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_hap2_cna_files=[
+        &quot;/path/to/chisel/hap2.csv&quot;,
+        &quot;/path/to/signals/hap2.csv&quot;,
+    ],
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    ground_truth_hap1_file=&quot;/path/to/gt/hap1.csv&quot;,
+    ground_truth_hap2_file=&quot;/path/to/gt/hap2.csv&quot;,
+    outprefix=&quot;hcPhasing&quot;,
+    profile_bin_size=100000,
+    mode=&quot;heterozygous-only&quot;,
+    is_clone=False,
 )
+
+print(df.head())
 </code></pre>
 
 

@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Cnclass - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Cnclass
             
           </span>
         </div>
@@ -666,6 +666,48 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Input File Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gt-files-profile_hap1_cna_file-profile_hap2_cna_file" class="md-nav__link">
+    <span class="md-ellipsis">
+      GT files: profile_hap1_cna_file, profile_hap2_cna_file
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-prediction-files-tool_hap1_cna_files-tool_hap2_cna_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tool prediction files: tool_hap1_cna_files, tool_hap2_cna_files
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cna-categories-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      CNA Categories (Conditions)
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#haplotype-labels" class="md-nav__link">
+    <span class="md-ellipsis">
+      Haplotype Labels
+    </span>
+  </a>
+  
 </li>
       
         <li class="md-nav__item">
@@ -679,18 +721,18 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#directory-structure-per-tool-cna-class" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
+      Directory structure (per tool × CNA class)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
+  <a href="#final-aggregated-csv-outfile" class="md-nav__link">
     <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      Final aggregated CSV (outfile)
     </span>
   </a>
   
@@ -702,9 +744,18 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#output-table-schema" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Output Table Schema
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Value
     </span>
   </a>
   
@@ -735,24 +786,35 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Cnclass</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">cnclass(
     self,
-    gt_cna_file: str,
-    tool_cna_files: List[str],
+    tool_hap1_cna_files: List[str],
+    tool_hap2_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    profile_hap1_cna_file: str,
+    profile_hap2_cna_file: str,
+    type: str = &quot;hcCNA&quot;,
+    profile_bin_size=100000,
+    outfile: str = &quot;cnclass_results.csv&quot;,
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
+<p>This function performs <strong>CNA class–specific evaluation</strong> by stratifying genomic bins into predefined CNA categories (e.g., gain/neutral/loss, exact CN states) and then computing <strong>clone-level metrics</strong> for each category, haplotype, and tool.</p>
+<p>It supports both:</p>
 <ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
+<li><code>hcCNA</code>: haplotype-specific copy numbers (<code>hap1</code>, <code>hap2</code>)</li>
+<li><code>acCNA</code>: allele-specific copy numbers (<code>minor</code>, <code>major</code>)</li>
 </ul>
+<p>For each tool, the function:</p>
+<ol>
+<li>Loads GT haplotype CNA profiles (hap1/hap2 or minor/major).</li>
+<li>Loads tool predictions for hap1 and hap2.</li>
+<li>Re-bins regions to a uniform resolution (<code>profile_bin_size</code>) and aligns GT vs predictions.</li>
+<li>For each CNA category (condition), saves category-specific bin tables into an output folder.</li>
+<li>Computes clone-level metrics within each category and aggregates results into one summary table.</li>
+</ol>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,54 +827,122 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
+<td><code>tool_hap1_cna_files</code></td>
+<td><code>List[str]</code></td>
+<td>List of tool prediction CSVs for haplotype 1 (or minor allele if <code>type="acCNA"</code>). Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
-<td><code>tool_cna_files</code></td>
+<td><code>tool_hap2_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of tool prediction CSVs for haplotype 2 (or major allele if <code>type="acCNA"</code>). Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used to create output directories and label result rows.</td>
+</tr>
+<tr>
+<td><code>profile_hap1_cna_file</code></td>
+<td><code>str</code></td>
+<td>Path to GT CNA profile CSV for haplotype 1 (or minor).</td>
+</tr>
+<tr>
+<td><code>profile_hap2_cna_file</code></td>
+<td><code>str</code></td>
+<td>Path to GT CNA profile CSV for haplotype 2 (or major).</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>str</code></td>
+<td>CNA type. Must be <code>"hcCNA"</code> or <code>"acCNA"</code>. Default: <code>"hcCNA"</code>.</td>
+</tr>
+<tr>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split regions for tool predictions before alignment. Default: <code>100000</code> (100kb).</td>
 </tr>
 <tr>
 <td><code>outfile</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Output filename for the final aggregated result table. Default: <code>"cnclass_results.csv"</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
+<h3 id="gt-files-profile_hap1_cna_file-profile_hap2_cna_file">GT files: <code>profile_hap1_cna_file</code>, <code>profile_hap2_cna_file</code></h3>
+<p>Expected to be CNA matrices with:</p>
 <ul>
-<li>rows: genomic regions (first column as index when reading)</li>
-<li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
+<li>one column named <code>region</code></li>
+<li>remaining columns as cell IDs</li>
+<li>values as integer CNA states or strings convertible to numeric (depends on your pipeline)</li>
 </ul>
-<p>Example:</p>
-<pre><code class="language-csv">region,cell_001,cell_002,cell_003
-chr1:1-100000,1|1,1|1,2|1
-chr1:100001-200000,1|1,1|1,2|1
+<p>Loaded via <code>read_and_drop_empty(...)</code> and then indexed by <code>"region"</code>.</p>
+<h3 id="tool-prediction-files-tool_hap1_cna_files-tool_hap2_cna_files">Tool prediction files: <code>tool_hap1_cna_files</code>, <code>tool_hap2_cna_files</code></h3>
+<p>Expected to be CSVs with:</p>
+<ul>
+<li><code>region</code> column</li>
+<li>cell columns</li>
+</ul>
+<p>Implementation details:</p>
+<ul>
+<li>tool predictions are loaded with <code>pd.read_csv(...).fillna(-1)</code></li>
+<li>regions are re-binned using:</li>
+</ul>
+<pre><code class="language-python">split_all_regions(df.set_index(&quot;region&quot;), profile_bin_size)
 </code></pre>
-<p>Implementation details from source:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li>GT and predictions are aligned by:</li>
 </ul>
+<pre><code class="language-python">gt_h1, p_h1 = align(gt_h1_r, p_h1)
+gt_h2, p_h2 = align(gt_h2_r, p_h2)
+</code></pre>
+<hr />
+<h2 id="cna-categories-conditions">CNA Categories (Conditions)</h2>
+<p>The function evaluates each tool under multiple CNA “classes”, defined by <code>conditions</code>:</p>
+<ul>
+<li><code>CN_Gain</code>: <code>&gt;=2</code></li>
+<li><code>CN_Neutral</code>: <code>=1</code></li>
+<li><code>CN_Loss</code>: <code>=0</code></li>
+<li>exact CN states: <code>=2, =3, ..., =10</code> (folders <code>CN_equal_2</code> … <code>CN_equal_10</code>)</li>
+</ul>
+<p>Each class corresponds to a subfolder name (used in output directory structure) and a condition string (used by downstream categorization).</p>
+<hr />
+<h2 id="haplotype-labels">Haplotype Labels</h2>
+<p>Haplotype naming depends on <code>type</code>:</p>
+<ul>
+<li>if <code>type="hcCNA"</code> → <code>hap_list = ["hap1", "hap2"]</code></li>
+<li>if <code>type="acCNA"</code> → <code>hap_list = ["minor", "major"]</code></li>
+</ul>
+<p>These names are passed into downstream functions and appear in the final output table.</p>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
+<h3 id="directory-structure-per-tool-cna-class">Directory structure (per tool × CNA class)</h3>
+<p>For each tool and each CNA class, the function creates:</p>
+<pre><code>{self.output_dir}/{tool}/{folder}/
+</code></pre>
+<p>Examples:</p>
+<ul>
+<li><code>.../CHISEL/CN_Gain/</code></li>
+<li><code>.../CHISEL/CN_equal_3/</code></li>
+</ul>
+<p>Inside each folder, the function writes class-specific intermediate files generated by:</p>
+<ul>
+<li><code>categorize_and_save(...)</code> (for hap1/minor and hap2/major)</li>
+<li><code>process_folder_for_metrics_clone(...)</code> (reads folder contents and computes metrics)</li>
+</ul>
+<h3 id="final-aggregated-csv-outfile">Final aggregated CSV (<code>outfile</code>)</h3>
+<p>Saved to:</p>
+<pre><code>os.path.join(self.output_dir, outfile)
+</code></pre>
+<p>Default:</p>
+<pre><code>{self.output_dir}/cnclass_results.csv
+</code></pre>
+<hr />
+<h2 id="output-table-schema">Output Table Schema</h2>
+<p>The returned dataframe (and saved CSV) contains one row per:</p>
+<p><strong>(CNA class × haplotype × clone × tool)</strong></p>
+<p>Columns include:</p>
 <table>
 <thead>
 <tr>
@@ -822,53 +952,54 @@ chr1:100001-200000,1|1,1|1,2|1
 </thead>
 <tbody>
 <tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
+<td><code>Type</code></td>
+<td>CNA class folder name (e.g., <code>CN_Gain</code>, <code>CN_equal_4</code>)</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
+<td><code>Haplotype</code></td>
+<td><code>hap1/hap2</code> or <code>minor/major</code> depending on <code>type</code></td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
+<td><code>Clone</code></td>
+<td>Clone identifier returned by <code>process_folder_for_metrics_clone</code></td>
+</tr>
+<tr>
+<td><code>Tool</code></td>
+<td>Tool name</td>
+</tr>
+<tr>
+<td><em>(metrics...)</em></td>
+<td>Additional metric fields returned in <code>metrics</code> dict (depends on your implementation of <code>process_folder_for_metrics_clone</code>)</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> with the aggregated per-class, per-haplotype, per-clone metrics for all tools.</p>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
-    tool_cna_files=[
-        &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+df = bench.cnclass(
+    tool_hap1_cna_files=[
+        &quot;/path/to/chisel/hap1.csv&quot;,
+        &quot;/path/to/signals/hap1.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_hap2_cna_files=[
+        &quot;/path/to/chisel/hap2.csv&quot;,
+        &quot;/path/to/signals/hap2.csv&quot;,
+    ],
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    profile_hap1_cna_file=&quot;/path/to/gt/hap1.csv&quot;,
+    profile_hap2_cna_file=&quot;/path/to/gt/hap2.csv&quot;,
+    type=&quot;hcCNA&quot;,
+    profile_bin_size=100000,
+    outfile=&quot;cnclass_results.csv&quot;,
 )
+
+print(df.head())
 </code></pre>
 
 

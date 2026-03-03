@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Mirrorsubclone - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Mirrorsubclone
             
           </span>
         </div>
@@ -666,31 +666,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output">
+    <nav class="md-nav" aria-label="Input File Format">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#changes_file-mscna-ground-truth-table" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
+      changes_file (MSCNA ground-truth table)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
+  <a href="#tool-cna-files-tool_cna_files" class="md-nav__link">
     <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      Tool CNA files (tool_cna_files)
     </span>
   </a>
   
@@ -702,9 +693,69 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#processing-steps" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Processing Steps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Metrics
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-acc-exact-match-accuracy" class="md-nav__link">
+    <span class="md-ellipsis">
+      1) ACC (Exact match accuracy)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-rmse-aggregated-per-event-haplotype-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      2) RMSE (Aggregated per-event haplotype error)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-table-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output Table Schema
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Value
     </span>
   </a>
   
@@ -735,24 +786,34 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Mirrorsubclone</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">mirrorsubclone(
     self,
-    gt_cna_file: str,
     tool_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    changes_file: str,
+    profile_bin_size=100000,
+    outfile: str = &quot;mirror_subclone_result.csv&quot;,
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
+<p>This function evaluates tool performance on <strong>Mirrored-Subclonal CNA (MSCNA)</strong> events by comparing predicted haplotype CNAs for two paired clones against a ground-truth MSCNA table.</p>
+<p>Given:</p>
 <ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
+<li>a ground-truth MSCNA event table (<code>changes_file</code>) describing two related subclones (Clone1/Clone2) and their haplotype CN states,</li>
+<li>and each tool’s inferred CNA matrix,</li>
 </ul>
+<p>it:</p>
+<ol>
+<li>Converts MSCNA event intervals into a <code>region</code> key and re-bins to <code>profile_bin_size</code>.</li>
+<li>Re-bins tool predictions to the same resolution.</li>
+<li>Merges GT MSCNA events with tool predictions using <code>_mirror_merge</code>.</li>
+<li>Computes:</li>
+<li><strong>ACC</strong>: fraction of events where <em>all four haplotype CN states</em> (Clone1 hap1/hap2 + Clone2 hap1/hap2) match exactly.</li>
+<li><strong>RMSE</strong>: mean per-event haplotype error aggregated across the four haplotype states.</li>
+</ol>
+<p>Results are summarized per tool and written to disk.</p>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,54 +826,125 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
-</tr>
-<tr>
 <td><code>tool_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used in result rows.</td>
+</tr>
+<tr>
+<td><code>changes_file</code></td>
+<td><code>str</code></td>
+<td>Path to the mirrored-subclone ground-truth table (MSCNA events).</td>
+</tr>
+<tr>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split/standardize both GT events and predictions. Default: <code>100000</code> (100kb).</td>
 </tr>
 <tr>
 <td><code>outfile</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Output filename for the summary table. Default: <code>"mirror_subclone_result.csv"</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
-<ul>
-<li>rows: genomic regions (first column as index when reading)</li>
-<li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
-</ul>
-<p>Example:</p>
-<pre><code class="language-csv">region,cell_001,cell_002,cell_003
-chr1:1-100000,1|1,1|1,2|1
-chr1:100001-200000,1|1,1|1,2|1
+<h3 id="changes_file-mscna-ground-truth-table"><code>changes_file</code> (MSCNA ground-truth table)</h3>
+<p>Loaded via:</p>
+<pre><code class="language-python">change_df_r = read_and_drop_empty(changes_file)
 </code></pre>
-<p>Implementation details from source:</p>
+<p>Expected columns include at least:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li><code>Chromosome</code></li>
+<li><code>Start</code></li>
+<li><code>End</code></li>
 </ul>
+<p>These are combined into a genomic interval string:</p>
+<pre><code class="language-python">change_df_r[&quot;region&quot;] = f&quot;{Chromosome}:{Start}-{End}&quot;
+</code></pre>
+<p>Additional columns must exist that are required by <code>_mirror_merge(...)</code> and subsequent computations.
+From the downstream code, the merged table is expected to contain (after <code>_mirror_merge</code>) fields like:</p>
+<ul>
+<li><code>Clone1_CNA</code>, <code>Clone2_CNA</code> (GT haplotype CNA encoded as <code>"hap1|hap2"</code>)</li>
+<li><code>Clone1_predict_CNA</code>, <code>Clone2_predict_CNA</code> (predicted haplotype CNA encoded as <code>"hap1|hap2"</code>)</li>
+</ul>
+<p>GT events are re-binned:</p>
+<pre><code class="language-python">change_truth_r = split_all_regions(change_df_r.set_index(&quot;region&quot;), profile_bin_size)
+change_truth_r = change_truth_r.reset_index().rename(columns={&quot;index&quot;: &quot;region&quot;})
+</code></pre>
+<h3 id="tool-cna-files-tool_cna_files">Tool CNA files (<code>tool_cna_files</code>)</h3>
+<p>Expected to be CNA matrices with:</p>
+<ul>
+<li><code>region</code> column</li>
+<li>cell/clone columns depending on your pipeline</li>
+<li>CNA values encoded as haplotype strings like <code>"a|b"</code> (required for hap split)</li>
+</ul>
+<p>Tool predictions are re-binned similarly:</p>
+<pre><code class="language-python">pred = split_all_regions(pred.set_index(&quot;region&quot;), profile_bin_size).reset_index()
+</code></pre>
+<hr />
+<h2 id="processing-steps">Processing Steps</h2>
+<p>For each tool:</p>
+<ol>
+<li>Merge GT MSCNA table with predictions:</li>
+</ol>
+<pre><code class="language-python">combined = self._mirror_merge(change_df, pred)
+</code></pre>
+<p>If <code>combined</code> is empty, RMSE and ACC are set to <code>NaN</code>.</p>
+<ol>
+<li>Split haplotype CNA strings for both clones:</li>
+</ol>
+<p>For each side in <code>["Clone1", "Clone2"]</code>, the function derives:</p>
+<ul>
+<li><code>{side}_hap1_CNA</code>, <code>{side}_hap2_CNA</code> (GT)</li>
+<li><code>{side}_predict_hap1_CNA</code>, <code>{side}_predict_hap2_CNA</code> (prediction)</li>
+</ul>
+<p>by splitting <code>"hap1|hap2"</code>.</p>
+<hr />
+<h2 id="metrics">Metrics</h2>
+<h3 id="1-acc-exact-match-accuracy">1) ACC (Exact match accuracy)</h3>
+<p>An event is counted as correct only if <strong>all four</strong> haplotype values match exactly:</p>
+<ul>
+<li>Clone1 hap1 and hap2</li>
+<li>Clone2 hap1 and hap2</li>
+</ul>
+<pre><code class="language-python">acc = mean(
+    Clone1_pred_h1 == Clone1_gt_h1 AND
+    Clone1_pred_h2 == Clone1_gt_h2 AND
+    Clone2_pred_h1 == Clone2_gt_h1 AND
+    Clone2_pred_h2 == Clone2_gt_h2
+)
+</code></pre>
+<p>So ACC is the fraction of MSCNA events fully matched across both clones and both haplotypes.</p>
+<h3 id="2-rmse-aggregated-per-event-haplotype-error">2) RMSE (Aggregated per-event haplotype error)</h3>
+<p>Per haplotype value, squared error is computed after coercing to numeric:</p>
+<pre><code class="language-python">se = (pred - gt)^2
+</code></pre>
+<p>Then per-event RMSE-like aggregate is computed as:</p>
+<pre><code class="language-python">RMSE_result =
+    sqrt(Clone1_hap1_error) +
+    sqrt(Clone1_hap2_error) +
+    sqrt(Clone2_hap1_error) +
+    sqrt(Clone2_hap2_error)
+</code></pre>
+<p>Finally, the reported RMSE is the mean of <code>RMSE_result</code> across events.</p>
+<p>Note: This is not a conventional single RMSE over all values; it is a <strong>sum of per-haplotype absolute errors</strong> (since <code>sqrt((a-b)^2) = |a-b|</code>) averaged across events.</p>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
+<p>A single CSV summary is written to <code>self.output_dir</code>:</p>
+<pre><code>os.path.join(self.output_dir, outfile)
+</code></pre>
+<p>Default:</p>
+<pre><code>{self.output_dir}/mirror_subclone_result.csv
+</code></pre>
+<hr />
+<h2 id="output-table-schema">Output Table Schema</h2>
+<p>One row per tool:</p>
 <table>
 <thead>
 <tr>
@@ -822,53 +954,45 @@ chr1:100001-200000,1|1,1|1,2|1
 </thead>
 <tbody>
 <tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
+<td><code>Tool</code></td>
+<td>Tool name</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
+<td><code>RMSE</code></td>
+<td>Mean aggregated haplotype absolute error across Clone1/Clone2 (as defined above)</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
+<td><code>ACC</code></td>
+<td>Exact-match accuracy requiring all four haplotype values to match</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> with columns:</p>
+<ul>
+<li><code>Tool</code></li>
+<li><code>RMSE</code></li>
+<li><code>ACC</code></li>
+</ul>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
+df = bench.mirrorsubclone(
     tool_cna_files=[
+        &quot;/path/to/chisel/haplotype_combined.csv&quot;,
         &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    changes_file=&quot;/path/to/gt/mirrored_subclone_events.csv&quot;,
+    profile_bin_size=100000,
+    outfile=&quot;mirror_subclone_result.csv&quot;,
 )
+
+print(df)
 </code></pre>
 
 

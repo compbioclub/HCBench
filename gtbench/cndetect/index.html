@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Cndetect - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Cndetect
             
           </span>
         </div>
@@ -666,31 +666,13 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output">
+    <nav class="md-nav" aria-label="Input File Format">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#cna_profile_file-truth-and-each-file-in-tool_cna_files" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
-    <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      cna_profile_file (truth) and each file in tool_cna_files
     </span>
   </a>
   
@@ -702,9 +684,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#evaluation-metrics" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Evaluation Metrics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output" class="md-nav__link">
+    <span class="md-ellipsis">
+      Output
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#return-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      Return Value
     </span>
   </a>
   
@@ -735,24 +735,29 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Cndetect</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">cndetect(
     self,
-    gt_cna_file: str,
     tool_cna_files: List[str],
+    cna_profile_file: str,
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    haplotype: str = &quot;combined&quot;,
+    profile_bin_size=100000,
+    outfile: str = &quot;bin_level_results.csv&quot;,
+    index_col: Optional[int] = 0,
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
-<ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
-</ul>
+<p>This function evaluates <strong>bin-level CNA detection performance</strong> of multiple tools against a reference CNA profile file (ground truth).</p>
+<p>For each tool CNA matrix, it:</p>
+<ol>
+<li>Loads the tool CNA file and the reference CNA file.</li>
+<li>Splits tool regions into a uniform binning resolution (<code>profile_bin_size</code>).</li>
+<li>Aligns tool predictions and reference profiles on common regions and cells.</li>
+<li>Computes evaluation metrics (<strong>RMSE</strong>, <strong>SCC</strong>, <strong>ACC</strong>) under a specified haplotype mode.</li>
+<li>Saves a summary CSV across all tools.</li>
+</ol>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,110 +770,143 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
-</tr>
-<tr>
 <td><code>tool_cna_files</code></td>
 <td><code>List[str]</code></td>
 <td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
 </tr>
 <tr>
+<td><code>cna_profile_file</code></td>
+<td><code>str</code></td>
+<td>Path to the reference (truth) CNA profile CSV file.</td>
+</tr>
+<tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used in logs and the result table.</td>
+</tr>
+<tr>
+<td><code>haplotype</code></td>
+<td><code>str</code></td>
+<td>Haplotype evaluation mode passed to <code>evaluate_haplotype_predictions</code>. Default: <code>"combined"</code>.</td>
+</tr>
+<tr>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split regions in tool predictions before alignment. Default: <code>100000</code> (100kb).</td>
 </tr>
 <tr>
 <td><code>outfile</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Output filename for the summary table. Default: <code>"bin_level_results.csv"</code>.</td>
+</tr>
+<tr>
+<td><code>index_col</code></td>
+<td><code>Optional[int]</code></td>
+<td>(Currently unused in implementation.) Intended CSV index column specification. Default: <code>0</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
+<h3 id="cna_profile_file-truth-and-each-file-in-tool_cna_files"><code>cna_profile_file</code> (truth) and each file in <code>tool_cna_files</code></h3>
+<p>Expected to be CNA matrices with:</p>
 <ul>
-<li>rows: genomic regions (first column as index when reading)</li>
-<li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
+<li>one column named <code>region</code></li>
+<li>remaining columns as cell IDs</li>
+<li>values as CNA states (e.g., <code>"1|1"</code>, <code>"2|1"</code>), consistent with your pipeline conventions</li>
 </ul>
 <p>Example:</p>
 <pre><code class="language-csv">region,cell_001,cell_002,cell_003
 chr1:1-100000,1|1,1|1,2|1
 chr1:100001-200000,1|1,1|1,2|1
 </code></pre>
-<p>Implementation details from source:</p>
+<p>Implementation details:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li>Both truth and predictions are loaded with <code>read_and_drop_empty(...)</code> (drops empty columns/cells).</li>
+<li>The truth dataframe is indexed by <code>"region"</code> (<code>truth_df.set_index("region", inplace=True)</code>).</li>
+<li>Tool predictions are re-binned using:</li>
+</ul>
+<pre><code class="language-python">pred = split_all_regions(pred.set_index(&quot;region&quot;), profile_bin_size)
+</code></pre>
+<p>Then truth and pred are aligned with:</p>
+<pre><code class="language-python">truth, pred = align(truth_df, pred)
+</code></pre>
+<hr />
+<h2 id="evaluation-metrics">Evaluation Metrics</h2>
+<p>For each tool, metrics are computed via:</p>
+<pre><code class="language-python">rmse, scc, acc = evaluate_haplotype_predictions(pred, truth, haplotype)
+</code></pre>
+<p>The output table contains:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tool</code></td>
+<td>Tool name</td>
+</tr>
+<tr>
+<td><code>RMSE</code></td>
+<td>Root Mean Squared Error between prediction and truth</td>
+</tr>
+<tr>
+<td><code>SCC</code></td>
+<td>Similarity/Correlation metric returned by your evaluator (often “Spearman Correlation Coefficient” in CNA contexts, but exact definition depends on your implementation)</td>
+</tr>
+<tr>
+<td><code>ACC</code></td>
+<td>Accuracy metric returned by your evaluator</td>
+</tr>
+</tbody>
+</table>
+<p>Notes:</p>
+<ul>
+<li><code>SCC</code> may be <code>None</code> for certain inputs depending on your <code>evaluate_haplotype_predictions</code> implementation (e.g., constant vectors / insufficient comparable bins).</li>
 </ul>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
-</tr>
-</tbody>
-</table>
+<p>A single CSV is written to <code>self.output_dir</code>:</p>
+<pre><code>os.path.join(self.output_dir, outfile)
+</code></pre>
+<p>Default path:</p>
+<pre><code>{self.output_dir}/bin_level_results.csv
+</code></pre>
+<p>Example output:</p>
+<pre><code class="language-csv">Tool,RMSE,SCC,ACC
+CHISEL,0.12,0.85,0.93
+SIGNALS,0.20,0.71,0.88
+</code></pre>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> with one row per tool and the columns:</p>
+<ul>
+<li><code>Tool</code></li>
+<li><code>RMSE</code></li>
+<li><code>SCC</code></li>
+<li><code>ACC</code></li>
+</ul>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
+df = bench.cndetect(
     tool_cna_files=[
+        &quot;/path/to/chisel/haplotype_combined.csv&quot;,
         &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    cna_profile_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    haplotype=&quot;combined&quot;,
+    profile_bin_size=100000,
+    outfile=&quot;bin_level_results.csv&quot;,
 )
+print(df)
 </code></pre>
 
 

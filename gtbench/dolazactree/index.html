@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Dolazactree - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Dolazactree
             
           </span>
         </div>
@@ -669,6 +669,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#external-dependency" class="md-nav__link">
+    <span class="md-ellipsis">
+      External Dependency
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output" class="md-nav__link">
     <span class="md-ellipsis">
       Output
@@ -679,18 +688,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#summary-table-outfile" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
-    <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      Summary Table (outfile)
     </span>
   </a>
   
@@ -702,9 +702,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#return-value" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Return Value
     </span>
   </a>
   
@@ -735,24 +735,25 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Dolazactree</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">dolazactree(
     self,
-    gt_cna_file: str,
     tool_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    outfile: Optional[str] = &quot;parsimony_score.csv&quot;
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
-<ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
-</ul>
+<p>This function evaluates <strong>phylogenetic parsimony scores</strong> for inferred CNA profiles using the external tool <strong>LAZAC</strong>.</p>
+<p>For each tool:</p>
+<ol>
+<li>Converts the CNA matrix into LAZAC-compatible input format.</li>
+<li>Runs LAZAC with nearest-neighbor interchange (NNI) tree search.</li>
+<li>Extracts the final parsimony score from the LAZAC output.</li>
+<li>Collects scores across tools into a summary table.</li>
+</ol>
+<p>The function writes a single CSV file containing the parsimony scores of all tools.</p>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,54 +766,72 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
-</tr>
-<tr>
 <td><code>tool_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of CNA profile CSV files from different tools. Must align with <code>tool_names</code> in order.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used for labeling outputs and result table.</td>
 </tr>
 <tr>
 <td><code>outfile</code></td>
-<td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td><code>Optional[str]</code></td>
+<td>Output filename for the summary table. Default: <code>"parsimony_score.csv"</code>.</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
+<p>Each file in <code>tool_cna_files</code> is expected to be a CNA matrix:</p>
 <ul>
-<li>rows: genomic regions (first column as index when reading)</li>
+<li>rows: genomic regions</li>
 <li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
+<li>values: CNA states (e.g., <code>"1|1"</code>, <code>"2|1"</code>)</li>
 </ul>
 <p>Example:</p>
 <pre><code class="language-csv">region,cell_001,cell_002,cell_003
 chr1:1-100000,1|1,1|1,2|1
 chr1:100001-200000,1|1,1|1,2|1
 </code></pre>
-<p>Implementation details from source:</p>
+<p>Before running LAZAC:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li>The CNA matrix is converted into a LAZAC-compatible input file via <code>create_lazac_input</code>.</li>
+<li>The converted file is saved as:</li>
+</ul>
+<pre><code>{output_dir}/lazac_{tool_name}/{tool_name}_cn_profile.csv
+</code></pre>
+<hr />
+<h2 id="external-dependency">External Dependency</h2>
+<p>This function requires:</p>
+<ul>
+<li><code>lazac</code> executable available in the system PATH.</li>
+<li>The command executed is:</li>
+</ul>
+<pre><code class="language-bash">lazac nni &lt;cn_profile_file&gt; -a 2 -o &lt;output_prefix&gt;
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>nni</code> performs nearest-neighbor interchange search.</li>
+<li><code>-a 2</code> specifies diploid assumption.</li>
+<li><code>-o</code> sets output prefix.</li>
 </ul>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
+<p>For each tool, a dedicated directory is created:</p>
+<pre><code>{self.output_dir}/lazac_{tool_name}/
+</code></pre>
+<p>LAZAC generates output files including:</p>
+<ul>
+<li><code>{tool_name}_info.json</code> (contains final parsimony score)</li>
+<li>additional tree-related outputs</li>
+</ul>
+<h3 id="summary-table-outfile">Summary Table (<code>outfile</code>)</h3>
+<p>Saved to:</p>
+<pre><code>os.path.join(self.output_dir, outfile)
+</code></pre>
+<p>Structure:</p>
 <table>
 <thead>
 <tr>
@@ -822,54 +841,59 @@ chr1:100001-200000,1|1,1|1,2|1
 </thead>
 <tbody>
 <tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
+<td><code>Tool</code></td>
+<td>Tool name</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
+<td><code>Parsimony</code></td>
+<td>Final parsimony score extracted from LAZAC output</td>
 </tr>
 </tbody>
 </table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
-</tr>
-<tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
-</tr>
-</tbody>
-</table>
+<p>Example:</p>
+<pre><code class="language-csv">Tool,Parsimony
+CHISEL,14331085
+Alleloscope,34
+SIGNALS,5577962
+</code></pre>
+<p>Lower parsimony scores indicate simpler evolutionary histories under the parsimony model.</p>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> containing:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Tool</code></td>
+<td>Tool name</td>
+</tr>
+<tr>
+<td><code>Parsimony</code></td>
+<td>Parsimony score</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h2 id="example">Example</h2>
-<pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
+<pre><code class="language-python">from hcbench.realbench.realbench import RealBench
 
-bench = GTBench(output_dir=&quot;out/gt_output&quot;)
+bench = RealBench(output_dir=&quot;out/real_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
+bench.dolazactree(
     tool_cna_files=[
-        &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+        &quot;/path/to/chisel/cna.csv&quot;,
+        &quot;/path/to/signals/cna.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    outfile=&quot;parsimony_score.csv&quot;
 )
 </code></pre>
+<hr />
 
 
 

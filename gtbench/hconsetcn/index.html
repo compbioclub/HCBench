@@ -16,7 +16,7 @@
     
     
       
-        <title>cloneSizebycellprofile - HCBench</title>
+        <title>Hconsetcn - HCBench</title>
       
     
     
@@ -94,7 +94,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              cloneSizebycellprofile
+              Hconsetcn
             
           </span>
         </div>
@@ -666,6 +666,39 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Input File Format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#changes_file-ground-truth-change-table" class="md-nav__link">
+    <span class="md-ellipsis">
+      changes_file (ground-truth change table)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-cna-profiles-tool_hap1_cna_files-tool_hap2_cna_files" class="md-nav__link">
+    <span class="md-ellipsis">
+      Tool CNA profiles (tool_hap1_cna_files, tool_hap2_cna_files)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evaluation-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      Evaluation Logic
+    </span>
+  </a>
+  
 </li>
       
         <li class="md-nav__item">
@@ -679,18 +712,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-detailed-table-outfile" class="md-nav__link">
+  <a href="#output-columns" class="md-nav__link">
     <span class="md-ellipsis">
-      1) Detailed Table (outfile)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-mean-table-mean_outfile" class="md-nav__link">
-    <span class="md-ellipsis">
-      2) Mean Table (mean_{outfile})
+      Output Columns
     </span>
   </a>
   
@@ -702,9 +726,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#return-type" class="md-nav__link">
+  <a href="#return-value" class="md-nav__link">
     <span class="md-ellipsis">
-      Return Type
+      Return Value
     </span>
   </a>
   
@@ -735,24 +759,29 @@
 
 
 
-  <h1>cloneSizebycellprofile</h1>
+  <h1>Hconsetcn</h1>
 
 <h2 id="function">Function</h2>
-<pre><code class="language-python">cloneSizebycellprofile(
+<pre><code class="language-python">hconsetcn(
     self,
-    gt_cna_file: str,
-    tool_cna_files: List[str],
+    tool_hap1_cna_files: List[str],
+    tool_hap2_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = &quot;clone_size_by_cell_profile.csv&quot;,
+    changes_file: str,
+    outfile: str = &quot;evolution_onset_parent_CN.csv&quot;,
+    profile_bin_size=100000
 ) -&gt; pd.DataFrame
 </code></pre>
-<p>This function evaluates clone-size consistency at the <strong>cell profile level</strong>.
-It first derives clone sizes from the GT CNA matrix (cells sharing identical bin-level CNA profiles are grouped as one profile-clone), then compares each tool's inferred profile-clone sizes against GT.</p>
-<p>The function writes:</p>
-<ul>
-<li>a detailed per-cell comparison table</li>
-<li>a mean summary grouped by GT <code>cluster_size</code></li>
-</ul>
+<p>This function evaluates <strong>evolution onset (parent → child) copy-number change accuracy</strong> for multiple tools at a specified bin resolution.</p>
+<p>Given a ground-truth “change list” (segments with known CNA changes and labels) and each tool’s haplotype-specific CNA profiles, it:</p>
+<ol>
+<li>Re-bins the ground-truth segments and tool CNA profiles to <code>profile_bin_size</code>.</li>
+<li>Joins the change segments with predicted haplotype CN values (hap1 and hap2).</li>
+<li>For each change <strong>Type</strong> (e.g., DEL / LOH / gain classes, depending on your <code>changes_file</code>), computes:</li>
+<li><strong>ACC</strong>: accuracy of parent CN prediction under onset constraints</li>
+<li><strong>RMSE</strong>: parent–child CN error (from your internal RMSE routine)</li>
+<li>Outputs a per-tool, per-type summary table.</li>
+</ol>
 <hr />
 <h2 id="parameters">Parameters</h2>
 <table>
@@ -765,54 +794,131 @@ It first derives clone sizes from the GT CNA matrix (cells sharing identical bin
 </thead>
 <tbody>
 <tr>
-<td><code>gt_cna_file</code></td>
-<td><code>str</code></td>
-<td>Path to GT CNA profile CSV.</td>
+<td><code>tool_hap1_cna_files</code></td>
+<td><code>List[str]</code></td>
+<td>List of tool CNA profile CSVs for haplotype 1. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
-<td><code>tool_cna_files</code></td>
+<td><code>tool_hap2_cna_files</code></td>
 <td><code>List[str]</code></td>
-<td>List of tool CNA profile CSV files. Must align with <code>tool_names</code> in order.</td>
+<td>List of tool CNA profile CSVs for haplotype 2. Must align with <code>tool_names</code>.</td>
 </tr>
 <tr>
 <td><code>tool_names</code></td>
 <td><code>List[str]</code></td>
-<td>Tool names used as output column prefixes (<code>{Tool}_pred_size</code>).</td>
+<td>Tool names used in result rows.</td>
+</tr>
+<tr>
+<td><code>changes_file</code></td>
+<td><code>str</code></td>
+<td>Path to the ground-truth change table (segments + change labels).</td>
 </tr>
 <tr>
 <td><code>outfile</code></td>
 <td><code>str</code></td>
-<td>Detailed output filename. Default: <code>"clone_size_by_cell_profile.csv"</code>.</td>
+<td>Output filename for the summary table. Default: <code>"evolution_onset_parent_CN.csv"</code>.</td>
+</tr>
+<tr>
+<td><code>profile_bin_size</code></td>
+<td><code>int</code></td>
+<td>Bin size used to split/standardize both GT segments and predictions. Default: <code>100000</code> (100kb).</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="input-file-format">Input File Format</h2>
-<p><code>gt_cna_file</code> and each file in <code>tool_cna_files</code> are expected to be CNA matrices:</p>
+<h3 id="changes_file-ground-truth-change-table"><code>changes_file</code> (ground-truth change table)</h3>
+<p>Expected to contain at least:</p>
 <ul>
-<li>rows: genomic regions (first column as index when reading)</li>
-<li>columns: cell IDs</li>
-<li>values: CNA states (e.g., <code>"1|1"</code>)</li>
+<li><code>Segment</code>: genomic interval identifier (used as the region key)</li>
+<li><code>Type</code>: change category label (used for stratified evaluation)</li>
+<li><code>Change</code>: ground-truth change signal used by downstream scoring</li>
 </ul>
-<p>Example:</p>
-<pre><code class="language-csv">region,cell_001,cell_002,cell_003
-chr1:1-100000,1|1,1|1,2|1
-chr1:100001-200000,1|1,1|1,2|1
+<p>Optional:</p>
+<ul>
+<li><code>Haplotype</code>: if present, will be normalized via <code>self._normalize_hap_label(...)</code></li>
+</ul>
+<p>Implementation details:</p>
+<ul>
+<li>loaded via <code>read_and_drop_empty(changes_file)</code></li>
+<li>rebinned using:</li>
+</ul>
+<pre><code class="language-python">change_truth_r = split_all_regions(change_truth_r.set_index(&quot;Segment&quot;), profile_bin_size)
+change_truth_r = change_truth_r.reset_index().rename(columns={&quot;index&quot;: &quot;Segment&quot;})
 </code></pre>
-<p>Implementation details from source:</p>
+<p>So <code>Segment</code> must be splittable by your <code>split_all_regions</code> logic.</p>
+<h3 id="tool-cna-profiles-tool_hap1_cna_files-tool_hap2_cna_files">Tool CNA profiles (<code>tool_hap1_cna_files</code>, <code>tool_hap2_cna_files</code>)</h3>
+<p>Expected to be CNA matrices with:</p>
 <ul>
-<li>missing values are filled with <code>"1|1"</code></li>
-<li>for tool matrices, all-empty columns are dropped before processing</li>
+<li><code>region</code> column</li>
+<li>remaining columns as cell IDs</li>
+<li>values: haplotype-specific copy numbers (format depends on your pipeline)</li>
 </ul>
+<p>Each file is:</p>
+<ul>
+<li>loaded via <code>read_and_drop_empty(...)</code></li>
+<li>rebinned and converted back to a <code>region</code> column:</li>
+</ul>
+<pre><code class="language-python">p_h1 = split_all_regions(p_h1.set_index(&quot;region&quot;), profile_bin_size).reset_index()
+p_h2 = split_all_regions(p_h2.set_index(&quot;region&quot;), profile_bin_size).reset_index()
+</code></pre>
+<hr />
+<h2 id="evaluation-logic">Evaluation Logic</h2>
+<p>For each tool and each unique change <code>Type</code>:</p>
+<ol>
+<li>Subset GT changes:</li>
+</ol>
+<pre><code class="language-python">change_truth = change_truth_r[change_truth_r[&quot;Type&quot;] == t]
+</code></pre>
+<ol>
+<li>Join GT change segments with predicted CN for each haplotype:</li>
+</ol>
+<pre><code class="language-python">h1 = self._onset_join(change_truth, p_h1, &quot;hap1&quot;)
+h2 = self._onset_join(change_truth, p_h2, &quot;hap2&quot;)
+comb = pd.concat([h1, h2], ignore_index=True)
+</code></pre>
+<p>The joined table is expected (by downstream code) to include:</p>
+<ul>
+<li><code>Change</code> (GT)</li>
+<li><code>Parent_predict_num</code> (predicted parent CN)</li>
+<li>
+<p><code>Child_predict_num</code> (predicted child CN)</p>
+</li>
+<li>
+<p>Compute metrics:</p>
+</li>
+<li>
+<p>Accuracy of parent onset prediction:</p>
+</li>
+</ul>
+<pre><code class="language-python">acc = self._parent_onset_acc(gt, pd_p)
+</code></pre>
+<ul>
+<li>RMSE from parent/child predictions:</li>
+</ul>
+<pre><code class="language-python">pr, _ = self._parent_child_rmse(gt, pd_p, pd_c)
+</code></pre>
+<ol>
+<li>
+<p>Append summary row:</p>
+</li>
+<li>
+<p><code>Tool</code></p>
+</li>
+<li><code>Type</code></li>
+<li><code>RMSE</code> (parent-related RMSE returned as <code>pr</code>)</li>
+<li><code>ACC</code></li>
+</ol>
 <hr />
 <h2 id="output">Output</h2>
-<p>Two files are written to <code>self.output_dir</code>:</p>
-<ol>
-<li><code>os.path.join(self.output_dir, outfile)</code></li>
-<li><code>os.path.join(self.output_dir, f"mean_{outfile}")</code></li>
-</ol>
-<h3 id="1-detailed-table-outfile">1) Detailed Table (<code>outfile</code>)</h3>
-<p>Index: GT cell ID</p>
+<p>A single CSV is written to <code>self.output_dir</code>:</p>
+<pre><code>os.path.join(self.output_dir, outfile)
+</code></pre>
+<p>Default:</p>
+<pre><code>{self.output_dir}/evolution_onset_parent_CN.csv
+</code></pre>
+<p>The output table has one row per <strong>(Tool × Type)</strong>.</p>
+<h3 id="output-columns">Output Columns</h3>
 <table>
 <thead>
 <tr>
@@ -822,53 +928,48 @@ chr1:100001-200000,1|1,1|1,2|1
 </thead>
 <tbody>
 <tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size for that cell</td>
+<td><code>Tool</code></td>
+<td>Tool name</td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Predicted profile-clone size for the same cell ID from each tool (NaN if cell is missing in tool result)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="2-mean-table-mean_outfile">2) Mean Table (<code>mean_{outfile}</code>)</h3>
-<p>Grouped by GT <code>cluster_size</code>, numeric prediction columns are averaged:</p>
-<table>
-<thead>
-<tr>
-<th>Column</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>cluster_size</code></td>
-<td>GT profile-clone size</td>
+<td><code>Type</code></td>
+<td>Change type/category from <code>changes_file</code></td>
 </tr>
 <tr>
-<td><code>{Tool}_pred_size</code></td>
-<td>Mean predicted size for GT clones of that size</td>
+<td><code>RMSE</code></td>
+<td>Parent/parent-child RMSE returned by <code>self._parent_child_rmse</code></td>
+</tr>
+<tr>
+<td><code>ACC</code></td>
+<td>Parent onset accuracy returned by <code>self._parent_onset_acc</code></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="return-type">Return Type</h2>
-<p>The function signature annotates <code>-&gt; pd.DataFrame</code>, but current implementation does not explicitly return a value (runtime return is <code>None</code>).</p>
+<h2 id="return-value">Return Value</h2>
+<p>Returns a <code>pd.DataFrame</code> containing the same summary table saved to CSV.</p>
 <hr />
 <h2 id="example">Example</h2>
 <pre><code class="language-python">from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir=&quot;out/gt_output&quot;)
 
-bench.cloneSizebycellprofile(
-    gt_cna_file=&quot;/path/to/gt/haplotype_combined.csv&quot;,
-    tool_cna_files=[
-        &quot;/path/to/signals/haplotype_combined.csv&quot;,
-        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+df = bench.hconsetcn(
+    tool_hap1_cna_files=[
+        &quot;/path/to/chisel/hap1.csv&quot;,
+        &quot;/path/to/signals/hap1.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+    tool_hap2_cna_files=[
+        &quot;/path/to/chisel/hap2.csv&quot;,
+        &quot;/path/to/signals/hap2.csv&quot;,
+    ],
+    tool_names=[&quot;CHISEL&quot;, &quot;SIGNALS&quot;],
+    changes_file=&quot;/path/to/gt/changes_onset.csv&quot;,
+    profile_bin_size=100000,
+    outfile=&quot;evolution_onset_parent_CN.csv&quot;,
 )
+
+print(df)
 </code></pre>
 
 

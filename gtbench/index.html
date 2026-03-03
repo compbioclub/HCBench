@@ -778,69 +778,54 @@
 <td></td>
 </tr>
 <tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
+<td><a href="dolazactree/">dolazactree</a></td>
 <td></td>
 <td></td>
 </tr>
 <tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><code>cndetect</code></td>
+<td><a href="cndetect/">cndetect</a></td>
 <td>Evaluates copy number (CN) detection accuracy</td>
 <td>RMSE, ACC, SCC</td>
 </tr>
 <tr>
-<td><code>cnclass</code></td>
+<td><a href="cnclass/">cnclass</a></td>
 <td>Calculates CN state classification metrics</td>
 <td>AUROC, AUPRC, ACC, Precision, Recall, F1</td>
 </tr>
 <tr>
-<td><code>hccnchange</code></td>
-<td>Evaluates correctness of CN changes between parent and child clones</td>
-<td>RMSE, ACC</td>
-</tr>
-<tr>
-<td><code>hccnstable</code></td>
-<td>Calculates evolutionary CN stability along the phylogenetic tree</td>
-<td>ACC</td>
-</tr>
-<tr>
-<td><code>hconsetacc</code></td>
-<td>Checks if CN events are detected at the correct branch of evolution</td>
-<td>ACC</td>
-</tr>
-<tr>
-<td><code>hconsetcn</code></td>
+<td><a href="hconsetcn/">hconsetcn</a></td>
 <td>Evaluates accuracy of inferred parental CN</td>
 <td>RMSE, ACC</td>
 </tr>
 <tr>
-<td><code>hcPhasing</code></td>
-<td>Evaluates haplotype phasing accuracy</td>
-<td>Mismatch Error, Switch Error</td>
+<td><a href="hconsetacc/">hconsetacc</a></td>
+<td>Checks if CN events are detected at the correct branch of evolution</td>
+<td>ACC</td>
 </tr>
 <tr>
-<td><code>mirrorsubclone</code></td>
+<td><a href="hccnchange/">hccnchange</a></td>
+<td>Evaluates correctness of CN changes between parent and child clones</td>
+<td>RMSE, ACC</td>
+</tr>
+<tr>
+<td><a href="hccnstable/">hccnstable</a></td>
+<td>Calculates evolutionary CN stability along the phylogenetic tree</td>
+<td>ACC</td>
+</tr>
+<tr>
+<td><a href="segmentation/">segmentation</a></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><a href="mirrorsubclone/">mirrorsubclone</a></td>
 <td>Evaluates mirror-subclone CNA detection accuracy</td>
 <td>RMSE, ACC</td>
+</tr>
+<tr>
+<td><a href="hcPhasing/">hcPhasing</a></td>
+<td>Evaluates haplotype phasing accuracy</td>
+<td>Mismatch Error, Switch Error</td>
 </tr>
 </tbody>
 </table>
@@ -849,19 +834,174 @@
 <p>Below is a complete example showing how to initialize and run all major GTBench modules.</p>
 <pre><code>from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir=&quot;/path/to/results&quot;)
+# All benchmark outputs will be written under this directory
+bench = GTBench(output_dir=&quot;/path/to/results/gt_output/cell_level&quot;)
 
-# 1. CN Detection Benchmark
+# ============================================================
+# 1) cellprofile: Count unique cell-level CNA profiles per tool
+# ============================================================
+bench.cellprofile(
+    tool_cna_files=[
+        &quot;/path/to/gt/cell/haplotype_combined.csv&quot;,
+        &quot;/path/to/signals/haplotype_combined.csv&quot;,
+        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+    ],
+    tool_names=[
+        &quot;GT&quot;,
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;unique_cell_profile.csv&quot;,  # Output CSV name under output_dir
+)
+
+# (Optional) Use minor/major (accNA-style) profiles instead of haplotype-combined
+bench.cellprofile(
+    tool_cna_files=[
+        &quot;/path/to/gt/cell/minor_major.csv&quot;,
+        &quot;/path/to/signals/minor_major.csv&quot;,
+        &quot;/path/to/seacon/minor_major.csv&quot;,
+    ],
+    tool_names=[
+        &quot;GT&quot;,
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;unique_cell_profile_accna.csv&quot;,
+)
+
+
+# ============================================================
+# 2) dolazactree: Compute parsimony scores (include GT as baseline)
+# ============================================================
+bench.dolazactree(
+    tool_cna_files=[
+        &quot;/path/to/gt/cell/haplotype_combined.csv&quot;,
+        &quot;/path/to/signals/haplotype_combined.csv&quot;,
+        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+    ],
+    tool_names=[
+        &quot;GT&quot;,
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;parsimony_score.csv&quot;,
+)
+
+# (Optional) Parsimony on minor/major (accNA-style) profiles
+bench.dolazactree(
+    tool_cna_files=[
+        &quot;/path/to/gt/cell/minor_major.csv&quot;,
+        &quot;/path/to/signals/minor_major.csv&quot;,
+        &quot;/path/to/seacon/minor_major.csv&quot;,
+    ],
+    tool_names=[
+        &quot;GT&quot;,
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;parsimony_score_accna.csv&quot;,
+)
+
+
+# ============================================================
+# 3) clusterConsistency
+# ============================================================
+bench.clusterConsistency(
+    tool_clone_files=[
+        &quot;/path/to/signals/clusters.csv&quot;,
+        &quot;/path/to/seacon/clusters.csv&quot;,
+    ],
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+)
+
+
+# ============================================================
+# 4) cloneSizebycellprofile: Evaluate clone-size accuracy based on cell profiles
+# ============================================================
+bench.cloneSizebycellprofile(
+    tool_cna_files=[
+        &quot;/path/to/signals/haplotype_combined.csv&quot;,
+        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+    ],
+    gt_cna_file=&quot;/path/to/gt/cell/haplotype_combined.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;clone_size_by_cell_profile.csv&quot;,
+)
+
+# (Optional) Clone-size accuracy using minor/major (accNA-style) profiles
+bench.cloneSizebycellprofile(
+    tool_cna_files=[
+        &quot;/path/to/signals/minor_major.csv&quot;,
+        &quot;/path/to/seacon/minor_major.csv&quot;,
+    ],
+    gt_cna_file=&quot;/path/to/gt/cell/minor_major.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;clone_size_by_cell_profile_accna.csv&quot;,
+)
+
+
+# ============================================================
+# 5) cloneSizebycluster: Evaluate clone-size accuracy based on cluster assignments
+# ============================================================
+bench.cloneSizebycluster(
+    tool_cluster_files=[
+        &quot;/path/to/signals/clusters.csv&quot;,
+        &quot;/path/to/seacon/clusters.csv&quot;,
+    ],
+    gt_cluster_file=&quot;/path/to/gt/clusters.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;clone_size_by_cluster.csv&quot;,
+)
+
+
+# ============================================================
+# 6) cndetect: Bin-level CN detection benchmark against a CNA profile (GT)
+# ============================================================
 bench.cndetect(
     tool_cna_files=[
         &quot;/path/to/signals/haplotype_combined.csv&quot;,
         &quot;/path/to/seacon/haplotype_combined.csv&quot;,
     ],
-    cna_profile_file=&quot;/path/to/gt/ground_truth_combined_cnv.csv&quot;,
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;]
+    cna_profile_file=&quot;/path/to/gt/cell/haplotype_combined.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    haplotype=&quot;combined&quot;,
+    outfile=&quot;bin_level_results.csv&quot;,
 )
 
-# 2. CN Classification Benchmark
+# (Optional) CN detection using minor/major (accNA-style) profiles
+bench.cndetect(
+    tool_cna_files=[
+        &quot;/path/to/signals/minor_major.csv&quot;,
+        &quot;/path/to/seacon/minor_major.csv&quot;,
+    ],
+    cna_profile_file=&quot;/path/to/gt/cell/minor_major.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    haplotype=&quot;combined&quot;,
+    outfile=&quot;bin_level_results_accna.csv&quot;,
+)
+
+
+# ============================================================
+# 7) cnclass: CN event classification benchmark (requires hap1 + hap2 inputs)
+# ============================================================
 bench.cnclass(
     tool_hap1_cna_files=[
         &quot;/path/to/signals/haplotype_1.csv&quot;,
@@ -871,70 +1011,39 @@ bench.cnclass(
         &quot;/path/to/signals/haplotype_2.csv&quot;,
         &quot;/path/to/seacon/haplotype_2.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    profile_hap1_cna_file=&quot;/path/to/gt/haplotype_1.csv&quot;,
-    profile_hap2_cna_file=&quot;/path/to/gt/haplotype_2.csv&quot;,
-    type=&quot;hcCNA&quot;
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    profile_hap1_cna_file=&quot;/path/to/gt/cell/haplotype_1.csv&quot;,
+    profile_hap2_cna_file=&quot;/path/to/gt/cell/haplotype_2.csv&quot;,
+    type=&quot;hcCNA&quot;,                       # Keep only if your cnclass() signature supports it
+    outfile=&quot;cnclass_results.csv&quot;,
 )
 
-# 3. CN Change Benchmark
-bench.hccnchange(
+# (Optional) Treat minor as &quot;hap1&quot; and major as &quot;hap2&quot; for accNA-style evaluation
+bench.cnclass(
     tool_hap1_cna_files=[
-        &quot;/path/to/signals/haplotype_1.csv&quot;,
-        &quot;/path/to/seacon/haplotype_1.csv&quot;,
+        &quot;/path/to/signals/minor.csv&quot;,
+        &quot;/path/to/seacon/minor.csv&quot;,
     ],
     tool_hap2_cna_files=[
-        &quot;/path/to/signals/haplotype_2.csv&quot;,
-        &quot;/path/to/seacon/haplotype_2.csv&quot;,
+        &quot;/path/to/signals/major.csv&quot;,
+        &quot;/path/to/seacon/major.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    changes_file=&quot;/path/to/gt/changes.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    profile_hap1_cna_file=&quot;/path/to/gt/cell/minor.csv&quot;,
+    profile_hap2_cna_file=&quot;/path/to/gt/cell/major.csv&quot;,
+    outfile=&quot;cnclass_results_accna.csv&quot;,
 )
 
-# 4. CN Stability Benchmark
-bench.hccnstable(
-    tool_hap1_cna_files=[
-        &quot;/path/to/signals/haplotype_1.csv&quot;,
-        &quot;/path/to/seacon/haplotype_1.csv&quot;,
-    ],
-    tool_hap2_cna_files=[
-        &quot;/path/to/signals/haplotype_2.csv&quot;,
-        &quot;/path/to/seacon/haplotype_2.csv&quot;,
-    ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    changes_file=&quot;/path/to/gt/changes.csv&quot;,
-    tree_file=&quot;/path/to/gt/tree.newick&quot;,
-)
 
-# 5. CN Onset Accuracy Benchmark
-bench.hconsetacc(
-    tool_hap1_cna_files=[
-        &quot;/path/to/signals/haplotype_1.csv&quot;,
-        &quot;/path/to/seacon/haplotype_1.csv&quot;,
-    ],
-    tool_hap2_cna_files=[
-        &quot;/path/to/signals/haplotype_2.csv&quot;,
-        &quot;/path/to/seacon/haplotype_2.csv&quot;,
-    ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    changes_file=&quot;/path/to/gt/changes.csv&quot;,
-)
-
-# 6. Parental CN Accuracy Benchmark
-bench.hconsetcn(
-    tool_hap1_cna_files=[
-        &quot;/path/to/signals/haplotype_1.csv&quot;,
-        &quot;/path/to/seacon/haplotype_1.csv&quot;,
-    ],
-    tool_hap2_cna_files=[
-        &quot;/path/to/signals/haplotype_2.csv&quot;,
-        &quot;/path/to/seacon/haplotype_2.csv&quot;,
-    ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    changes_file=&quot;/path/to/gt/changes.csv&quot;,
-)
-
-# 7. Haplotype Phasing Accuracy
+# ============================================================
+# 8) hcPhasing: Evaluate haplotype phasing accuracy (two common modes)
+# ============================================================
 bench.hcPhasing(
     tool_hap1_cna_files=[
         &quot;/path/to/signals/haplotype_1.csv&quot;,
@@ -944,20 +1053,184 @@ bench.hcPhasing(
         &quot;/path/to/signals/haplotype_2.csv&quot;,
         &quot;/path/to/seacon/haplotype_2.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    ground_truth_hap1_file=&quot;/path/to/gt/haplotype_1.csv&quot;,
-    ground_truth_hap2_file=&quot;/path/to/gt/haplotype_2.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    ground_truth_hap1_file=&quot;/path/to/gt/cell/haplotype_1.csv&quot;,
+    ground_truth_hap2_file=&quot;/path/to/gt/cell/haplotype_2.csv&quot;,
+    mode=&quot;heterozygous-only&quot;,
+    is_clone=False,
+    # outprefix=&quot;hcPhasing_both&quot;,        # Uncomment if your implementation supports outprefix
 )
 
-# 8. Mirror-Subclone Benchmark
-bench.mirrorsubclone(
+bench.hcPhasing(
+    tool_hap1_cna_files=[
+        &quot;/path/to/signals/haplotype_1.csv&quot;,
+        &quot;/path/to/seacon/haplotype_1.csv&quot;,
+    ],
+    tool_hap2_cna_files=[
+        &quot;/path/to/signals/haplotype_2.csv&quot;,
+        &quot;/path/to/seacon/haplotype_2.csv&quot;,
+    ],
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    ground_truth_hap1_file=&quot;/path/to/gt/cell/haplotype_1.csv&quot;,
+    ground_truth_hap2_file=&quot;/path/to/gt/cell/haplotype_2.csv&quot;,
+    mode=&quot;homozygous-inclusive-pred&quot;,
+    is_clone=False,
+    # outprefix=&quot;hcPhasing_gt&quot;,
+)
+
+
+# ============================================================
+# 9) Evolution-onset benchmarks: run for focal / medium / broad changes
+#    - hccnchange: CN change detection
+#    - hccnstable: CN stability accuracy (requires a phylogenetic tree)
+#    - hconsetacc: onset accuracy
+#    - hconsetcn: parent CN correctness at onset
+# ============================================================
+for size in [&quot;focal&quot;, &quot;medium&quot;, &quot;broad&quot;]:
+
+    bench.hccnchange(
+        tool_hap1_cna_files=[
+            &quot;/path/to/signals/haplotype_1.csv&quot;,
+            &quot;/path/to/seacon/haplotype_1.csv&quot;,
+        ],
+        tool_hap2_cna_files=[
+            &quot;/path/to/signals/haplotype_2.csv&quot;,
+            &quot;/path/to/seacon/haplotype_2.csv&quot;,
+        ],
+        tool_names=[
+            &quot;signals&quot;,
+            &quot;seacon&quot;,
+        ],
+        changes_file=f&quot;/path/to/gt/cell/cell_changes_split_annotated_{size}.csv&quot;,
+        outfile=f&quot;evolution_onset_CN_Change_{size}.csv&quot;,
+    )
+
+    bench.hccnstable(
+        tool_hap1_cna_files=[
+            &quot;/path/to/signals/haplotype_1.csv&quot;,
+            &quot;/path/to/seacon/haplotype_1.csv&quot;,
+        ],
+        tool_hap2_cna_files=[
+            &quot;/path/to/signals/haplotype_2.csv&quot;,
+            &quot;/path/to/seacon/haplotype_2.csv&quot;,
+        ],
+        tool_names=[
+            &quot;signals&quot;,
+            &quot;seacon&quot;,
+        ],
+        changes_file=f&quot;/path/to/gt/cell/cell_changes_split_annotated_{size}.csv&quot;,
+        tree_file=&quot;/path/to/tree/tree_new.newick&quot;,
+        outfile=f&quot;evolution_cn_stability_acc_{size}.csv&quot;,
+    )
+
+    bench.hconsetacc(
+        tool_hap1_cna_files=[
+            &quot;/path/to/signals/haplotype_1.csv&quot;,
+            &quot;/path/to/seacon/haplotype_1.csv&quot;,
+        ],
+        tool_hap2_cna_files=[
+            &quot;/path/to/signals/haplotype_2.csv&quot;,
+            &quot;/path/to/seacon/haplotype_2.csv&quot;,
+        ],
+        tool_names=[
+            &quot;signals&quot;,
+            &quot;seacon&quot;,
+        ],
+        changes_file=f&quot;/path/to/gt/cell/cell_changes_split_annotated_{size}.csv&quot;,
+        outfile=f&quot;evolution_onset_acc_{size}.csv&quot;,
+    )
+
+    bench.hconsetcn(
+        tool_hap1_cna_files=[
+            &quot;/path/to/signals/haplotype_1.csv&quot;,
+            &quot;/path/to/seacon/haplotype_1.csv&quot;,
+        ],
+        tool_hap2_cna_files=[
+            &quot;/path/to/signals/haplotype_2.csv&quot;,
+            &quot;/path/to/seacon/haplotype_2.csv&quot;,
+        ],
+        tool_names=[
+            &quot;signals&quot;,
+            &quot;seacon&quot;,
+        ],
+        changes_file=f&quot;/path/to/gt/cell/cell_changes_split_annotated_{size}.csv&quot;,
+        outfile=f&quot;evolution_onset_parent_CN_{size}.csv&quot;,
+    )
+
+
+# ============================================================
+# 10) NA_ratio: Compute the fraction of NA entries in each tool output
+# ============================================================
+bench.NA_ratio(
     tool_cna_files=[
         &quot;/path/to/signals/haplotype_combined.csv&quot;,
         &quot;/path/to/seacon/haplotype_combined.csv&quot;,
     ],
-    tool_names=[&quot;signals&quot;, &quot;seacon&quot;],
-    changes_file=&quot;/path/to/gt/mirrored_clones.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    outfile=&quot;NA_ratio.csv&quot;,
 )
+
+
+# ============================================================
+# 11) segmentation: Evaluate segmentation consistency against GT
+# ============================================================
+bench.segmentation(
+    tool_cna_files=[
+        &quot;/path/to/signals/haplotype_combined.csv&quot;,
+        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+    ],
+    gt_cna_file=&quot;/path/to/gt/cell/haplotype_combined.csv&quot;,
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    threshold=0.8,            # Similarity threshold used by the segmentation evaluation
+    profile_bin_size=100000,  # Bin size used in the GT profile (e.g., 100kb)
+    outprefix=&quot;segmentation_thre0.8&quot;,
+)
+
+
+# ============================================================
+# 12) detect_size: Detection accuracy stratified by event size (cell-level / clone-level)
+# ============================================================
+bench.detect_size(
+    tool_cna_files=[
+        &quot;/path/to/signals/haplotype_combined.csv&quot;,
+        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+    ],
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    level=&quot;clone&quot;,
+    size_file=&quot;/path/to/gt/clone/ground_truth_classified.csv&quot;,
+    outfile=&quot;detect_size_acc_clone.csv&quot;,
+)
+
+bench.detect_size(
+    tool_cna_files=[
+        &quot;/path/to/signals/haplotype_combined.csv&quot;,
+        &quot;/path/to/seacon/haplotype_combined.csv&quot;,
+    ],
+    tool_names=[
+        &quot;signals&quot;,
+        &quot;seacon&quot;,
+    ],
+    level=&quot;cell&quot;,
+    size_file=&quot;/path/to/gt/cell/ground_truth_classified.csv&quot;,
+    outfile=&quot;detect_size_acc_cell.csv&quot;,
+)
+
+
 </code></pre>
 <hr />
 

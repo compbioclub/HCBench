@@ -59,6 +59,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#realbench" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -599,6 +604,21 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
       
       <a href="./" class="md-nav__link md-nav__link--active">
         
@@ -611,6 +631,43 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-real-data-submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview of Real-Data Submodules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -641,6 +698,34 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview-of-real-data-submodules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview of Real-Data Submodules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -656,9 +741,275 @@
 
 
 
-  <h1>Overview</h1>
+<h1 id="realbench">RealBench</h1>
+<p><code>RealBench</code> is an integrated module for evaluating copy number alteration (CNA) results in <strong>real-world datasets</strong>. Since real data often lacks a ground truth, this module focuses on cross-tool consistency, evolutionary plausibility, and statistical validation using allele frequencies (VAF) and read depth (RDR).</p>
+<h2 id="overview-of-real-data-submodules">Overview of Real-Data Submodules</h2>
+<table>
+<thead>
+<tr>
+<th><strong>Submodule</strong></th>
+<th><strong>Description</strong></th>
+<th><strong>Core Metrics</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>clusterConsistency</code></td>
+<td>Evaluates the agreement of cluster assignments between different tools.</td>
+<td>AMI, ARI</td>
+</tr>
+<tr>
+<td><code>cellprofile</code></td>
+<td>Assesses heterogeneity by counting unique genomic profiles identified by each tool.</td>
+<td>Unique Profile Count</td>
+</tr>
+<tr>
+<td><code>dolazactree</code></td>
+<td>Calculates parsimony scores; lower scores indicate more plausible evolutionary paths.</td>
+<td>Parsimony Score</td>
+</tr>
+<tr>
+<td><code>cndetect</code></td>
+<td>Evaluates copy number (CN) detection accuracy</td>
+<td>RMSE, ACC, SCC</td>
+</tr>
+<tr>
+<td><code>cnclass</code></td>
+<td>Calculates CN state classification metrics</td>
+<td>AUROC, AUPRC, ACC, Precision, Recall, F1</td>
+</tr>
+<tr>
+<td><code>segmentation</code></td>
+<td>Evaluates the consistency of genomic segmentation boundaries across tools.</td>
+<td>Boundary Similarity</td>
+</tr>
+<tr>
+<td><code>get_cell_overlap</code></td>
+<td>Identifies and analyzes the set of common cells successfully processed by all tools.</td>
+<td>Overlap Count / Cell List</td>
+</tr>
+<tr>
+<td><code>calLLR</code></td>
+<td>Uses SNV data to calculate Log-Likelihood Ratios for validating haplotype predictions.</td>
+<td>LLR Score</td>
+</tr>
+<tr>
+<td><code>findVAFDistribution</code></td>
+<td>Evaluates VAF distribution consistency for specific copy number states.</td>
+<td>VAF Density</td>
+</tr>
+<tr>
+<td><code>rddetect</code></td>
+<td>Checks if predicted copy numbers align with observed Read Depth Ratios.</td>
+<td>RDR Consistency</td>
+</tr>
+<tr>
+<td><code>hcPhasing</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="example-usage">Example Usage</h2>
+<p>The following Python script demonstrates a full benchmark run on a real-world dataset, including the newly added segmentation and overlap modules.</p>
+<p>Python</p>
+<pre><code>from hcbench.realbench import RealBench
 
 
+output_dir = f&quot;/mnt/cbc_adam/public/workspace/HCDSIM/hcbench/input/5Mb/{dataset_name}&quot;
+realbench_runner = RealBench(output_dir=f&quot;{output_dir}/new_output&quot;)
+
+# Tool definitions
+tools = [&quot;CHISEL&quot;, &quot;CNRein&quot;, &quot;Alleloscope&quot;, &quot;SIGNALS&quot;, &quot;SEACON&quot;]
+
+realbench_runner.clusterConsistency(
+        tool_cluster_files=[
+            f&quot;{output_dir}/chisel/clusters.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/clusters.csv&quot;,
+            f&quot;{output_dir}/signals/clusters.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;SIGNALS&quot;],
+)
+
+realbench_runner.cloneSizebycluster(
+        tool_cluster_files=[
+            f&quot;{output_dir}/chisel/clusters.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/clusters.csv&quot;,
+            f&quot;{output_dir}/signals/clusters.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;SIGNALS&quot;],
+)
+
+
+# Count unique cell profiles (Haplotype-combined)
+realbench_runner.cellprofile(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+realbench_runner.cloneSizebycellprofile(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+# Compute Parsimony Scores
+realbench_runner.dolazactree(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+realbench_runner.cndetect(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+        haplotype = &quot;combined&quot;,
+        outfile_prefix= &quot;bin_level&quot;
+    )
+
+realbench_runner.cnclass(
+    tool_hap1_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;CNRein&quot;, &quot;SEACON&quot;,&quot;SIGNALS&quot;], 
+)
+
+# ============================================================
+# 3) Statistical Validation (VAF &amp; RDR)
+# ============================================================
+
+# Calculate Log-Likelihood Ratio (LLR) for predicted haplotypes
+realbench_runner.calLLR(
+    tool_hap1_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+    snv_paths  =[
+        f&quot;{output_dir}/chisel/VAF/&quot;,
+        f&quot;{output_dir}/Alleloscope/VAF/&quot;,
+        f&quot;{output_dir}/SEACON/VAF/&quot;,
+        f&quot;{output_dir}/CNRein/VAF/&quot;,
+        f&quot;{output_dir}/signals/VAF/&quot;],
+    cell_lists  = cell_lists,
+    variant_pos_dfs = variant_pos_dfs,
+)
+
+# Check RDR (Read Depth Ratio) detection accuracy
+realbench_runner.rddetect(
+        bin_count_files=[
+            f&quot;{output_dir}/chisel/bin_counts.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/bin_counts.csv&quot;,
+            f&quot;{output_dir}/SEACON/bin_counts.csv&quot;,
+            f&quot;{output_dir}/CNRein/bin_rdr.csv&quot;,
+            f&quot;{output_dir}/signals/bin_counts.csv&quot;,
+            ],
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+)
+
+realbench_runner.get_cell_overlap(
+    tool_cna_files=[
+        f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,
+    ],
+    tool_names=tools,
+)
+
+realbench_runner.segmentation(
+    tool_cna_files=[
+        f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,
+    ],
+    tool_names=tools,
+    threshold=0.8,
+    outprefix=&quot;segmentation_0.8&quot;,
+)
+
+realbench_runner.hcPhasing(
+    tool_hap1_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+    mode = &quot;heterozygous-only&quot;,
+    # outprefix = &quot;hcPhasing_heterozygous-only&quot;
+)
+
+
+realbench_runner.hcPhasing(
+    tool_hap1_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+    mode = &quot;homozygous-inclusive-all&quot;,
+    # outprefix = &quot;hcPhasing_homorozygous-included&quot;
+)
+
+</code></pre>
+<hr />
 
 
 
