@@ -13,19 +13,16 @@
 | [cloneSizebycluster](cloneSizebycluster.md)         | Evaluate the precision of clone size estimation by comparing predicted cell counts against Ground Truth across different clone scales. | Predicted Size                           |
 | [cellprofile](cellprofile.md)                       | Assess the heterogeneity and resolution of CNA calling by counting the number of unique genomic profiles identified. | Unique Group Profile Count               |
 | [cloneSizebycellprofile](cloneSizebycellprofile.md) |                                                              |                                          |
-|                                                     |                                                              |                                          |
-|                                                     |                                                              |                                          |
-|                                                     |                                                              |                                          |
-|                                                     |                                                              |                                          |
-|                                                     |                                                              |                                          |
-| `cndetect`                                          | Evaluates copy number (CN) detection accuracy                | RMSE, ACC, SCC                           |
-| `cnclass`                                           | Calculates CN state classification metrics                   | AUROC, AUPRC, ACC, Precision, Recall, F1 |
-| `hccnchange`                                        | Evaluates correctness of CN changes between parent and child clones | RMSE, ACC                                |
-| `hccnstable`                                        | Calculates evolutionary CN stability along the phylogenetic tree | ACC                                      |
-| `hconsetacc`                                        | Checks if CN events are detected at the correct branch of evolution | ACC                                      |
-| `hconsetcn`                                         | Evaluates accuracy of inferred parental CN                   | RMSE, ACC                                |
-| `hcPhasing`                                         | Evaluates haplotype phasing accuracy                         | Mismatch Error, Switch Error             |
-| `mirrorsubclone`                                    | Evaluates mirror-subclone CNA detection accuracy             | RMSE, ACC                                |
+| [dolazactree](dolazactree.md)                                         |                                                              |                                          |
+| [cndetect](cndetect.md)                                         | Evaluates copy number (CN) detection accuracy                | RMSE, ACC, SCC                           |
+| [cnclass](cnclass.md)                                           | Calculates CN state classification metrics                   | AUROC, AUPRC, ACC, Precision, Recall, F1 |
+| [hconsetcn](hconsetcn.md)                                         | Evaluates accuracy of inferred parental CN                   | RMSE, ACC                                |
+| [hconsetacc](hconsetacc.md)                                     | Checks if CN events are detected at the correct branch of evolution | ACC                                      |
+| [hccnchange](hccnchange.md)                                        | Evaluates correctness of CN changes between parent and child clones | RMSE, ACC                                |
+| [hccnstable](hccnstable.md)                                        | Calculates evolutionary CN stability along the phylogenetic tree | ACC                                      |
+| [segmentation](segmentation.md)                                        |                                                              |                                          |
+| [mirrorsubclone](mirrorsubclone.md)                                    | Evaluates mirror-subclone CNA detection accuracy             | RMSE, ACC                                |
+| [hcPhasing](hcPhasing.md)                                         | Evaluates haplotype phasing accuracy                         | Mismatch Error, Switch Error             |
 
 ------
 
