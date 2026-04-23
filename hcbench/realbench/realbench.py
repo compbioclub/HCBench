@@ -10,7 +10,7 @@ from typing import List, Tuple, Dict, Optional
 import scipy
 from .utils import align_cna_bins, align_tables, calculate_llr, compute_rd_cn_l1, count_unique_cells, create_lazac_input, evaluate_clustering_results, extract_vaf_by_binary_mask, get_final_parsimony_score, get_top_clusters, map_region_to_variants, match_snvs_to_bins
 from hcbench.gtbench import gtbench
-from ..utils import align, annotate_segments, categorize_and_save, check_binsize, eval_mismatch_switch_both, eval_mismatch_switch_gt, eval_mismatch_switch_homorozygous_included, evaluate_haplotype_predictions, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_segment_metric, get_segment_metric_both, get_segment_overlap_ratio, intersect_cells_from_cna, phase_to_binary, process_folder_for_metrics, read_and_drop_empty, real_cell_mismatch_error, real_cell_switch_error
+from ..utils import align, annotate_segments, categorize_and_save, check_binsize, compare_pair_dfs, eval_mismatch_switch_both, eval_mismatch_switch_gt, eval_mismatch_switch_homorozygous_included, evaluate_haplotype_predictions, find_mirrored_subclone_pairs, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_segment_metric, get_segment_metric_both, get_segment_overlap_ratio, intersect_cells_from_cna, phase_to_binary, process_folder_for_metrics, read_and_drop_empty, real_cell_mismatch_error, real_cell_switch_error
 import subprocess
 from hcbench.parsers.utils import map_cell_to_barcode
 import itertools
@@ -758,6 +758,88 @@ class RealBench:
     #     df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
 
     #     return out
+
+    def get_mirrored_subclonal(self,
+        tool_cna_files: List[str],
+        tool_names: List[str],
+        outprefix: str = "mirrored_subclonal",
+        use_segemnt = False,
+        save_tmp = True
+        ):
+
+                
+        # tool_annotated_dfs = {}
+        # tool_mirrored_subclone = {}
+        for i in range(len(tool_names)):
+            df = pd.read_csv(tool_cna_files[i], index_col=0)
+
+            cna_annotated_df = annotate_segments(df.T, detect_cnv_type=False)
+            cna_annotated_df['region'] = cna_annotated_df['Chrom'] + ":" + cna_annotated_df['Start'].astype(str) + "-" + cna_annotated_df['End'].astype(str)
+            # tool_annotated_dfs[tool_names[i]] = cna_annotated_df
+            if use_segemnt:
+                tool_annotated_df = cna_annotated_df[['cell','Segment','size','value']].drop_duplicates().copy()
+                pair_df_segment = find_mirrored_subclone_pairs(tool_annotated_df,segment_col='Segment')
+                pair_df_segment.rename(columns = {
+                    "Segment": "region"
+                },inplace = True)
+            else:
+                tool_annotated_df = cna_annotated_df[['cell','region','size','value']].drop_duplicates().copy()
+                pair_df_segment = find_mirrored_subclone_pairs(tool_annotated_df,segment_col='region')
+
+            # tool_mirrored_subclone[tool_names[i]] = pair_df_segment
+            if save_tmp:
+                tmp_dir = f"{self.output_dir}/mirror_subclone_tmp"
+                os.makedirs(tmp_dir, exist_ok=True)
+                pair_df_segment.to_csv(f"{tmp_dir}/{tool_names[i]}_subclone_tmp.csv",index = False)
+
+
+
+        # result = []
+        # n = len(tool_names)
+        # for i in range(n):
+        #     for j in range(i + 1, n):
+        #         if os.path.exists(f"{self.output_dir}/mirror_subclone_tmp"):
+        #             pair_df_segment_1 = pd.read_csv(f"{self.output_dir}/mirror_subclone_tmp/{tool_names[i]}_subclone_tmp.csv")
+        #             pair_df_segment_2 = pd.read_csv(f"{self.output_dir}/mirror_subclone_tmp/{tool_names[j]}_subclone_tmp.csv")
+        #         else:
+        #             print("ERROR: No tmp files found...")
+        #             return None
+
+        #             # pair_df_segment_1 = tool_mirrored_subclone[tool_names[i]]
+        #             # pair_df_segment_2 = tool_mirrored_subclone[tool_names[j]]
+
+        #         # pair_df_segment_1.rename(columns={'Segment' : "region"}, inplace=True)
+        #         # pair_df_segment_2.rename(columns={'Segment' : "region"}, inplace=True)
+        #         if not (pair_df_segment_1.empty or pair_df_segment_2.empty):
+        #             tool1_df, tool2_df = align_cna_bins(pair_df_segment_1, pair_df_segment_2)
+
+        #             print(f"tool1 : {tool1_df.head()}")
+        #             print(f"tool2 : {tool2_df.head()}")
+                    
+        #             cols_except_region = [c for c in tool1_df.columns if c != "region"]
+        #             tool1_df = tool1_df.dropna(subset=cols_except_region, how="all")
+        #             cols_except_region = [c for c in tool2_df.columns if c != "region"]
+        #             tool2_df = tool2_df.dropna(subset=cols_except_region, how="all")
+
+        #             print(f"tool1 after drop : {tool1_df.head()}")
+        #             print(f"tool2 after drop : {tool2_df.head()}")
+
+
+        #         summary_df, overlap_detail_df = compare_pair_dfs(
+        #             tool1_df,
+        #             tool2_df,
+        #             tool1_name=tool_names[i],
+        #             tool2_name=tool_names[j]
+        #         )
+
+        #         result.append(summary_df)
+
+        # final_summary_df = pd.concat(result, ignore_index=True)
+        # out = os.path.join(self.output_dir, f"{outprefix}.csv")
+        # final_summary_df.to_csv(out, index=False)
+        # return final_summary_df
+
+
 
 
     def get_cell_overlap(

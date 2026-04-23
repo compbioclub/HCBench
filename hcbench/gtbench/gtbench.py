@@ -845,6 +845,7 @@ class GTBench:
         tool_names: List[str],
         changes_file: str,
         profile_bin_size =100000,
+        cal_event_level = False,
         outfile: str = "mirror_subclone_result.csv",
     ) -> pd.DataFrame:
 
@@ -856,10 +857,13 @@ class GTBench:
             change_df_r['End'].astype(str)
         )
 
+        change_df_r['Segment'] = change_df_r['region']
+
         change_truth_r = split_all_regions(change_df_r.set_index("region"), profile_bin_size)
         change_truth_r = change_truth_r.reset_index().rename(columns={"index": "region"})
 
         rows = []
+        record_tables = []
         for path, name in zip(tool_cna_files, tool_names):
             pred = read_and_drop_empty(path)
 
@@ -891,6 +895,24 @@ class GTBench:
             )
             acc = float(acc_mask.mean())
 
+            if cal_event_level :
+                combined["region_correct"] = acc_mask
+
+                record_df = (
+                    combined
+                    .groupby(["Clone1", "Clone2", "Segment"], dropna=False)
+                    .agg(
+                        n_regions=("region_correct", "size"),
+                        n_correct_regions=("region_correct", "sum"),
+                        record_acc=("region_correct", "mean"),
+                        record_all_correct=("region_correct", "all")
+                    )
+                    .reset_index()
+                )
+
+                record_df["Tool"] = name
+                record_tables.append(record_df)
+
 
             def se(a, b):  
                 aa = pd.to_numeric(a, errors='coerce').astype(float)
@@ -914,13 +936,18 @@ class GTBench:
 
         df = pd.DataFrame(rows)
         df.to_csv(os.path.join(self.output_dir, outfile), index=False)
+
+        if cal_event_level:
+            if len(record_tables) > 0:
+                record_result_df = pd.concat(record_tables, ignore_index=True)
+                record_result_df.to_csv(os.path.join(self.output_dir, "mirrored_subclonal_event_level.csv"), index=False)
         return df
 
     @staticmethod
     def _mirror_merge(change_df: pd.DataFrame, pred_df: pd.DataFrame) -> pd.DataFrame:
         merged = pred_df.merge(change_df, left_on='region', right_on='region', how='inner').copy()
         if merged.empty:
-            return pd.DataFrame(columns=['region','Clone1','Clone2','Clone1_CNA','Clone2_CNA','Clone1_predict_CNA','Clone2_predict_CNA'])
+            return pd.DataFrame(columns=['region','Clone1','Clone2','Clone1_CNA','Clone2_CNA','Clone1_predict_CNA','Clone2_predict_CNA','Segment'])
         def mode_for_row(row, prefix):
             cols = [c for c in merged.columns if c.startswith(row[prefix])]
             if not cols:
@@ -931,7 +958,7 @@ class GTBench:
         
         merged['Clone1_predict_CNA'] = merged.apply(mode_for_row, axis=1, prefix='Clone1')
         merged['Clone2_predict_CNA'] = merged.apply(mode_for_row, axis=1, prefix='Clone2')
-        keep = ['region','Clone1','Clone2','Clone1_CNA','Clone2_CNA','Clone1_predict_CNA','Clone2_predict_CNA']
+        keep = ['region','Clone1','Clone2','Clone1_CNA','Clone2_CNA','Clone1_predict_CNA','Clone2_predict_CNA','Segment']
         return merged[keep].copy()
 
     def clusterConsistency(

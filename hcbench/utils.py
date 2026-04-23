@@ -1833,3 +1833,199 @@ def real_cell_switch_error(pred_A_CN, pred_B_CN, mode):
 
     return switch_error, result
 
+
+
+def flip_state(state):
+    if pd.isna(state):
+        return None
+    state = str(state).strip()
+    if "|" not in state:
+        return None
+    a, b = state.split("|")
+    return f"{b}|{a}"
+
+def find_mirrored_subclone_pairs(
+    df,
+    cell_col="cell",
+    segment_col="Segment",
+    value_col="value",
+    size_col="size",
+    min_cells_per_state=1
+):
+    output_cols = [
+            segment_col,
+            "size",
+            "Cell1_CNA",
+            "Cell2_CNA",
+            "Cell1_id",
+            "Cell2_id"
+        ]
+
+        # 如果输入是空表，直接返回结构一致的空结果
+    if df.empty:
+        return pd.DataFrame(columns=output_cols)
+    results = []
+
+    for seg, subdf in df.groupby(segment_col):
+        seg_size = subdf[size_col].iloc[0] if size_col in subdf.columns else None
+
+        # 每个CNA state对应哪些cell
+        state_to_cells = (
+            subdf.groupby(value_col)[cell_col]
+            .apply(list)
+            .to_dict()
+        )
+
+        visited = set()
+
+        for state in state_to_cells:
+
+            mirror = flip_state(state)
+
+            if mirror is None:
+                continue
+            if mirror == state:
+                continue
+            if mirror not in state_to_cells:
+                continue
+
+            # 避免 3|0 vs 0|3 和 0|3 vs 3|0 重复记两次
+            pair_key = tuple(sorted([state, mirror]))
+            if pair_key in visited:
+                continue
+            visited.add(pair_key)
+
+            cna1, cna2 = pair_key
+            cells1 = state_to_cells[cna1]
+            cells2 = state_to_cells[cna2]
+
+            if len(cells1) < min_cells_per_state or len(cells2) < min_cells_per_state:
+                continue
+
+            # 两两展开，并保证 Cell1_id < Cell2_id
+            for cell_a in cells1:
+                for cell_b in cells2:
+                    if cell_a == cell_b:
+                        continue
+
+                    if str(cell_a) < str(cell_b):
+                        cell1_id, cell2_id = cell_a, cell_b
+                        cell1_cna, cell2_cna = cna1, cna2
+                    else:
+                        cell1_id, cell2_id = cell_b, cell_a
+                        cell1_cna, cell2_cna = cna2, cna1
+
+                    results.append({
+                        segment_col: seg,
+                        "size": seg_size,
+                        "Cell1_CNA": cell1_cna,
+                        "Cell2_CNA": cell2_cna,
+                        "Cell1_id": cell1_id,
+                        "Cell2_id": cell2_id
+                    })
+
+    return pd.DataFrame(results, columns=output_cols)
+
+
+
+def parse_cna(cna):
+    """
+    把 '2|1' 解析成 (2, 1)
+    """
+    if pd.isna(cna):
+        return (np.nan, np.nan)
+    cna = str(cna).strip()
+    if "|" not in cna:
+        return (np.nan, np.nan)
+    a, b = cna.split("|")
+    return float(a), float(b)
+
+def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2"):
+
+    summary_null = pd.DataFrame({
+            "size": ['focal','broad','medium']
+        })
+    summary_null["overlap_n"] = 0
+    summary_null["ACC"] = np.nan
+    summary_null["RMSE"] = np.nan
+    summary_null['Tool1'] = tool1_name
+    summary_null['Tool2'] = tool2_name
+
+    
+    df1 = pair_df1.copy()
+    df2 = pair_df2.copy()
+
+    if df1.empty or df2.empty:
+        return summary_null, None
+
+    key_cols_with_size = ["size","region", "Cell1_id", "Cell2_id","Cell1_CNA", "Cell2_CNA"]
+
+
+    # 去重，避免重复记录影响统计
+    df1 = df1.drop_duplicates(subset=key_cols_with_size )
+    df2 = df2.drop_duplicates(subset=key_cols_with_size )
+
+    # 只保留比较需要的列，并重命名
+    df1 = df1[["size", "region", "Cell1_id", "Cell2_id", "Cell1_CNA", "Cell2_CNA"]].rename(columns={
+        "Cell1_CNA": f"Cell1_CNA_{tool1_name}",
+        "Cell2_CNA": f"Cell2_CNA_{tool1_name}",
+    })
+
+    df2 = df2[["size", "region", "Cell1_id", "Cell2_id", "Cell1_CNA", "Cell2_CNA"]].rename(columns={
+        "Cell1_CNA": f"Cell1_CNA_{tool2_name}",
+        "Cell2_CNA": f"Cell2_CNA_{tool2_name}",
+    })
+
+    # overlap：按 size + region + Cell1_id + Cell2_id
+    overlap_df = pd.merge(
+        df1,
+        df2,
+        on=["size", "region", "Cell1_id", "Cell2_id"],
+        how="inner"
+    )
+
+    # ACC：两边CNA都完全一致
+    overlap_df["CNA_match"] = (
+        (overlap_df[f"Cell1_CNA_{tool1_name}"] == overlap_df[f"Cell1_CNA_{tool2_name}"]) &
+        (overlap_df[f"Cell2_CNA_{tool1_name}"] == overlap_df[f"Cell2_CNA_{tool2_name}"])
+    )
+    print(overlap_df.head())
+
+    if overlap_df.empty:
+        return summary_null, overlap_df
+
+    for prefix in [tool1_name, tool2_name]:
+        overlap_df[[f"c1a_{prefix}", f"c1b_{prefix}"]] = overlap_df[f"Cell1_CNA_{prefix}"].apply(
+            lambda x: pd.Series(parse_cna(x))
+        )
+        overlap_df[[f"c2a_{prefix}", f"c2b_{prefix}"]] = overlap_df[f"Cell2_CNA_{prefix}"].apply(
+            lambda x: pd.Series(parse_cna(x))
+        )
+
+    # 每条 overlap 记录的 squared error
+    overlap_df["squared_error"] = (
+        (overlap_df[f"c1a_{tool1_name}"] - overlap_df[f"c1a_{tool2_name}"]) ** 2 +
+        (overlap_df[f"c1b_{tool1_name}"] - overlap_df[f"c1b_{tool2_name}"]) ** 2 +
+        (overlap_df[f"c2a_{tool1_name}"] - overlap_df[f"c2a_{tool2_name}"]) ** 2 +
+        (overlap_df[f"c2b_{tool1_name}"] - overlap_df[f"c2b_{tool2_name}"]) ** 2
+    )
+
+    # 统计每个 size 下各自记录数
+    n1_by_size = df1.groupby("size").size().rename(f"n_{tool1_name}")
+    n2_by_size = df2.groupby("size").size().rename(f"n_{tool2_name}")
+    overlap_n_by_size = overlap_df.groupby("size").size().rename("overlap_n")
+
+    summary = pd.concat([overlap_n_by_size], axis=1).fillna(0).reset_index()
+
+    # ACC by size
+    acc_by_size = overlap_df.groupby("size")["CNA_match"].mean().rename("ACC").reset_index()
+
+    # RMSE by size
+    rmse_by_size = overlap_df.groupby("size")["squared_error"].mean().apply(np.sqrt).rename("RMSE").reset_index()
+
+    summary = summary.merge(acc_by_size, on="size", how="left")
+    summary = summary.merge(rmse_by_size, on="size", how="left")
+    summary['Tool1'] = tool1_name
+    summary['Tool2'] = tool2_name
+
+    return summary, overlap_df
