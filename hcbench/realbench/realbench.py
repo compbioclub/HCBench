@@ -30,7 +30,7 @@ class RealBench:
         outfile: str = "rd_cn_l1.csv",
         ttest_outfile: str = "rd_cn_l1.paired_ttest.csv",
         ttest_alternative: str = "two-sided",   # "two-sided" / "less" / "greater"
-    ) -> pd.DataFrame:
+    ):
 
         results = {}
         check_binsize(tool_cna_files, tool_names, strict=False)
@@ -178,7 +178,7 @@ class RealBench:
         haplotype: Optional[str] = "combined",
         outfile_prefix: str = "bin_level",
         index_col: Optional[int] = 0,
-    ) -> pd.DataFrame:
+    ):
 
         result_df_rmse = pd.DataFrame(columns=tool_names, index=tool_names)
         result_df_scc = pd.DataFrame(columns=tool_names, index=tool_names)
@@ -460,64 +460,6 @@ class RealBench:
         print(f"LLR results saved to {out}")
         return final_df
 
-
-
-        AD = scipy.io.mmread(f"{snv_path}/cellSNP.tag.AD.filtered.mtx").tocsr()
-        DP = scipy.io.mmread(f"{snv_path}/cellSNP.tag.DP.filtered.mtx").tocsr()
-
-        non_empty_mask = (AD.getnnz(axis=1) > 0) | (DP.getnnz(axis=1) > 0)
-        n_total = AD.shape[0]
-        n_kept = int(non_empty_mask.sum())
-        print(f"Total variants: {n_total}, kept after removing all-zero rows: {n_kept}")
-
-        AD_f = AD[non_empty_mask]
-        DP_f = DP[non_empty_mask]
-        variant_f = variant_pos_df.loc[non_empty_mask].reset_index(drop=True)
-        print("Filtered AD shape:", AD_f.shape)
-        print("Filtered DP shape:", DP_f.shape)
-        print("Filtered variant_info length:", len(variant_f))
-
-        AD_df = pd.DataFrame.sparse.from_spmatrix(
-            AD_f,
-            index=variant_f.index,   
-            columns=cell_list
-        )
-
-        DP_df = pd.DataFrame.sparse.from_spmatrix(
-            DP_f,
-            index=variant_f.index,   
-            columns=cell_list
-        )
-
-        results = []
-
-        for path1_A, path1_B, name1 in zip(tool_hap1_files, tool_hap2_files, tool_names):
-            for path2_A, path2_B, name2 in zip(tool_hap1_files, tool_hap2_files, tool_names):   
-                print(f"Calculating LLR: {name1} vs {name2}")
-
-                cna1_A = pd.read_csv(path1_A,index_col=0)
-                cna1_B = pd.read_csv(path1_B,index_col=0)
-                snv_to_bin_idx1 = match_snvs_to_bins(variant_f, cna1_A.reset_index())
-
-                cna2_A = pd.read_csv(path2_A,index_col=0)
-                cna2_B = pd.read_csv(path2_B,index_col=0)
-                snv_to_bin_idx2 = match_snvs_to_bins(variant_f, cna2_A.reset_index())
-
-                result = calculate_llr(AD_df, DP_df,
-                            snv_to_bin_idx1, snv_to_bin_idx2,cna1_A, cna1_B,
-                            cna2_A, cna2_B)
-                
-                result['Tool1'] = name1
-                result['Tool2'] = name2
-
-                results.append(result)
-        
-        final_df = pd.DataFrame(results)
-        out = os.path.join(self.output_dir, "llr_results.csv")
-        final_df.to_csv(out,index=False)
-        print(f"LLR results saved to {out}")
-        return final_df
-
                 
     def cnclass(
         self,
@@ -592,48 +534,6 @@ class RealBench:
     ):
         overlap_results = []
         metric_results = []
-        # merged_cna_event_count = None
-
-        # annotated_by_tool = {}
-        # for f, name in zip(tool_cna_files, tool_names):
-        #     tool_cna_df = pd.read_csv(f, index_col=0)
-
-        #     tool_annotated_df = annotate_segments(
-        #         tool_cna_df.T,
-        #         detect_cnv_type=True,
-        #         threshold=threshold
-        #     )
-
-        #     tool_annotated_df["region"] = (
-        #         tool_annotated_df["Chrom"].astype(str)
-        #         + ":"
-        #         + tool_annotated_df["Start"].astype(int).astype(str)
-        #         + "-"
-        #         + tool_annotated_df["End"].astype(int).astype(str)
-        #     )
-
-        #     print(f"{name}_annotated_df: {tool_annotated_df.head()}-----")
-
-        #     annotated_by_tool[name] = tool_annotated_df
-
-            # # 2) 每个工具的 event count 只算一次并 merge
-            # tool_counts = get_seg_cna_event_num(tool_annotated_df).copy()
-            # tool_counts = tool_counts.rename(
-            #     columns={
-            #         "bin_level_count": f"{name}_bin_level_count",
-            #         "seg_level_count": f"{name}_seg_level_count",
-            #     }
-            # )
-
-            # if merged_cna_event_count is None:
-            #     merged_cna_event_count = tool_counts
-            # else:
-            #     merged_cna_event_count = merged_cna_event_count.merge(
-            #         tool_counts, on=["size", "type"], how="outer"
-            #     )
-
-        # if merged_cna_event_count is None:
-        #     merged_cna_event_count = pd.DataFrame(columns=["size", "type"])
 
         n = len(tool_names)
         for i in range(n):
@@ -643,16 +543,10 @@ class RealBench:
 
                 tool1_df, tool2_df = align_cna_bins(df1, df2)
 
-                print(f"tool1 : {tool1_df.head()}")
-                print(f"tool2 : {tool2_df.head()}")
-                
                 cols_except_region = [c for c in tool1_df.columns if c != "region"]
                 tool1_df = tool1_df.dropna(subset=cols_except_region, how="all")
                 cols_except_region = [c for c in tool2_df.columns if c != "region"]
                 tool2_df = tool2_df.dropna(subset=cols_except_region, how="all")
-
-                print(f"tool1 after drop : {tool1_df.head()}")
-                print(f"tool2 after drop : {tool2_df.head()}")
 
                 name1 = tool_names[i]
                 name2 = tool_names[j]
@@ -685,13 +579,7 @@ class RealBench:
                 
                 print(f"tool1 after align : {tool2_annotated_df.head()}")
                 print(f"tool2 after align: {tool2_annotated_df.head()}")
-                # cols_except_region = [c for c in tool1.columns if c != "region"]
-                # tool1 = tool1.dropna(subset=cols_except_region, how="all")
 
-                # cols_except_region = [c for c in tool2.columns if c != "region"]
-                # tool2 = tool2.dropna(subset=cols_except_region, how="all")
-                
-                
 
                 result_overlap = get_segment_overlap_ratio(tool1_annotated_df, tool2_annotated_df)
                 result_metric = get_segment_metric_both(tool1_annotated_df, tool2_annotated_df)
@@ -704,60 +592,12 @@ class RealBench:
                 overlap_results.append(result_overlap)
                 metric_results.append(result_metric)
 
-        # # 4) 写出结果
-        # num_cols = [c for c in merged_cna_event_count.columns if c.endswith("_count")]
-        # if len(num_cols) > 0:
-        #     merged_cna_event_count[num_cols] = (
-        #         merged_cna_event_count[num_cols].fillna(0).astype(int)
-        #     )
-
         overlap_df = pd.concat(overlap_results, ignore_index=True) if overlap_results else pd.DataFrame()
         metric_df = pd.concat(metric_results, ignore_index=True) if metric_results else pd.DataFrame()
 
         overlap_df.to_csv(os.path.join(self.output_dir, f"{outprefix}overlap.csv"), index=False)
         metric_df.to_csv(os.path.join(self.output_dir, f"{outprefix}metrics.csv"), index=False)
-        # merged_cna_event_count.to_csv(
-        #     os.path.join(self.output_dir, f"{outprefix}complex_cna_count.csv"),
-        #     index=False
-        # )
 
-    # def cloneSizebycellprofile(
-    #     self,
-    #     tool_cna_files: List[str],
-    #     tool_names: List[str],
-    #     outfile: str = "clone_size_by_cell_profile.csv",
-    # ) -> pd.DataFrame:
-
-    #     ref_file, ref_name = tool_cna_files[0], tool_names[0]
-    #     ref_df = pd.read_csv(ref_file, index_col=0)
-    #     ref_df = ref_df.fillna("1|1")
-    #     ref_clone = get_cell_profile_size(ref_df)  
-
-    #     out = pd.DataFrame(index=ref_clone.index.copy())
-    #     out.index.name = ref_clone.index.name
-    #     out[f"{ref_name}_pred_size"] = ref_clone["cluster_size"]
-
-    #     for f, name in zip(tool_cna_files[1:], tool_names[1:]):
-    #         pred_df = pd.read_csv(f, index_col=0)
-    #         pred_df = pred_df.fillna("1|1")
-    #         pred_clone = get_cell_profile_size(pred_df)
-
-    #         aligned = pred_clone.reindex(out.index)
-    #         out[f"{name}_pred_size"] = aligned["cluster_size"]
-
-    #     # 按 cluster_size 分组求均值
-    #     size_col = "cluster_size"
-    #     mean_cols = [c for c in out.columns if c.endswith("_pred_size")]
-    #     mean_cols = [c for c in mean_cols if pd.api.types.is_numeric_dtype(out[c])]
-
-    #     df_mean = (
-    #         out.groupby(size_col, as_index=False)[mean_cols]
-    #         .mean()
-    #         .rename(columns={size_col: "cluster_size"})
-    #     )
-    #     df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
-
-    #     return out
 
     def get_mirrored_subclonal(self,
         tool_cna_files: List[str],
@@ -791,53 +631,6 @@ class RealBench:
                 tmp_dir = f"{self.output_dir}/mirror_subclone_tmp"
                 os.makedirs(tmp_dir, exist_ok=True)
                 pair_df_segment.to_csv(f"{tmp_dir}/{tool_names[i]}_subclone_tmp.csv",index = False)
-
-
-
-        # result = []
-        # n = len(tool_names)
-        # for i in range(n):
-        #     for j in range(i + 1, n):
-        #         if os.path.exists(f"{self.output_dir}/mirror_subclone_tmp"):
-        #             pair_df_segment_1 = pd.read_csv(f"{self.output_dir}/mirror_subclone_tmp/{tool_names[i]}_subclone_tmp.csv")
-        #             pair_df_segment_2 = pd.read_csv(f"{self.output_dir}/mirror_subclone_tmp/{tool_names[j]}_subclone_tmp.csv")
-        #         else:
-        #             print("ERROR: No tmp files found...")
-        #             return None
-
-        #             # pair_df_segment_1 = tool_mirrored_subclone[tool_names[i]]
-        #             # pair_df_segment_2 = tool_mirrored_subclone[tool_names[j]]
-
-        #         # pair_df_segment_1.rename(columns={'Segment' : "region"}, inplace=True)
-        #         # pair_df_segment_2.rename(columns={'Segment' : "region"}, inplace=True)
-        #         if not (pair_df_segment_1.empty or pair_df_segment_2.empty):
-        #             tool1_df, tool2_df = align_cna_bins(pair_df_segment_1, pair_df_segment_2)
-
-        #             print(f"tool1 : {tool1_df.head()}")
-        #             print(f"tool2 : {tool2_df.head()}")
-                    
-        #             cols_except_region = [c for c in tool1_df.columns if c != "region"]
-        #             tool1_df = tool1_df.dropna(subset=cols_except_region, how="all")
-        #             cols_except_region = [c for c in tool2_df.columns if c != "region"]
-        #             tool2_df = tool2_df.dropna(subset=cols_except_region, how="all")
-
-        #             print(f"tool1 after drop : {tool1_df.head()}")
-        #             print(f"tool2 after drop : {tool2_df.head()}")
-
-
-        #         summary_df, overlap_detail_df = compare_pair_dfs(
-        #             tool1_df,
-        #             tool2_df,
-        #             tool1_name=tool_names[i],
-        #             tool2_name=tool_names[j]
-        #         )
-
-        #         result.append(summary_df)
-
-        # final_summary_df = pd.concat(result, ignore_index=True)
-        # out = os.path.join(self.output_dir, f"{outprefix}.csv")
-        # final_summary_df.to_csv(out, index=False)
-        # return final_summary_df
 
 
 
