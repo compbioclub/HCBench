@@ -1,0 +1,13 @@
+
+.md-typeset pre > code {
+    max-height: 400px;
+    overflow-y: auto;  
+}
+
+.md-typeset pre > code::-webkit-scrollbar {
+    width: 8px;
+}
+.md-typeset pre > code::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}

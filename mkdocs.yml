@@ -9,12 +9,17 @@ nav:
       - SIGNALS: parsers/signals.md
       - SEACON: parsers/seacon.md
       - CNRein: parsers/cnrein.md
-  - GTbench:
+  - HCBench-sim:
       - Overview: gtbench/index.md
-      - clusterConsistency : gtbench/clusterConsistency.md
-      - cloneSizebycluster : gtbench/cloneSizebycluster.md
-      - cellprofile : gtbench/cellprofile.md
-  - Realbench:
+    #   - clusterConsistency : gtbench/clusterConsistency.md
+    #   - cloneSizebycluster : gtbench/cloneSizebycluster.md
+    #   - cellprofile : gtbench/cellprofile.md
+  - HCBench-real:
       - Overview: realbench/index.md
 theme:
   name: material
+  features:
+    - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
