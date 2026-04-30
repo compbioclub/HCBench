@@ -9,7 +9,7 @@
       
       
       
-        <link rel="prev" href="../gtbench/cellprofile/">
+        <link rel="prev" href="../gtbench/">
       
       
       
@@ -41,6 +41,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -60,7 +62,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#realbench" class="md-skip">
+        <a href="#hcbench-real" class="md-skip">
           Skip to content
         </a>
       
@@ -437,7 +439,7 @@
   
   
   <span class="md-ellipsis">
-    GTbench
+    HCBench-sim
     
   </span>
   
@@ -448,7 +450,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            GTbench
+            HCBench-sim
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -465,75 +467,6 @@
   
   <span class="md-ellipsis">
     Overview
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../gtbench/clusterConsistency/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    clusterConsistency
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../gtbench/cloneSizebycluster/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    cloneSizebycluster
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../gtbench/cellprofile/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    cellprofile
     
   </span>
   
@@ -576,7 +509,7 @@
   
   
   <span class="md-ellipsis">
-    Realbench
+    HCBench-real
     
   </span>
   
@@ -587,7 +520,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            Realbench
+            HCBench-real
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -646,6 +579,60 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-a-clone-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective A: Clone Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-b-accna-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective B: acCNA Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-c-single-hccna-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective C: Single hcCNA Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-d-rdr-vaf-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective D: RDR &amp; VAF Validation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-e-accumulated-complex-hccna-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective E: Accumulated Complex hcCNA Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-f-global-cn-phasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective F: Global CN Phasing
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#overview-of-real-data-submodules" class="md-nav__link">
@@ -708,6 +695,60 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#perspective-a-clone-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective A: Clone Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-b-accna-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective B: acCNA Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-c-single-hccna-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective C: Single hcCNA Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-d-rdr-vaf-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective D: RDR &amp; VAF Validation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-e-accumulated-complex-hccna-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective E: Accumulated Complex hcCNA Detection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perspective-f-global-cn-phasing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Perspective F: Global CN Phasing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#overview-of-real-data-submodules" class="md-nav__link">
     <span class="md-ellipsis">
       Overview of Real-Data Submodules
@@ -741,8 +782,292 @@
 
 
 
-<h1 id="realbench">RealBench</h1>
-<p><code>RealBench</code> is an integrated module for evaluating copy number alteration (CNA) results in <strong>real-world datasets</strong>. Since real data often lacks a ground truth, this module focuses on cross-tool consistency, evolutionary plausibility, and statistical validation using allele frequencies (VAF) and read depth (RDR).</p>
+<h1 id="hcbench-real">HCBench-real</h1>
+<p><code>HCBench-real</code> is an integrated module for evaluating copy number alteration (CNA) results in <strong>real-world datasets</strong>. Since real data often lacks a ground truth, this module focuses on cross-tool consistency, evolutionary plausibility, and statistical validation using allele frequencies (VAF) and read depth (RDR).</p>
+<hr />
+<h2 id="perspective-a-clone-detection">Perspective A: Clone Detection</h2>
+<p>This perspective evaluates the pairwise consistency of clone architectures inferred by two different callers. It determines whether different algorithms agree on the underlying population structure of a real tumor sample.</p>
+<ul>
+<li><strong>A1: Are global tumor clones consistent?</strong> </li>
+</ul>
+<p>Evaluates the agreement of clustering labels between two callers using AMI and ARI. These metrics quantify how similar the overall cell groupings are across the entire population.</p>
+<ul>
+<li><strong>A2: Are rare and dominant clones consistent?</strong> </li>
+</ul>
+<p>Assesses consistency stratified by predicted clone size. Using Clone Size Deviation (CSD), it examines whether a cell assigned to a cluster of size $n$ by one caller is assigned to a cluster of similar size by the other, identifying if callers disagree on the granularity of specific subclones.</p>
+<pre><code class="language-Python">from hcbench.realbench import RealBench
+
+
+output_dir = f&quot;/mnt/cbc_adam/public/workspace/HCDSIM/hcbench/input/5Mb/{dataset_name}&quot;
+realbench_runner = RealBench(output_dir=f&quot;{output_dir}/new_output&quot;)
+
+tools = [&quot;CHISEL&quot;, &quot;CNRein&quot;, &quot;Alleloscope&quot;, &quot;SIGNALS&quot;, &quot;SEACON&quot;]
+#A1
+realbench_runner.clusterConsistency(
+        tool_cluster_files=[
+            f&quot;{output_dir}/chisel/clusters.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/clusters.csv&quot;,
+            f&quot;{output_dir}/signals/clusters.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;SIGNALS&quot;],
+)
+#A2
+realbench_runner.cloneSizebycluster(
+        tool_cluster_files=[
+            f&quot;{output_dir}/chisel/clusters.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/clusters.csv&quot;,
+            f&quot;{output_dir}/signals/clusters.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;SIGNALS&quot;],
+)
+
+
+</code></pre>
+<hr />
+<h2 id="perspective-b-accna-detection">Perspective B: acCNA Detection</h2>
+<p><strong>This perspective assesses the consistency of allele-specific copy number alterations (acCNAs) between callers. In real data scenarios, clone-level comparisons are bypassed in favor of direct cell-level profile matching.</strong></p>
+<ul>
+<li><strong>B1: Are unique allele- and cell-specific CN profiles consistent?</strong> Compares Unique Profile Counts (UPC) and Unique Profile Size Deviation (UPSD) between callers. It identifies if one caller tends to smooth profiles while the other fragments them, or if they agree on the diversity of unique genomic strings.</li>
+<li><strong>B2: Are allele- and cell-specific CN phylogenies consistent?</strong> Compares the Parsimony Scores (PS) of the phylogenies reconstructed from each caller's predictions. Similar scores suggest consistency in the inferred evolutionary complexity.</li>
+<li><strong>B3: Are allele-, cell-, and locus-specific CN values consistent?</strong> Quantifies the direct numerical agreement of copy number values across all shared cells and loci using RMSE, SCC, and ACC.</li>
+<li><strong>B4: Are allele-, cell-, and locus-specific CN loss, gain, and neutral consistent?</strong> Uses a binary classification framework to measure concordance. By treating one caller as a reference, metrics like ACC and the Kappa score are used to determine how often the two tools agree on the presence of gains, losses, or neutral states.</li>
+</ul>
+<pre><code class="language-python"># B1
+realbench_runner.cellprofile(
+        tool_cna_files=[
+             f&quot;{output_dir}/chisel/cell_level/minor_major.csv&quot;,
+            f&quot;{output_dir}/CNRein/minor_major.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/minor_major.csv&quot;,
+            f&quot;{output_dir}/signals/minor_major.csv&quot;,
+            f&quot;{output_dir}/SEACON/minor_major.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+realbench_runner.cloneSizebycellprofile(
+        tool_cna_files=[
+             f&quot;{output_dir}/chisel/cell_level/minor_major.csv&quot;,
+            f&quot;{output_dir}/CNRein/minor_major.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/minor_major.csv&quot;,
+            f&quot;{output_dir}/signals/minor_major.csv&quot;,
+            f&quot;{output_dir}/SEACON/minor_major.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+# B2
+realbench_runner.dolazactree(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/minor_major.csv&quot;,
+            f&quot;{output_dir}/CNRein/minor_major.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/minor_major.csv&quot;,
+            f&quot;{output_dir}/signals/minor_major.csv&quot;,
+            f&quot;{output_dir}/SEACON/minor_major.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+#B3
+realbench_runner.cndetect(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/minor_major.csv&quot;,
+            f&quot;{output_dir}/CNRein/minor_major.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/minor_major.csv&quot;,
+            f&quot;{output_dir}/signals/minor_major.csv&quot;,
+            f&quot;{output_dir}/SEACON/minor_major.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+        haplotype = &quot;combined&quot;,
+        outfile_prefix= &quot;bin_level&quot;
+    )
+#B4
+realbench_runner.cnclass(
+    tool_hap1_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/minor.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/minor.csv&quot;,
+            f&quot;{output_dir}/CNRein/minor.csv&quot;,
+            f&quot;{output_dir}/SEACON/minor.csv&quot;,
+            f&quot;{output_dir}/signals/minor.csv&quot;],
+    tool_hap2_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/major.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/major.csv&quot;,
+            f&quot;{output_dir}/CNRein/major.csv&quot;,
+            f&quot;{output_dir}/SEACON/major.csv&quot;,
+            f&quot;{output_dir}/signals/major.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;CNRein&quot;, &quot;SEACON&quot;,&quot;SIGNALS&quot;], 
+)
+</code></pre>
+<hr />
+<h2 id="perspective-c-single-hccna-detection">Perspective C: Single hcCNA Detection</h2>
+<p><strong>This perspective focuses on the consistency of haplotype-specific copy number alterations (hcCNAs). It mirrors the acCNA consistency checks but requires the callers to agree on the specific phasing of the copy number states.</strong></p>
+<ul>
+<li><strong>C1: Are unique haplotype- and cell-specific CN profiles consistent?</strong> Uses UPC and UPSD to evaluate if two callers identify the same unique sets of haplotype-specific genomic profiles.</li>
+<li><strong>C2: Are haplotype- and cell-specific CN phylogenies consistent?</strong> Compares Parsimony Scores derived from phased CN profiles to check if the inferred single-cell evolutionary trees have similar structural complexity.</li>
+<li><strong>C3: Are haplotype-, cell-, and locus-specific CN values consistent?</strong> Measures numerical consistency for phased copy numbers (e.g., matching 1|2 vs 1|2) using RMSE, SCC, and the exact match rate (ACC).</li>
+<li><strong>C4: Are haplotype-, cell-, and locus-specific CN loss, gain, and neutral consistent?</strong> Evaluates the reliability of phased CN calling by measuring the concordance (ACC and Kappa score) between callers when categorizing segments into gain, loss, or neutral states.</li>
+</ul>
+<pre><code class="language-Python"># C1
+realbench_runner.cellprofile(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+realbench_runner.cloneSizebycellprofile(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+# C2
+realbench_runner.dolazactree(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+    )
+
+#C3
+realbench_runner.cndetect(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=[&quot;CHISEL&quot;, &quot;CNRein&quot;,&quot;Alleloscope&quot;, &quot;SIGNALS&quot;,&quot;SEACON&quot;],
+        haplotype = &quot;combined&quot;,
+        outfile_prefix= &quot;bin_level&quot;
+    )
+#C4
+realbench_runner.cnclass(
+    tool_hap1_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;, &quot;Alleloscope&quot;,&quot;CNRein&quot;, &quot;SEACON&quot;,&quot;SIGNALS&quot;], 
+)
+</code></pre>
+<p>Here are the final three perspectives (D, E, and F) for the real-world data analysis (HCBench-real) in Markdown format.</p>
+<hr />
+<h2 id="perspective-d-rdr-vaf-validation">Perspective D: RDR &amp; VAF Validation</h2>
+<p><strong>This perspective assesses the physical plausibility of the predicted copy numbers by validating them against raw sequencing signals, such as Read Depth Ratio (RDR) and Variant Allele Frequency (VAF).</strong></p>
+<ul>
+<li><strong>D1: Are total CNs consistent with observed read depths?</strong> Evaluates the goodness of fit between the inferred total copy number and the observed read-depth signal using the Read Depth L1 Error. Statistically compares callers using paired t-tests; a lower L1 error indicates that the predicted states more accurately reflect the raw data counts.</li>
+<li><strong>D2: Are major and minor CN distributions consistent with observed VAFs?</strong> Measures how well the predicted major and minor alleles align with truncal SNV frequencies (or BAFs) using log-likelihood under a binomial model. A higher log-likelihood ratio (LLR) indicates a superior fit to the observed molecular evidence.</li>
+</ul>
+<pre><code class="language-python">#D1
+realbench_runner.rddetect(
+        bin_count_files=[
+            f&quot;{output_dir}/chisel/bin_counts.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/bin_counts.csv&quot;,
+            f&quot;{output_dir}/SEACON/bin_counts.csv&quot;,
+            f&quot;{output_dir}/CNRein/bin_rdr.csv&quot;,
+            f&quot;{output_dir}/signals/bin_counts.csv&quot;,
+            ],
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;],
+        tool_names=[&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+)
+#D2
+realbench_runner.calLLR(
+    tool_hap1_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+    snv_paths  =[
+        f&quot;{output_dir}/chisel/VAF/&quot;,
+        f&quot;{output_dir}/Alleloscope/VAF/&quot;,
+        f&quot;{output_dir}/SEACON/VAF/&quot;,
+        f&quot;{output_dir}/CNRein/VAF/&quot;,
+        f&quot;{output_dir}/signals/VAF/&quot;],
+    cell_lists  = cell_lists,
+    variant_pos_dfs = variant_pos_dfs,
+)
+</code></pre>
+<hr />
+<h2 id="perspective-e-accumulated-complex-hccna-detection">Perspective E: Accumulated Complex hcCNA Detection</h2>
+<p><strong>This perspective evaluates the consistency of the accumulated "burden" of complex hcCNA events (focal, medium, and broad) between two callers in the absence of a ground truth.</strong></p>
+<ul>
+<li><strong>E1: Are accumulated complex hcCNAs consistent?</strong> Quantifies the overlap of detected complex events using the Jaccard Similarity (JS) index. Within the intersecting genomic regions, it measures the numerical agreement of the copy number strings using RMSE, SCC, and the exact match rate (ACC).</li>
+<li><strong>E2: Are accumulated Mirrored-Subclonal-CNAs consistent?</strong> Annotates mirrored events across the population and evaluates whether both callers agree on these complex evolutionary outcomes by comparing concatenated copy number vectors across the relevant segments and cells.</li>
+</ul>
+<pre><code class="language-python">#E1
+realbench_runner.segmentation(
+    tool_cna_files=[
+        f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,
+    ],
+    tool_names=tools,
+    threshold=0.8,
+    outprefix=&quot;segmentation_0.8&quot;,
+)
+# E2
+ realbench_runner.get_mirrored_subclonal(
+        tool_cna_files=[
+            f&quot;{output_dir}/chisel/cell_level/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/CNRein/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/Alleloscope/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/signals/haplotype_combined.csv&quot;,
+            f&quot;{output_dir}/SEACON/haplotype_combined.csv&quot;,],
+        tool_names=tools,
+        use_segemnt = True,
+        save_tmp = True
+    )
+</code></pre>
+<hr />
+<h2 id="perspective-f-global-cn-phasing">Perspective F: Global CN Phasing</h2>
+<p><strong>This perspective focuses on the consistency of haplotype phasing between callers. It determines if two different algorithms assign the same parental phase to heterozygous copy number states.</strong></p>
+<ul>
+<li><strong>F1: Are CN values consistently phased?</strong> Quantifies the pairwise phasing agreement by calculating the mismatch error between the callers' predicted phase strings. This is conducted in <strong>shared-heterozygous mode</strong>, meaning only loci identified as informative by both callers are compared. A mismatch error near 0 indicates that the two algorithms are in high agreement regarding the global and local phase.</li>
+</ul>
+<pre><code class="language-python">realbench_runner.hcPhasing(
+    tool_hap1_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_1.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_1.csv&quot;],
+    tool_hap2_cna_files = [
+        f&quot;{output_dir}/chisel/cell_level/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/Alleloscope/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/SEACON/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/CNRein/haplotype_2.csv&quot;,
+        f&quot;{output_dir}/signals/haplotype_2.csv&quot;],
+    tool_names = [&quot;CHISEL&quot;,&quot;Alleloscope&quot;, &quot;SEACON&quot;,&quot;CNRein&quot;,'SIGNALS'],
+    mode = &quot;heterozygous-only&quot;,
+    # outprefix = &quot;hcPhasing_heterozygous-only&quot;
+)
+
+</code></pre>
 <h2 id="overview-of-real-data-submodules">Overview of Real-Data Submodules</h2>
 <table>
 <thead>
@@ -1058,7 +1383,7 @@ realbench_runner.hcPhasing(
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy"], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
