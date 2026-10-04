@@ -672,6 +672,51 @@ class RealBench:
                 os.makedirs(tmp_dir, exist_ok=True)
                 pair_df_segment.to_csv(f"{tmp_dir}/{tool_names[i]}_subclone_tmp.csv",index = False)
 
+        result = []
+        n = len(tool_names)
+        for i in range(n):
+            for j in range(i + 1, n):
+                if os.path.exists(f"{self.output_dir}/mirror_subclone_tmp"):
+                    pair_df_segment_1 = pd.read_csv(f"{self.output_dir}/mirror_subclone_tmp/{tool_names[i]}_subclone_tmp.csv")
+                    pair_df_segment_2 = pd.read_csv(f"{self.output_dir}/mirror_subclone_tmp/{tool_names[j]}_subclone_tmp.csv")
+                else:
+                    print("ERROR: No tmp files found...")
+                    return None
+
+                    # pair_df_segment_1 = tool_mirrored_subclone[tool_names[i]]
+                    # pair_df_segment_2 = tool_mirrored_subclone[tool_names[j]]
+
+                # pair_df_segment_1.rename(columns={'Segment' : "region"}, inplace=True)
+                # pair_df_segment_2.rename(columns={'Segment' : "region"}, inplace=True)
+                if not (pair_df_segment_1.empty or pair_df_segment_2.empty):
+                    tool1_df, tool2_df = align_cna_bins(pair_df_segment_1, pair_df_segment_2)
+
+                    print(f"tool1 : {tool1_df.head()}")
+                    print(f"tool2 : {tool2_df.head()}")
+                    
+                    cols_except_region = [c for c in tool1_df.columns if c != "region"]
+                    tool1_df = tool1_df.dropna(subset=cols_except_region, how="all")
+                    cols_except_region = [c for c in tool2_df.columns if c != "region"]
+                    tool2_df = tool2_df.dropna(subset=cols_except_region, how="all")
+
+                    print(f"tool1 after drop : {tool1_df.head()}")
+                    print(f"tool2 after drop : {tool2_df.head()}")
+
+
+                summary_df, overlap_detail_df = compare_pair_dfs(
+                    tool1_df,
+                    tool2_df,
+                    tool1_name=tool_names[i],
+                    tool2_name=tool_names[j]
+                )
+
+                result.append(summary_df)
+
+        final_summary_df = pd.concat(result, ignore_index=True)
+        out = os.path.join(self.output_dir, f"{outprefix}.csv")
+        final_summary_df.to_csv(out, index=False)
+        return final_summary_df
+
 
 
 
