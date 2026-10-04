@@ -159,6 +159,30 @@ def evaluate_haplotype_predictions(
 def calc_bin_metrics(gdf: pd.DataFrame, pdf: pd.DataFrame) -> Dict[str, Optional[float]]:
         y_true = gdf.values.flatten()
         y_pred = pdf.values.flatten()
+
+        print(
+            "gdf:", gdf.shape,
+            "pdf:", pdf.shape,
+            "y_true:", len(y_true),
+            "y_pred:", len(y_pred)
+        )
+
+        if len(y_true) == 0 or len(y_pred) == 0:
+            print("WARNING: empty matrix!")
+            return {
+                "Accuracy": None,
+                "F1": None,
+                "Brier": None,
+                "AUROC": None,
+                "AUPRC": None,
+                "Kappa": None,
+                "Sensitivity": None,
+                "Specificity": None,
+                "PPV": None,
+                "NPV": None,
+            }
+
+
         metrics = {}
         metrics["Accuracy"]  = accuracy_score(y_true, y_pred)
         metrics["F1"]        = f1_score(y_true, y_pred, zero_division=0)
@@ -790,12 +814,12 @@ def get_segment_metric(gt_annotated_df, pred_df):
     sizes = ['focal', 'medium', 'broad']
     type_list = gt_annotated_df['type'].unique()
     cols = ['cell', 'region']
+    pred_s = pred_df.drop_duplicates()
 
     out = []
     for s in sizes:
         for t in type_list:
             gt_s = gt_annotated_df.loc[(gt_annotated_df['size'].eq(s) & gt_annotated_df['type'].eq(t)),  cols + ["value"]].drop_duplicates()
-            pred_s = pred_df.drop_duplicates()
 
             for col in ['cell', 'region']:
                 gt_s[col] = gt_s[col].astype('category')
@@ -2029,3 +2053,12 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
     summary['Tool2'] = tool2_name
 
     return summary, overlap_df
+
+def get_exact_profile_group(cna_df):
+        profile_df = cna_df.iloc[:, 1:].T.fillna("__NA__").astype(str)
+
+        # # identical profiles -> same clone
+        profiles = pd.MultiIndex.from_frame(profile_df)
+        clone_codes, _ = pd.factorize(profiles, sort=True)
+        pred_clones = pd.Series(clone_codes)
+        return pred_clones

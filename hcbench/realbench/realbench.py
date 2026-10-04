@@ -6,11 +6,12 @@ import ast
 import numpy as np
 import pandas as pd
 from typing import List, Tuple, Dict, Optional
-
+from sklearn.metrics import adjusted_rand_score as adjustedRandIndex, mean_squared_error
+from sklearn.metrics import adjusted_mutual_info_score as AMI
 import scipy
 from .utils import align_cna_bins, align_tables, calculate_llr, compute_rd_cn_l1, count_unique_cells, create_lazac_input, evaluate_clustering_results, extract_vaf_by_binary_mask, get_final_parsimony_score, get_top_clusters, map_region_to_variants, match_snvs_to_bins
 from hcbench.gtbench import gtbench
-from ..utils import align, annotate_segments, categorize_and_save, check_binsize, compare_pair_dfs, eval_mismatch_switch_both, eval_mismatch_switch_gt, eval_mismatch_switch_homorozygous_included, evaluate_haplotype_predictions, find_mirrored_subclone_pairs, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_segment_metric, get_segment_metric_both, get_segment_overlap_ratio, intersect_cells_from_cna, phase_to_binary, process_folder_for_metrics, read_and_drop_empty, real_cell_mismatch_error, real_cell_switch_error
+from ..utils import align, annotate_segments, categorize_and_save, check_binsize, compare_pair_dfs, eval_mismatch_switch_both, eval_mismatch_switch_gt, eval_mismatch_switch_homorozygous_included, evaluate_haplotype_predictions, find_mirrored_subclone_pairs, get_cell_profile_size, get_cluster_size, get_exact_profile_group, get_seg_cna_event_num, get_segment_metric, get_segment_metric_both, get_segment_overlap_ratio, intersect_cells_from_cna, phase_to_binary, process_folder_for_metrics, read_and_drop_empty, real_cell_mismatch_error, real_cell_switch_error
 import subprocess
 from hcbench.parsers.utils import map_cell_to_barcode
 import itertools
@@ -149,6 +150,45 @@ class RealBench:
         print(f"Clustering AMI matrix saved to {out_ami}")
 
         return result_df_ari, result_df_ami
+
+    def clusterConsistencyFromCNA(
+            self,
+            tool_cna_files: List[str],
+            tool_names: List[str],
+        ):
+            result_df_ari = pd.DataFrame(columns=tool_names, index=tool_names)
+            result_df_ami = pd.DataFrame(columns=tool_names, index=tool_names)
+    
+            for path1, tool1 in zip(tool_cna_files, tool_names):
+                for path2, tool2 in zip(tool_cna_files, tool_names):
+
+                    tool1_df = read_and_drop_empty(path1)
+                    tool2_df = read_and_drop_empty(path2)
+
+                    tool1_df, tool2_df = align(tool1_df, tool2_df)
+
+                    pred_clones = get_exact_profile_group(tool1_df)
+                    true_clones = get_exact_profile_group(tool2_df)
+
+                    ari = adjustedRandIndex(true_clones, pred_clones)
+                    ami = AMI(true_clones, pred_clones)
+                    
+                    result_df_ari.loc[tool1, tool2] = ari
+                    # result_df_ari.loc[tool2, tool1] = ari
+    
+                    result_df_ami.loc[tool1, tool2] = ami
+                    # result_df_ami.loc[tool2, tool1] = ami
+    
+            out_ari = os.path.join(self.output_dir, "exact_profile_group_ARI.csv")
+            result_df_ari.to_csv(out_ari)
+            print(f"Exact profile group ARI matrix saved to {out_ari}") 
+            out_ami = os.path.join(self.output_dir, "exact_profile_group_AMI.csv")
+            result_df_ami.to_csv(out_ami)
+            print(f"Exact profile group AMI matrix saved to {out_ami}")
+    
+            return result_df_ari, result_df_ami
+    
+    
 
     def cellprofile(
         self,

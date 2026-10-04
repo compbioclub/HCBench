@@ -72,7 +72,8 @@ def split_all_regions(out_t, bin_size):
     return out_new
 
 def map_cell_to_barcode(df: pd.DataFrame, barcode_path: str, cell_col: str) -> pd.DataFrame:
-    barcodes = pd.read_csv(barcode_path, sep='\t')
+    barcodes = pd.read_csv(barcode_path, sep='\t', comment=None, index_col=False)
+
 
 
     required_cols = {"#CELL", "BARCODE"}

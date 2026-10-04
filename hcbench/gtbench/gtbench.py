@@ -16,7 +16,9 @@ from sklearn.metrics import (
 )
 from Bio import Phylo
 
-from hcbench.utils import align, align_cna_bins, annotate_segments, categorize_and_save, compute_rd_cn_l1, evaluate_NA_ratio, evaluate_haplotype_predictions, fast_mode_any, find_mirrored_clones, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_seg_mirror_subclonal, get_segment_metric, get_segment_overlap_ratio, process_folder_for_metrics, process_folder_for_metrics_clone,fast_mode_num, read_and_drop_empty
+from hcbench.utils import (align, align_cna_bins, annotate_segments, categorize_and_save, compute_rd_cn_l1, evaluate_NA_ratio, evaluate_haplotype_predictions, get_exact_profile_group,
+                    fast_mode_any, find_mirrored_clones, get_cell_profile_size, get_cluster_size, get_seg_cna_event_num, get_seg_mirror_subclonal, get_segment_metric, get_segment_overlap_ratio, process_folder_for_metrics, process_folder_for_metrics_clone,fast_mode_num, read_and_drop_empty)
+
 from sklearn.metrics import adjusted_rand_score as adjustedRandIndex, mean_squared_error
 from sklearn.metrics import adjusted_mutual_info_score as AMI
 from hcbench.parsers.utils import split_all_regions
@@ -1002,6 +1004,44 @@ class GTBench:
         result_df.to_csv(out,index=False)
         print(f"Clustering ARI,AMI saved to {out}") 
 
+        return result_df
+
+    
+
+    def clusterConsistencyFromCNA(self, tool_cna_files: List[str], tool_names: List[str], gt_cna_file: str):
+        gt_cna_df = read_and_drop_empty(gt_cna_file)
+        true_clones = get_exact_profile_group(gt_cna_df)
+
+        result_list = []
+
+        for cna_file, tool_name in zip(tool_cna_files, tool_names):
+            if not os.path.exists(cna_file):
+                result_list.append({"Tool": tool_name, "ARI": None, "AMI": None})
+                continue
+
+            cna_df = read_and_drop_empty(cna_file)
+
+            gt_cna_df, cna_df = align(gt_cna_df, cna_df)
+
+
+            pred_clones = get_exact_profile_group(cna_df)
+            true_clones = get_exact_profile_group(gt_cna_df)
+
+
+            ari = adjustedRandIndex(true_clones, pred_clones)
+            ami = AMI(true_clones, pred_clones)
+
+            result_list.append({
+                "Tool": tool_name,
+                "ARI": ari,
+                "AMI": ami
+            })
+
+        result_df = pd.DataFrame(result_list)
+        out = os.path.join(self.output_dir, "exact_profile_group_result.csv")
+        result_df.to_csv(out, index=False)
+
+        print(f"Exact profile group ARI, AMI saved to {out}")
         return result_df
 
     def NA_ratio(
