@@ -1,14 +1,14 @@
 ## Function
 
 ```python
-hccnstable(
+complex_hccna_stability(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
     tree_file: str,
-    outfile: str = "evolution_cn_stability_acc.csv",
+    outfile: str = "complex_hccna_stability.csv",
     profile_bin_size=100000
 ) -> pd.DataFrame
 ```
@@ -34,7 +34,7 @@ it builds a set of “stability checks” derived from the tree topology and the
 | `tool_names`          | `List[str]` | Tool names used in result rows.                              |
 | `changes_file`        | `str`       | Path to the segment/change table used for stability checks (must include `Segment`, `Type`, and other fields used by internal helpers). |
 | `tree_file`           | `str`       | Path to the phylogenetic tree file in **Newick** format.     |
-| `outfile`             | `str`       | Output filename for the summary table. Default: `"evolution_cn_stability_acc.csv"`. |
+| `outfile`             | `str`       | Output filename for the summary table. Default: `"complex_hccna_stability.csv"`. |
 | `profile_bin_size`    | `int`       | Bin size used to split/standardize both segments and predictions. Default: `100000` (100kb). |
 
 ------
@@ -149,7 +149,7 @@ os.path.join(self.output_dir, outfile)
 Default:
 
 ```
-{self.output_dir}/evolution_cn_stability_acc.csv
+{self.output_dir}/complex_hccna_stability.csv
 ```
 
 ------
@@ -188,7 +188,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.hccnstable(
+df = bench.complex_hccna_stability(
     tool_hap1_cna_files=[
         "/path/to/chisel/hap1.csv",
         "/path/to/signals/hap1.csv",
@@ -201,7 +201,7 @@ df = bench.hccnstable(
     changes_file="/path/to/gt/changes_stability.csv",
     tree_file="/path/to/gt/tree.newick",
     profile_bin_size=100000,
-    outfile="evolution_cn_stability_acc.csv",
+    outfile="complex_hccna_stability.csv",
 )
 
 print(df)

@@ -1,14 +1,14 @@
 ## Function
 
 ```python
-hconsetacc(
+complex_hccna_at_onset(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
     profile_bin_size=100000,
-    outfile: str = "evolution_onset_acc.csv",
+    outfile: str = "complex_hccna_at_onset.csv",
 ) -> pd.DataFrame
 ```
 
@@ -33,7 +33,7 @@ Given a ground-truth change table (segments annotated with change `Type` and GT 
 | `tool_names`          | `List[str]` | Tool names used for output file naming and result rows.      |
 | `changes_file`        | `str`       | Path to the ground-truth change table (segments + labels).   |
 | `profile_bin_size`    | `int`       | Bin size used to split/standardize both GT segments and predictions. Default: `100000` (100kb). |
-| `outfile`             | `str`       | Output filename for the summary table. Default: `"evolution_onset_acc.csv"`. |
+| `outfile`             | `str`       | Output filename for the summary table. Default: `"complex_hccna_at_onset.csv"`. |
 
 ------
 
@@ -140,7 +140,7 @@ os.path.join(self.output_dir, outfile)
 Default:
 
 ```
-{self.output_dir}/evolution_onset_acc.csv
+{self.output_dir}/complex_hccna_at_onset.csv
 ```
 
 ------
@@ -178,7 +178,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.hconsetacc(
+df = bench.complex_hccna_at_onset(
     tool_hap1_cna_files=[
         "/path/to/chisel/hap1.csv",
         "/path/to/signals/hap1.csv",
@@ -190,7 +190,7 @@ df = bench.hconsetacc(
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/changes_onset.csv",
     profile_bin_size=100000,
-    outfile="evolution_onset_acc.csv",
+    outfile="complex_hccna_at_onset.csv",
 )
 
 print(df)

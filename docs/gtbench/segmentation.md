@@ -1,22 +1,22 @@
 ## Function
 
 ```python
-segmentation(
+complex_hccnas(
     self,
     gt_cna_file: str,
     tool_cna_files: List[str],
     tool_names: List[str],
     profile_bin_size=100000,
     threshold=0.95,
-    outprefix: str = "segmentation_",
+    outprefix: str = "complex_hccnas_",
     level="cell",
     changes_file: Optional[str] = ""
 )
 ```
 
-This function evaluates **segmentation quality** of CNA calls by comparing tool predictions against **GT-derived CNA segments**.
+This function evaluates **complex_hccnas quality** of CNA calls by comparing tool predictions against **GT-derived CNA segments**.
 
-It first derives CNA segments from the ground-truth CNA matrix using `annotate_segments(...)` (with optional CNV type detection). Then, for each tool, it converts the tool CNA matrix into a long format (region × cell), re-bins regions to a uniform resolution, and computes segmentation metrics using `get_segment_metric(...)`.
+It first derives CNA segments from the ground-truth CNA matrix using `annotate_segments(...)` (with optional CNV type detection). Then, for each tool, it converts the tool CNA matrix into a long format (region × cell), re-bins regions to a uniform resolution, and computes complex_hccnas metrics using `get_segment_metric(...)`.
 
 A single metrics CSV is written to disk.
 
@@ -30,8 +30,8 @@ A single metrics CSV is written to disk.
 | `tool_cna_files`   | `List[str]`     | List of tool CNA profile CSVs. Must align with `tool_names`. |
 | `tool_names`       | `List[str]`     | Tool names used to label metric outputs.                     |
 | `profile_bin_size` | `int`           | Bin size used to split/standardize tool regions before metric computation. Default: `100000` (100kb). |
-| `threshold`        | `float`         | Threshold passed into `annotate_segments(...)` (used for segmentation/CNV detection sensitivity). Default: `0.95`. |
-| `outprefix`        | `str`           | Prefix used for the output metrics filename. Default: `"segmentation_"`. |
+| `threshold`        | `float`         | Threshold passed into `annotate_segments(...)` (used for complex_hccnas/CNV detection sensitivity). Default: `0.95`. |
+| `outprefix`        | `str`           | Prefix used for the output metrics filename. Default: `"complex_hccnas_"`. |
 | `level`            | `str`           | Placeholder for evaluation level (`"cell"` or `"clone"`). Currently only `"cell"` path is active. |
 | `changes_file`     | `Optional[str]` | Reserved for clone-level evaluation (commented out in current implementation). Default: `""`. |
 
@@ -61,7 +61,7 @@ chr1:1-100000,1|1,1|1
 chr1:100001-200000,2|1,2|1
 ```
 
-The GT matrix is transposed before segmentation annotation:
+The GT matrix is transposed before complex_hccnas annotation:
 
 ```python
 gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold)
@@ -124,7 +124,7 @@ tool_cna_df_long = split_all_regions(tool_cna_df_long.set_index("region"), profi
 tool_cna_df_long = tool_cna_df_long.reset_index().rename(columns={"index": "region"})
 ```
 
-1. Compute segmentation metrics comparing tool calls to GT segments:
+1. Compute complex_hccnas metrics comparing tool calls to GT segments:
 
 ```python
 result2 = get_segment_metric(gt_annotated_df, tool_cna_df_long)
@@ -172,7 +172,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-bench.segmentation(
+bench.complex_hccnas(
     gt_cna_file="/path/to/gt/haplotype_combined.csv",
     tool_cna_files=[
         "/path/to/chisel/haplotype_combined.csv",
@@ -181,7 +181,7 @@ bench.segmentation(
     tool_names=["CHISEL", "SIGNALS"],
     profile_bin_size=100000,
     threshold=0.8,
-    outprefix="segmentation_",
+    outprefix="complex_hccnas_",
 )
 ```
 

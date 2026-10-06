@@ -1,13 +1,13 @@
 ## Function
 
 ```python
-hconsetcn(
+parental_cn_at_onset(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
-    outfile: str = "evolution_onset_parent_CN.csv",
+    outfile: str = "parental_cn_at_onset.csv",
     profile_bin_size=100000
 ) -> pd.DataFrame
 ```
@@ -33,7 +33,7 @@ Given a ground-truth “change list” (segments with known CNA changes and labe
 | `tool_hap2_cna_files` | `List[str]` | List of tool CNA profile CSVs for haplotype 2. Must align with `tool_names`. |
 | `tool_names`          | `List[str]` | Tool names used in result rows.                              |
 | `changes_file`        | `str`       | Path to the ground-truth change table (segments + change labels). |
-| `outfile`             | `str`       | Output filename for the summary table. Default: `"evolution_onset_parent_CN.csv"`. |
+| `outfile`             | `str`       | Output filename for the summary table. Default: `"parental_cn_at_onset.csv"`. |
 | `profile_bin_size`    | `int`       | Bin size used to split/standardize both GT segments and predictions. Default: `100000` (100kb). |
 
 ------
@@ -142,7 +142,7 @@ os.path.join(self.output_dir, outfile)
 Default:
 
 ```
-{self.output_dir}/evolution_onset_parent_CN.csv
+{self.output_dir}/parental_cn_at_onset.csv
 ```
 
 The output table has one row per **(Tool × Type)**.
@@ -171,7 +171,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.hconsetcn(
+df = bench.parental_cn_at_onset(
     tool_hap1_cna_files=[
         "/path/to/chisel/hap1.csv",
         "/path/to/signals/hap1.csv",
@@ -183,7 +183,7 @@ df = bench.hconsetcn(
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/changes_onset.csv",
     profile_bin_size=100000,
-    outfile="evolution_onset_parent_CN.csv",
+    outfile="parental_cn_at_onset.csv",
 )
 
 print(df)

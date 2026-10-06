@@ -1,3 +1,4 @@
+from hcbench.utils import _chromosome_mask, save_annotated_segments
 # hcbench/gtbench/gtbench.py
 from math import nan
 from operator import gt
@@ -52,15 +53,15 @@ class GTBench:
             val = 'hap2'
         return val == target
 
-    # ========= 1) bin-level: cndetect =========
-    def cndetect(
+    # ========= 1) bin-level: cna_values =========
+    def cna_values(
         self,
         tool_cna_files: List[str],
         cna_profile_file: str,
         tool_names: List[str],
         haplotype: str = "combined",
         profile_bin_size = 100000,
-        outfile: str = "bin_level_results.csv",
+        outfile: str = "cna_values.csv",
         index_col: Optional[int] = 0,
     ) -> pd.DataFrame:
 
@@ -89,7 +90,7 @@ class GTBench:
         return df
 
 
-    def cnclass(
+    def cna_states(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
@@ -98,7 +99,7 @@ class GTBench:
         profile_hap2_cna_file: str,
         type: str = "hcCNA",
         profile_bin_size = 100000,
-        outfile: str = "cnclass_results.csv",
+        outfile: str = "cna_states.csv",
     ) -> pd.DataFrame:
 
         if type not in ["acCNA", "hcCNA"]:
@@ -162,15 +163,15 @@ class GTBench:
 
     #     return gdf.loc[:, cols], pdf.loc[:, cols]
 
-    # ========= 3) hccnchange =========
-    def hccnchange(
+    # ========= 3) cn_change_at_onset =========
+    def cn_change_at_onset(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
         profile_bin_size = 100000,
-        outfile: str = "evolution_onset_CN_Change.csv",
+        outfile: str = "cn_change_at_onset.csv",
     ) -> pd.DataFrame:
 
         change_truth = read_and_drop_empty(changes_file)
@@ -235,15 +236,15 @@ class GTBench:
             return float("nan")
         return float(np.sqrt(mean_squared_error(diff_true[mask], diff_pred[mask])))
 
-    # ========= 4) hccnstable =========
-    def hccnstable(
+    # ========= 4) complex_hccna_stability =========
+    def complex_hccna_stability(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
         tree_file: str,
-        outfile: str = "evolution_cn_stability_acc.csv",
+        outfile: str = "complex_hccna_stability.csv",
         profile_bin_size = 100000
     ) -> pd.DataFrame:
 
@@ -345,15 +346,15 @@ class GTBench:
                     ok = False; break
             change_df.at[idx, 'result'] = 1 if ok else 0
 
-    # ========= 5) hconsetacc =========
-    def hconsetacc(
+    # ========= 5) complex_hccna_at_onset =========
+    def complex_hccna_at_onset(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
         profile_bin_size = 100000,
-        outfile: str = "evolution_onset_acc.csv",
+        outfile: str = "complex_hccna_at_onset.csv",
     ) -> pd.DataFrame:
 
         change_truth = read_and_drop_empty(changes_file)
@@ -379,7 +380,7 @@ class GTBench:
             h2 = self._onset_join(change_truth, p_h2, 'hap2')
             comb = pd.concat([h1, h2], ignore_index=True)
 
-            comb.to_csv(os.path.join(self.output_dir, f"{name}_comb_combined.csv"))
+            comb.to_csv(os.path.join(self.output_dir, f"{name}_complex_hccna_at_onset_details.csv"))
 
 
             for t in comb['Type'].unique().tolist():
@@ -456,14 +457,14 @@ class GTBench:
         return out
 
 
-    # ========= 6) hconsetcn =========
-    def hconsetcn(
+    # ========= 6) parental_cn_at_onset =========
+    def parental_cn_at_onset(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
-        outfile: str = "evolution_onset_parent_CN.csv",
+        outfile: str = "parental_cn_at_onset.csv",
         profile_bin_size = 100000
     ) -> pd.DataFrame:
 
@@ -524,15 +525,15 @@ class GTBench:
         cr = float(np.sqrt(mean_squared_error(c[m2], cp[m2]))) if m2.any() else float("nan")
         return pr, cr
 
-    # ========= 7) hcPhasing =========
-    # def hcPhasing(
+    # ========= 7) global_cn_phasing =========
+    # def global_cn_phasing(
     #     self,
     #     tool_hap1_cna_files: List[str],
     #     tool_hap2_cna_files: List[str],
     #     tool_names: List[str],
     #     ground_truth_hap1_file: str,
     #     ground_truth_hap2_file: str,
-    #     outprefix = "hcPhasing",
+    #     outprefix = "global_cn_phasing",
     #     profile_bin_size = 100000,
     #     mask_both = True,
     #     output_all = False
@@ -626,15 +627,15 @@ class GTBench:
 
     #     return df
 
-    # ========= 7) hcPhasing =========
-    def hcPhasing(
+    # ========= 7) global_cn_phasing =========
+    def global_cn_phasing(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         ground_truth_hap1_file: str,
         ground_truth_hap2_file: str,
-        outprefix = "hcPhasing",
+        outprefix = "global_cn_phasing",
         profile_bin_size = 100000,
         mode = "heterozygous-only",
         is_clone = False,
@@ -840,15 +841,15 @@ class GTBench:
             })
         return results
 
-    # ========= 8) mirrorsubclone =========
-    def mirrorsubclone(
+    # ========= 8) mirrored_subclonal_cnas =========
+    def mirrored_subclonal_cnas(
         self,
         tool_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
         profile_bin_size =100000,
         cal_event_level = False,
-        outfile: str = "mirror_subclone_result.csv",
+        outfile: str = "mirrored_subclonal_cnas.csv",
     ) -> pd.DataFrame:
 
         change_df_r = read_and_drop_empty(changes_file)
@@ -942,7 +943,7 @@ class GTBench:
         if cal_event_level:
             if len(record_tables) > 0:
                 record_result_df = pd.concat(record_tables, ignore_index=True)
-                record_result_df.to_csv(os.path.join(self.output_dir, "mirrored_subclonal_event_level.csv"), index=False)
+                record_result_df.to_csv(os.path.join(self.output_dir, "mirrored_subclonal_cnas_event_level.csv"), index=False)
         return df
 
     @staticmethod
@@ -963,7 +964,7 @@ class GTBench:
         keep = ['region','Clone1','Clone2','Clone1_CNA','Clone2_CNA','Clone1_predict_CNA','Clone2_predict_CNA','Segment']
         return merged[keep].copy()
 
-    def clusterConsistency(
+    def global_tumor_clones(
         self,
         tool_clone_files: List[str],
         tool_names: List[str],
@@ -1000,7 +1001,7 @@ class GTBench:
             })
 
         result_df = pd.DataFrame(result_list)
-        out = os.path.join(self.output_dir, "clustering_result.csv")
+        out = os.path.join(self.output_dir, "global_tumor_clones.csv")
         result_df.to_csv(out,index=False)
         print(f"Clustering ARI,AMI saved to {out}") 
 
@@ -1177,12 +1178,12 @@ class GTBench:
         out["predict_value"] = pred_value
         return out
     
-    def cloneSizebycellprofile(
+    def unique_cna_profile_sizes(
         self,
         gt_cna_file: str,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outfile: str = "clone_size_by_cell_profile.csv",
+        outfile: str = "unique_cna_profile_sizes.csv",
     ) -> pd.DataFrame:
 
         gt_df = pd.read_csv(gt_cna_file, index_col = 0)
@@ -1218,12 +1219,12 @@ class GTBench:
 
         df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
 
-    def cloneSizebycluster(
+    def rare_and_dominant_clones(
         self,
         gt_cluster_file: str,
         tool_cluster_files: List[str],
         tool_names: List[str],
-        outfile: str = "clone_size_by_cluster.csv",
+        outfile: str = "rare_and_dominant_clones.csv",
     ) -> pd.DataFrame:
 
         gt_df = pd.read_csv(gt_cluster_file, index_col = 0)
@@ -1256,13 +1257,13 @@ class GTBench:
 
         df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
 
-    # def segmentation(self,
+    # def complex_hccnas(self,
     #     gt_cna_file: str,
     #     tool_cna_files: List[str],
     #     tool_names: List[str],
     #     profile_bin_size = 100000,
     #     threshold = 0.95,
-    #     outprefix: str = "segmentation_",
+    #     outprefix: str = "complex_hccnas_",
     #     ):
 
     #     gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
@@ -1316,19 +1317,21 @@ class GTBench:
     #     merged_cna_event_count.to_csv(os.path.join(self.output_dir, f"{outprefix}complex_cna_count.csv"), index=False)
 
 
-    def segmentation(self,
+    def complex_hccnas(self,
         gt_cna_file: str,
         tool_cna_files: List[str],
         tool_names: List[str],
         profile_bin_size = 100000,
         threshold = 0.95,
-        outprefix: str = "segmentation_",
+        outprefix: str = "complex_hccnas_",
         level = "cell",
-        changes_file: Optional[str] = ''
+        changes_file: Optional[str] = '',
+        save_annotated_df: bool = False,
+        chromosomes: Optional[List[str]] = None,
         ):
 
         gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
-        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold)
+        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes)
         gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
 
         metric_results = []
@@ -1336,6 +1339,26 @@ class GTBench:
         for f, name in zip(tool_cna_files, tool_names):
 
             tool_cna_df = read_and_drop_empty(f)
+            if chromosomes is not None:
+                tool_cna_df = tool_cna_df.loc[_chromosome_mask(
+                    tool_cna_df["region"].str.split(":").str[0], chromosomes
+                )]
+            if save_annotated_df:
+                tool_annotated_df = annotate_segments(
+                    tool_cna_df.set_index("region").T,
+                    detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes,
+                )
+                tool_annotated_df["region"] = (
+                    tool_annotated_df["Chrom"].astype(str) + ":"
+                    + tool_annotated_df["Start"].astype(str) + "-"
+                    + tool_annotated_df["End"].astype(str)
+                )
+                save_annotated_segments(
+                    tool_annotated_df,
+                    os.path.join(self.output_dir, f"{outprefix}annotated", f"{name}_annotated.csv"),
+                    chromosomes,
+                )
+
 
             tool_cna_df_long = (
                 pd.DataFrame(tool_cna_df)
@@ -1356,7 +1379,7 @@ class GTBench:
             metric_results.append(result2)
 
         # if level == "clone":
-        #     mirror_result = self.mirrorsubclone(
+        #     mirror_result = self.mirrored_subclonal_cnas(
         #         tool_cna_files= tool_cna_files,
         #         tool_names= tool_names,
         #         changes_file= changes_file,
@@ -1405,11 +1428,11 @@ class GTBench:
     
 
 
-    def rddetect(self,
+    def total_cn_vs_rdr(self,
         tool_cna_files: List[str],
         bin_count_files: List[str],
         tool_names: List[str],
-        outfile: str = "rd_cn_l1.csv"
+        outfile: str = "total_cn_vs_rdr.csv"
         ):
 
         results = {}
@@ -1431,11 +1454,11 @@ class GTBench:
         return df
 
 
-    def cellprofile(
+    def unique_cna_profile_counts(
         self,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outfile = "unique_cell_profile.csv"
+        outfile = "unique_cna_profile_counts.csv"
     ):
         
         results = {}
@@ -1451,10 +1474,10 @@ class GTBench:
         df.to_csv(out)  # index=region will be written as first column
         print(f"Unique Cell Profile is saved to {out}")
 
-    def dolazactree( self,
+    def cna_phylogeny( self,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outfile : Optional[str] = "parsimony_score.csv"
+        outfile : Optional[str] = "cna_phylogeny.csv"
     ):
         
         results = []

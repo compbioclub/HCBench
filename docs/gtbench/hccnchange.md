@@ -1,14 +1,14 @@
 ## Function
 
 ```python
-hccnchange(
+cn_change_at_onset(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
     profile_bin_size=100000,
-    outfile: str = "evolution_onset_CN_Change.csv",
+    outfile: str = "cn_change_at_onset.csv",
 ) -> pd.DataFrame
 ```
 
@@ -33,7 +33,7 @@ Given a ground-truth change table (`changes_file`) and each tool’s haplotype C
 | `tool_names`          | `List[str]` | Tool names used in output rows.                              |
 | `changes_file`        | `str`       | Path to the ground-truth CN-change table (segments + change labels). |
 | `profile_bin_size`    | `int`       | Bin size used to split/standardize both GT segments and predictions. Default: `100000` (100kb). |
-| `outfile`             | `str`       | Output filename for the summary table. Default: `"evolution_onset_CN_Change.csv"`. |
+| `outfile`             | `str`       | Output filename for the summary table. Default: `"cn_change_at_onset.csv"`. |
 
 ------
 
@@ -125,7 +125,7 @@ os.path.join(self.output_dir, outfile)
 Default:
 
 ```
-{self.output_dir}/evolution_onset_CN_Change.csv
+{self.output_dir}/cn_change_at_onset.csv
 ```
 
 ------
@@ -165,7 +165,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.hccnchange(
+df = bench.cn_change_at_onset(
     tool_hap1_cna_files=[
         "/path/to/chisel/hap1.csv",
         "/path/to/signals/hap1.csv",
@@ -177,7 +177,7 @@ df = bench.hccnchange(
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/changes_cn_change.csv",
     profile_bin_size=100000,
-    outfile="evolution_onset_CN_Change.csv",
+    outfile="cn_change_at_onset.csv",
 )
 
 print(df)

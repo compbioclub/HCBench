@@ -599,14 +599,49 @@ def _mark_arm_events(df, centromeres_df, THRESH=0.8, ARM_DUP_SET = {"DUP", "ARM-
     return df.groupby(["cell", "Chrom"], group_keys=False).apply(_mark)
 
 
+def _chromosome_mask(values, chromosomes):
+    """Match chromosome names with or without the chr prefix."""
+    selected = {str(chrom).removeprefix("chr") for chrom in chromosomes}
+    return pd.Index(values).astype(str).str.removeprefix("chr").isin(selected)
+
+
+def save_annotated_segments(df, output_file, chromosomes=None):
+    """Save the combined annotation and, when requested, one file per chromosome."""
+    os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
+    df.to_csv(output_file, index=False)
+    if chromosomes is not None:
+        stem, ext = os.path.splitext(output_file)
+        for chrom in dict.fromkeys(str(c).removeprefix("chr") for c in chromosomes):
+            subset = df.loc[_chromosome_mask(df["Chrom"], [chrom])]
+            subset.to_csv(f"{stem}_chr{chrom}{ext}", index=False)
+
+
 def annotate_segments(
         df: pd.DataFrame,
         small_size: int = 3_000_000,
         mid_size: int = 10_000_000,
         genome: str = "hg38",
         threshold: float = 0.8,
-        detect_cnv_type = True
+        detect_cnv_type = True,
+        chromosomes: Optional[List[str]] = None,
+        save_annotated_df: bool = False,
+        annotated_outfile: str = "annotated_segments.csv",
     ) -> pd.DataFrame:
+
+        """Annotate selected chromosomes; optionally save combined/per-chromosome CSVs.
+
+        None selects all input chromosomes. Whole-genome reference lengths used
+        for WGD classification are unchanged when selecting chromosomes.
+        """
+        if chromosomes is not None:
+            df = df.loc[:, _chromosome_mask(
+                [str(col).split(":", 1)[0] for col in df.columns], chromosomes
+            )]
+
+        def finish(result):
+            if save_annotated_df:
+                save_annotated_segments(result, annotated_outfile, chromosomes)
+            return result
 
         centromeres_df = load_centromeres(genome)
         merged_list = []
@@ -680,13 +715,18 @@ def annotate_segments(
             # -------- finalize last segment of cell --------
             flush_segment(cur_bin, chrom, start, end, cur_val)
 
+        if not merged_list:
+            columns = ["cell", "Chrom", "Start", "End", "value", "Segment", "size"]
+            if detect_cnv_type:
+                columns.append("type")
+            return finish(pd.DataFrame(columns=columns))
         final_df = pd.concat(merged_list, ignore_index=True)
 
         if not detect_cnv_type:
-            return final_df
+            return finish(final_df)
 
         if threshold >= 1:
-            return final_df
+            return finish(final_df)
 
         WGD_SET = {"ARM-DUP","DUP",}
         WCD_SET = {"ARM-DUP","DUP"}
@@ -710,7 +750,7 @@ def annotate_segments(
 
 
 
-        return final_df 
+        return finish(final_df)
 
 def get_cell_profile_size(cn_df):
 

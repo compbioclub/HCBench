@@ -1,14 +1,14 @@
 ## Function
 
 ```python
-hcPhasing(
+global_cn_phasing(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
     tool_names: List[str],
     ground_truth_hap1_file: str,
     ground_truth_hap2_file: str,
-    outprefix="hcPhasing",
+    outprefix="global_cn_phasing",
     profile_bin_size=100000,
     mode="heterozygous-only",
     is_clone=False,
@@ -35,7 +35,7 @@ It supports evaluation at **cell-level** (default) or **clone-level** (`is_clone
 | `tool_names`             | `List[str]` | Tool names used in output rows.                              |
 | `ground_truth_hap1_file` | `str`       | Path to ground-truth haplotype-1 CNA matrix CSV.             |
 | `ground_truth_hap2_file` | `str`       | Path to ground-truth haplotype-2 CNA matrix CSV.             |
-| `outprefix`              | `str`       | Prefix for the output CSV filename. Default: `"hcPhasing"`.  |
+| `outprefix`              | `str`       | Prefix for the output CSV filename. Default: `"global_cn_phasing"`.  |
 | `profile_bin_size`       | `int`       | Bin size used to split/standardize regions before alignment. Default: `100000` (100kb). |
 | `mode`                   | `str`       | Evaluation mode passed to mismatch/switch error functions. Default: `"heterozygous-only"`. |
 | `is_clone`               | `bool`      | If `True`, compute errors per clone label; otherwise per cell. Default: `False`. |
@@ -153,7 +153,7 @@ os.path.join(self.output_dir, f"{outprefix}_{mode}.csv")
 Default example:
 
 ```
-{self.output_dir}/hcPhasing_heterozygous-only.csv
+{self.output_dir}/global_cn_phasing_heterozygous-only.csv
 ```
 
 The output is **long-format**, with one row per cell/clone (depending on `is_clone`) per tool.
@@ -186,7 +186,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.hcPhasing(
+df = bench.global_cn_phasing(
     tool_hap1_cna_files=[
         "/path/to/chisel/hap1.csv",
         "/path/to/signals/hap1.csv",
@@ -198,7 +198,7 @@ df = bench.hcPhasing(
     tool_names=["CHISEL", "SIGNALS"],
     ground_truth_hap1_file="/path/to/gt/hap1.csv",
     ground_truth_hap2_file="/path/to/gt/hap2.csv",
-    outprefix="hcPhasing",
+    outprefix="global_cn_phasing",
     profile_bin_size=100000,
     mode="heterozygous-only",
     is_clone=False,

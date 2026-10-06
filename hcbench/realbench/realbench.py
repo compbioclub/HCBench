@@ -1,3 +1,4 @@
+from hcbench.utils import _chromosome_mask, save_annotated_segments
 # hcbench/realbench/realbench.py
 import gzip
 from operator import gt
@@ -23,13 +24,13 @@ class RealBench:
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
-    def rddetect(
+    def total_cn_vs_rdr(
         self,
         tool_cna_files: List[str],
         bin_count_files: List[str],
         tool_names: List[str],
-        outfile: str = "rd_cn_l1.csv",
-        ttest_outfile: str = "rd_cn_l1.paired_ttest.csv",
+        outfile: str = "total_cn_vs_rdr.csv",
+        ttest_outfile: str = "total_cn_vs_rdr_paired_ttest.csv",
         ttest_alternative: str = "two-sided",   # "two-sided" / "less" / "greater"
     ):
 
@@ -122,7 +123,7 @@ class RealBench:
 
         return final_df
     
-    def clusterConsistency(
+    def global_tumor_clones(
         self,
         tool_cluster_files: List[str],
         tool_names: List[str],
@@ -142,10 +143,10 @@ class RealBench:
                 result_df_ami.loc[tool1, tool2] = ami
                 result_df_ami.loc[tool2, tool1] = ami
 
-        out_ari = os.path.join(self.output_dir, "clustering_ARI.csv")
+        out_ari = os.path.join(self.output_dir, "global_tumor_clones_ari.csv")
         result_df_ari.to_csv(out_ari)
         print(f"Clustering ARI matrix saved to {out_ari}") 
-        out_ami = os.path.join(self.output_dir, "clustering_AMI.csv")
+        out_ami = os.path.join(self.output_dir, "global_tumor_clones_ami.csv")
         result_df_ami.to_csv(out_ami)
         print(f"Clustering AMI matrix saved to {out_ami}")
 
@@ -190,11 +191,11 @@ class RealBench:
     
     
 
-    def cellprofile(
+    def unique_cna_profile_counts(
         self,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outfile = "unique_cell_profile.csv"
+        outfile = "unique_cna_profile_counts.csv"
     ):
         
         results = {}
@@ -211,12 +212,12 @@ class RealBench:
         print(f"Unique Cell Profile is saved to {out}")
 
 
-    def cndetect(
+    def cna_values(
         self,
         tool_cna_files: List[str],
         tool_names: List[str],
         haplotype: Optional[str] = "combined",
-        outfile_prefix: str = "bin_level",
+        outfile_prefix: str = "cna_values",
         index_col: Optional[int] = 0,
     ):
 
@@ -254,10 +255,10 @@ class RealBench:
         result_df_acc.to_csv(out_acc)
         print(f"acc matrix saved to {out_acc}") 
 
-    def dolazactree( self,
+    def cna_phylogeny( self,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outfile : Optional[str] = "parsimony_score.csv"
+        outfile : Optional[str] = "cna_phylogeny.csv"
     ):
         
         results = []
@@ -358,7 +359,7 @@ class RealBench:
     
     
 
-    def calLLR(
+    def major_minor_cn_vs_vaf(
         self,
         tool_hap1_files: List[str],
         tool_hap2_files: List[str],
@@ -495,19 +496,19 @@ class RealBench:
                 print(result)
 
         final_df = pd.DataFrame(results)
-        out = os.path.join(self.output_dir, "llr_results.csv")
+        out = os.path.join(self.output_dir, "major_minor_cn_vs_vaf.csv")
         final_df.to_csv(out, index=False)
         print(f"LLR results saved to {out}")
         return final_df
 
                 
-    def cnclass(
+    def cna_states(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         type: str = "hcCNA",
-        outfile: str = "cnclass_results.csv",
+        outfile: str = "cna_states.csv",
     ) -> pd.DataFrame:
 
         if type not in ["acCNA", "hcCNA"]:
@@ -565,12 +566,14 @@ class RealBench:
         return df
 
         
-    def segmentation(
+    def complex_hccnas(
         self,
         tool_cna_files: List[str],
         tool_names: List[str],
         threshold: float = 0.95,
-        outprefix: str = "segmentation_",
+        outprefix: str = "complex_hccnas_",
+        save_annotated_df: bool = False,
+        chromosomes: Optional[List[str]] = None,
     ):
         overlap_results = []
         metric_results = []
@@ -593,7 +596,7 @@ class RealBench:
 
                 tool1_annotated_df = annotate_segments(
                     tool1_df.set_index("region").T, detect_cnv_type=True,
-                    threshold=threshold
+                    threshold=threshold, chromosomes=chromosomes
                 )
 
                 tool1_annotated_df["region"] = (
@@ -606,7 +609,7 @@ class RealBench:
 
                 tool2_annotated_df = annotate_segments(
                     tool2_df.set_index("region").T,detect_cnv_type=True,
-                    threshold=threshold
+                    threshold=threshold, chromosomes=chromosomes
                 )
 
                 tool2_annotated_df["region"] = (
@@ -617,6 +620,18 @@ class RealBench:
                     + tool2_annotated_df["End"].astype(int).astype(str)
                 )
                 
+                if save_annotated_df:
+                    annotation_dir = os.path.join(
+                        self.output_dir, f"{outprefix}annotated", f"{name1}__{name2}"
+                    )
+                    for tool_name, annotated in [
+                        (name1, tool1_annotated_df), (name2, tool2_annotated_df)
+                    ]:
+                        save_annotated_segments(
+                            annotated, os.path.join(annotation_dir, f"{tool_name}_annotated.csv"),
+                            chromosomes,
+                        )
+
                 print(f"tool1 after align : {tool2_annotated_df.head()}")
                 print(f"tool2 after align: {tool2_annotated_df.head()}")
 
@@ -639,10 +654,10 @@ class RealBench:
         metric_df.to_csv(os.path.join(self.output_dir, f"{outprefix}metrics.csv"), index=False)
 
 
-    def get_mirrored_subclonal(self,
+    def mirrored_subclonal_cnas(self,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outprefix: str = "mirrored_subclonal",
+        outprefix: str = "mirrored_subclonal_cnas",
         use_segemnt = False,
         save_tmp = True
         ):
@@ -747,11 +762,11 @@ class RealBench:
         print(f"Cell Overlap matrix saved to {out}")
 
     
-    def cloneSizebycluster(
+    def rare_and_dominant_clones(
         self,
         tool_cluster_files: List[str],
         tool_names: List[str],
-        outfile: str = "clone_size_by_cluster.csv",
+        outfile: str = "rare_and_dominant_clones.csv",
     ) -> pd.DataFrame:
 
         result_list = []
@@ -791,11 +806,11 @@ class RealBench:
 
         df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
 
-    def cloneSizebycellprofile(
+    def unique_cna_profile_sizes(
         self,
         tool_cna_files: List[str],
         tool_names: List[str],
-        outfile: str = "clone_size_by_cell_profile.csv",
+        outfile: str = "unique_cna_profile_sizes.csv",
     ) -> pd.DataFrame:
 
         result_list = []
@@ -837,12 +852,12 @@ class RealBench:
 
         df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
 
-    def hcPhasing(
+    def global_cn_phasing(
         self,
         tool_hap1_cna_files: List[str],
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
-        outprefix = "hcPhasing",
+        outprefix = "global_cn_phasing",
         mode = "heterozygous-only",
     ) -> pd.DataFrame:
 

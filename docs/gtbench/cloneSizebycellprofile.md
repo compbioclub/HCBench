@@ -1,12 +1,12 @@
 ## Function
 
 ```python
-cloneSizebycellprofile(
+unique_cna_profile_sizes(
     self,
     gt_cna_file: str,
     tool_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = "clone_size_by_cell_profile.csv",
+    outfile: str = "unique_cna_profile_sizes.csv",
 ) -> pd.DataFrame
 ```
 
@@ -27,7 +27,7 @@ The function writes:
 | `gt_cna_file`    | `str`       | Path to GT CNA profile CSV.                                  |
 | `tool_cna_files` | `List[str]` | List of tool CNA profile CSV files. Must align with `tool_names` in order. |
 | `tool_names`     | `List[str]` | Tool names used as output column prefixes (`{Tool}_pred_size`). |
-| `outfile`        | `str`       | Detailed output filename. Default: `"clone_size_by_cell_profile.csv"`. |
+| `outfile`        | `str`       | Detailed output filename. Default: `"unique_cna_profile_sizes.csv"`. |
 
 ------
 
@@ -94,13 +94,13 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-bench.cloneSizebycellprofile(
+bench.unique_cna_profile_sizes(
     gt_cna_file="/path/to/gt/haplotype_combined.csv",
     tool_cna_files=[
         "/path/to/signals/haplotype_combined.csv",
         "/path/to/seacon/haplotype_combined.csv",
     ],
     tool_names=["signals", "seacon"],
-    outfile="clone_size_by_cell_profile.csv",
+    outfile="unique_cna_profile_sizes.csv",
 )
 ```

@@ -1,13 +1,13 @@
 ## Function
 
 ```python
-mirrorsubclone(
+mirrored_subclonal_cnas(
     self,
     tool_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
     profile_bin_size=100000,
-    outfile: str = "mirror_subclone_result.csv",
+    outfile: str = "mirrored_subclonal_cnas_cnas_cnas.csv",
 ) -> pd.DataFrame
 ```
 
@@ -39,7 +39,7 @@ Results are summarized per tool and written to disk.
 | `tool_names`       | `List[str]` | Tool names used in result rows.                              |
 | `changes_file`     | `str`       | Path to the mirrored-subclone ground-truth table (MSCNA events). |
 | `profile_bin_size` | `int`       | Bin size used to split/standardize both GT events and predictions. Default: `100000` (100kb). |
-| `outfile`          | `str`       | Output filename for the summary table. Default: `"mirror_subclone_result.csv"`. |
+| `outfile`          | `str`       | Output filename for the summary table. Default: `"mirrored_subclonal_cnas_cnas_cnas.csv"`. |
 
 ------
 
@@ -172,7 +172,7 @@ os.path.join(self.output_dir, outfile)
 Default:
 
 ```
-{self.output_dir}/mirror_subclone_result.csv
+{self.output_dir}/mirrored_subclonal_cnas_cnas.csv
 ```
 
 ------
@@ -206,7 +206,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.mirrorsubclone(
+df = bench.mirrored_subclonal_cnas(
     tool_cna_files=[
         "/path/to/chisel/haplotype_combined.csv",
         "/path/to/signals/haplotype_combined.csv",
@@ -214,7 +214,7 @@ df = bench.mirrorsubclone(
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/mirrored_subclone_events.csv",
     profile_bin_size=100000,
-    outfile="mirror_subclone_result.csv",
+    outfile="mirrored_subclonal_cnas_cnas_cnas.csv",
 )
 
 print(df)

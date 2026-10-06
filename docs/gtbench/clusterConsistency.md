@@ -1,7 +1,7 @@
 ## Function
 
 ```python
-clusterConsistency(
+global_tumor_clones(
     tool_clone_files: List[str],
     tool_names: List[str],
 ) -> pd.DataFrame
@@ -14,7 +14,7 @@ For each tool, the function loads  `clusters.csv`file and calculates:
 
 It aggregates results across tools into a single table, writes it to:
 
-- `{self.output_dir}/clustering_result.csv`
+- `{self.output_dir}/global_tumor_clones.csv`
 
 and returns the result as a DataFrame.
 
@@ -73,7 +73,7 @@ A DataFrame with one row per tool:
 ## Output
 
 - Writes a CSV summary to:
-  `os.path.join(self.output_dir, "clustering_result.csv")`
+  `os.path.join(self.output_dir, "global_tumor_clones.csv")`
 
 ------
 
@@ -95,7 +95,7 @@ tool_clone_files = [
 tool_names = ["CHISEL", "Alleloscope", "SIGNALS"]
 
 # Call from within your class instance that has self.output_dir (out/gt_output/) defined
-df = gtbench_runner.clusterConsistency(
+df = gtbench_runner.global_tumor_clones(
     tool_clone_files=tool_clone_files,
     tool_names=tool_names,
 )
@@ -111,7 +111,7 @@ print(df)
 After running, you will also find:
 
 ```
-out/gt_output/clustering_result.csv
+out/gt_output/global_tumor_clones.csv
 ```
 
 containing the same summary table.

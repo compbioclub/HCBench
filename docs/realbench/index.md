@@ -27,7 +27,7 @@ Quantifies the direct numerical agreement of copy number values across all share
 
 ```python
 # acCNA values
-realbench_runner.cndetect(
+realbench_runner.cna_values(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/minor_major.csv",
             f"{output_dir}/CNRein/minor_major.csv",
@@ -36,7 +36,7 @@ realbench_runner.cndetect(
             f"{output_dir}/SEACON/minor_major.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
         haplotype = "combined",
-        outfile_prefix= "bin_level"
+        outfile_prefix= "cna_values_accna"
     )
 ```
 
@@ -48,7 +48,7 @@ Uses a binary classification framework to measure concordance. By treating one c
 
 ```python
 # acCNA states
-realbench_runner.cnclass(
+realbench_runner.cna_states(
     tool_hap1_cna_files = [
         f"{output_dir}/chisel/cell_level/minor.csv",
             f"{output_dir}/Alleloscope/minor.csv",
@@ -62,6 +62,7 @@ realbench_runner.cnclass(
             f"{output_dir}/SEACON/major.csv",
             f"{output_dir}/signals/major.csv"],
     tool_names = ["CHISEL", "Alleloscope","CNRein", "SEACON","SIGNALS"], 
+    outfile="cna_states_accna.csv",
 )
 ```
 
@@ -73,7 +74,7 @@ Measures numerical consistency for phased copy numbers (e.g., matching 1|2 vs 1|
 
 ```python
 # hcCNA values
-realbench_runner.cndetect(
+realbench_runner.cna_values(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/haplotype_combined.csv",
             f"{output_dir}/CNRein/haplotype_combined.csv",
@@ -82,7 +83,7 @@ realbench_runner.cndetect(
             f"{output_dir}/SEACON/haplotype_combined.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
         haplotype = "combined",
-        outfile_prefix= "bin_level"
+        outfile_prefix= "cna_values_hccna"
     )
 ```
 
@@ -94,7 +95,7 @@ Evaluates the reliability of phased CN calling by measuring the concordance (ACC
 
 ```python
 # hcCNA states
-realbench_runner.cnclass(
+realbench_runner.cna_states(
     tool_hap1_cna_files = [
         f"{output_dir}/chisel/cell_level/haplotype_1.csv",
         f"{output_dir}/Alleloscope/haplotype_1.csv",
@@ -108,6 +109,7 @@ realbench_runner.cnclass(
         f"{output_dir}/SEACON/haplotype_2.csv",
         f"{output_dir}/signals/haplotype_2.csv"],
     tool_names = ["CHISEL", "Alleloscope","CNRein", "SEACON","SIGNALS"], 
+    outfile="cna_states_hccna.csv",
 )
 ```
 
@@ -117,7 +119,7 @@ realbench_runner.cnclass(
 
 ```python
 # Total CN vs. RDR
-realbench_runner.rddetect(
+realbench_runner.total_cn_vs_rdr(
         bin_count_files=[
             f"{output_dir}/chisel/bin_counts.csv",
             f"{output_dir}/Alleloscope/bin_counts.csv",
@@ -141,7 +143,7 @@ realbench_runner.rddetect(
 
 ```python
 # Major/minor CN vs. VAF
-realbench_runner.calLLR(
+realbench_runner.major_minor_cn_vs_vaf(
     tool_hap1_files = [
         f"{output_dir}/chisel/cell_level/haplotype_1.csv",
         f"{output_dir}/Alleloscope/haplotype_1.csv",
@@ -180,7 +182,7 @@ Evaluates the agreement of clustering labels between two callers using AMI and A
 
 ```python
 # Global tumor clones
-realbench_runner.clusterConsistency(
+realbench_runner.global_tumor_clones(
         tool_cluster_files=[
             f"{output_dir}/chisel/clusters.csv",
             f"{output_dir}/Alleloscope/clusters.csv",
@@ -197,7 +199,7 @@ Assesses consistency stratified by predicted clone size. Using Clone Size Deviat
 
 ```python
 # Rare and dominant clones
-realbench_runner.cloneSizebycluster(
+realbench_runner.rare_and_dominant_clones(
         tool_cluster_files=[
             f"{output_dir}/chisel/clusters.csv",
             f"{output_dir}/Alleloscope/clusters.csv",
@@ -212,7 +214,7 @@ realbench_runner.cloneSizebycluster(
 
 ```python
 # Unique acCNA profiles
-realbench_runner.cellprofile(
+realbench_runner.unique_cna_profile_counts(
         tool_cna_files=[
              f"{output_dir}/chisel/cell_level/minor_major.csv",
             f"{output_dir}/CNRein/minor_major.csv",
@@ -220,9 +222,10 @@ realbench_runner.cellprofile(
             f"{output_dir}/signals/minor_major.csv",
             f"{output_dir}/SEACON/minor_major.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
+    outfile="unique_cna_profile_counts_accna.csv",
     )
 
-realbench_runner.cloneSizebycellprofile(
+realbench_runner.unique_cna_profile_sizes(
         tool_cna_files=[
              f"{output_dir}/chisel/cell_level/minor_major.csv",
             f"{output_dir}/CNRein/minor_major.csv",
@@ -230,6 +233,7 @@ realbench_runner.cloneSizebycellprofile(
             f"{output_dir}/signals/minor_major.csv",
             f"{output_dir}/SEACON/minor_major.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
+    outfile="unique_cna_profile_sizes_accna.csv",
     )
 ```
 
@@ -239,7 +243,7 @@ realbench_runner.cloneSizebycellprofile(
 
 ```python
 # Unique hcCNA profiles
-realbench_runner.cellprofile(
+realbench_runner.unique_cna_profile_counts(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/haplotype_combined.csv",
             f"{output_dir}/CNRein/haplotype_combined.csv",
@@ -247,9 +251,10 @@ realbench_runner.cellprofile(
             f"{output_dir}/signals/haplotype_combined.csv",
             f"{output_dir}/SEACON/haplotype_combined.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
+    outfile="unique_cna_profile_counts_hccna.csv",
     )
 
-realbench_runner.cloneSizebycellprofile(
+realbench_runner.unique_cna_profile_sizes(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/haplotype_combined.csv",
             f"{output_dir}/CNRein/haplotype_combined.csv",
@@ -257,6 +262,7 @@ realbench_runner.cloneSizebycellprofile(
             f"{output_dir}/signals/haplotype_combined.csv",
             f"{output_dir}/SEACON/haplotype_combined.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
+    outfile="unique_cna_profile_sizes_hccna.csv",
     )
 ```
 
@@ -272,7 +278,7 @@ This section evaluates whether callers produce consistent CN phylogenies in the 
 
 ```python
 # acCNA phylogeny
-realbench_runner.dolazactree(
+realbench_runner.cna_phylogeny(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/minor_major.csv",
             f"{output_dir}/CNRein/minor_major.csv",
@@ -280,6 +286,7 @@ realbench_runner.dolazactree(
             f"{output_dir}/signals/minor_major.csv",
             f"{output_dir}/SEACON/minor_major.csv"],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
+    outfile="cna_phylogeny_accna.csv",
     )
 ```
 
@@ -289,7 +296,7 @@ realbench_runner.dolazactree(
 
 ```python
 # hcCNA phylogeny
-realbench_runner.dolazactree(
+realbench_runner.cna_phylogeny(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/haplotype_combined.csv",
             f"{output_dir}/CNRein/haplotype_combined.csv",
@@ -297,6 +304,7 @@ realbench_runner.dolazactree(
             f"{output_dir}/signals/haplotype_combined.csv",
             f"{output_dir}/SEACON/haplotype_combined.csv",],
         tool_names=["CHISEL", "CNRein","Alleloscope", "SIGNALS","SEACON"],
+    outfile="cna_phylogeny_hccna.csv",
     )
 ```
 
@@ -312,7 +320,7 @@ This section evaluates the consistency of the accumulated "burden" of complex hc
 
 ```python
 # Complex hcCNAs
-realbench_runner.segmentation(
+realbench_runner.complex_hccnas(
     tool_cna_files=[
         f"{output_dir}/chisel/cell_level/haplotype_combined.csv",
         f"{output_dir}/CNRein/haplotype_combined.csv",
@@ -322,9 +330,27 @@ realbench_runner.segmentation(
     ],
     tool_names=tools,
     threshold=0.8,
-    outprefix="segmentation_0.8",
+    outprefix="complex_hccnas_0.8",
 )
 ```
+
+`complex_hccnas` also accepts `save_annotated_df=False` and
+`chromosomes=None`. `None` uses all input chromosomes; for example,
+`chromosomes=["chr1", "chr2"]` restricts annotation and evaluation to those
+chromosomes (`"1"` and `"2"` are also accepted). An empty list selects none.
+
+With `save_annotated_df=True`, each tool's annotation is saved under
+`{output_dir}/{outprefix}annotated/`. The combined file is named
+`{tool}_annotated.csv`. If a chromosome list is supplied, additional files
+`{tool}_annotated_chr1.csv`, etc. are written for each requested chromosome.
+Chromosomes with no annotated events produce a header-only file. Per-chromosome
+files are subsets of the combined annotation, not independent re-annotations.
+WGD classification retains the existing whole-genome reference denominator.
+
+For real-data comparisons, files are placed in a `{tool1}__{tool2}/`
+subdirectory because annotation uses pairwise-aligned bins. Both tools' tables
+are saved for each comparison; they are not overwritten by subsequent pairs.
+With fewer than two tools, there are no pairwise annotation tables to save.
 
 ### Mirrored-subclonal-CNAs
 
@@ -332,7 +358,7 @@ realbench_runner.segmentation(
 
 ```python
 # Mirrored-subclonal-CNAs
- realbench_runner.get_mirrored_subclonal(
+realbench_runner.mirrored_subclonal_cnas(
         tool_cna_files=[
             f"{output_dir}/chisel/cell_level/haplotype_combined.csv",
             f"{output_dir}/CNRein/haplotype_combined.csv",
@@ -357,7 +383,7 @@ This section focuses on the consistency of haplotype phasing between callers. It
 
 ```python
 # Global CN phasing
-realbench_runner.hcPhasing(
+realbench_runner.global_cn_phasing(
     tool_hap1_cna_files = [
         f"{output_dir}/chisel/cell_level/haplotype_1.csv",
         f"{output_dir}/Alleloscope/haplotype_1.csv",
@@ -372,7 +398,7 @@ realbench_runner.hcPhasing(
         f"{output_dir}/signals/haplotype_2.csv"],
     tool_names = ["CHISEL","Alleloscope", "SEACON","CNRein",'SIGNALS'],
     mode = "heterozygous-only",
-    # outprefix = "hcPhasing_heterozygous-only"
+    # outprefix = "global_cn_phasing_heterozygous-only"
 )
 ```
 

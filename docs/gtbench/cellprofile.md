@@ -1,11 +1,11 @@
 ## Function
 
 ```Python
-cellprofile(
+unique_cna_profile_counts(
     self,
     tool_cna_files: List[str],
     tool_names: List[str],
-    outfile: str = "unique_cell_profile.csv"
+    outfile: str = "unique_cna_profile_counts.csv"
 ) -> None
 ```
 
@@ -17,7 +17,7 @@ This function counts the **number of unique cells** contained in each tool’s C
 | ---------------- | ----------- | ------------------------------------------------------------ |
 | `tool_cna_files` | `List[str]` | List of CNA result file paths produced by different tools. Must be aligned with `tool_names` by order. |
 | `tool_names`     | `List[str]` | List of tool names. Used as the row index in the output table. Must have the same length as `tool_cna_files`. |
-| `outfile`        | `str`       | The name of the output CSV file. Defaults to `"unique_cell_profile.csv"`. |
+| `outfile`        | `str`       | The name of the output CSV file. Defaults to `"unique_cna_profile_counts.csv"`. |
 
 ## Output
 
@@ -29,7 +29,7 @@ The function writes a single CSV file:
 - **Index**:
   - `Tool`: tool name (from `tool_names`)
 
-Example output (`unique_cell_profile.csv`):
+Example output (`unique_cna_profile_counts.csv`):
 
 ```
 Tool,unique_cells_profile
@@ -52,10 +52,10 @@ tool_cna_files = [
 ]
 tool_names = ["CHISEL", "SIGNALS", "Alleloscope"]
 
-runner.cellprofile(
+runner.unique_cna_profile_counts(
     tool_cna_files=tool_cna_files,
     tool_names=tool_names,
-    outfile="unique_cell_profile.csv"
+    outfile="unique_cna_profile_counts.csv"
 )
 ```
 

@@ -4,17 +4,17 @@
 
 ## Submodule Descriptions
 
-### 1. cndetect
+### 1. cna_values
 
 Calculates **RMSE**, **ACC**, and **SCC** for evaluating CN detection at the bin level.
  It compares predicted CN profiles from different tools to the ground truth.
 
-**Output:** `bin_level_results.csv`
+**Output:** `cna_values.csv`
 
 
 ------
 
-### 2. cnclass
+### 2. cna_states
 
 Evaluates the accuracy of CN state classification across bins.
  Supports both `acCNA` and `hcCNA` modes and computes AUROC, AUPRC, accuracy, precision, recall, and F1 score for each tool.
@@ -23,21 +23,21 @@ Evaluates the accuracy of CN state classification across bins.
 
 ------
 
-### 3. hccnchange
+### 3. cn_change_at_onset
 
 Determines whether CN changes between parent and child clones are correctly identified.
  Evaluates the **Root Mean Squared Error (RMSE)** and **Accuracy (ACC)** for each tool.
 
-**Output:** `evolution_onset_CN_Change.csv`
+**Output:** `cn_change_at_onset.csv`
 
 ------
 
-### 4. hccnstable
+### 4. complex_hccna_stability
 
 Computes **Evolutionary CN Stability** based on phylogenetic tree relationships between clones.
  Requires both maternal/paternal CNA files and a `tree.newick` file describing clone hierarchy.
 
-**Output:** `evolution_cn_stability_acc.csv`
+**Output:** `complex_hccna_stability.csv`
 
 
 ------
@@ -47,17 +47,17 @@ Computes **Evolutionary CN Stability** based on phylogenetic tree relationships 
 Determines whether CN events are correctly detected at their **first evolutionary branch**.
  This submodule evaluates **accuracy (ACC)** across DEL/DUP events.
 
-**Output:** `evolution_onset_acc.csv`
+**Output:** `complex_hccna_at_onset.csv`
 
 
 ------
 
-### 6. hconsetcn
+### 6. parental_cn_at_onset
 
 Assesses whether **parental CN states** are correctly inferred during evolution.
  Evaluates both **RMSE** and **ACC**.
 
-**Output:** `evolution_onset_parent_CN.csv`
+**Output:** `parental_cn_at_onset.csv`
 
 
 ------
@@ -69,17 +69,17 @@ Quantifies **haplotype phasing accuracy** using two metrics:
 - **Mismatch Error**: Fraction of individual loci where predicted haplotypes differ from the ground truth.
 - **Switch Error**: Frequency of phase switches between consecutive loci.
 
-**Output:** `hcPhasing.csv`
+**Output:** `global_cn_phasing.csv`
 
 
 ------
 
-### 8. mirrorsubclone
+### 8. mirrored_subclonal_cnas
 
 Evaluates accuracy of detecting **mirror-subclone CNAs**, using RMSE and ACC.
  Mirror-subclones are pairs of subclones that exhibit complementary CNA patterns.
 
-**Output:** `mirror_subclone_result.csv`
+**Output:** `mirrored_subclonal_cnas_cnas.csv`
 
 ------
 

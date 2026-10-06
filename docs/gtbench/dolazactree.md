@@ -1,11 +1,11 @@
 ## Function
 
 ```python
-dolazactree(
+cna_phylogeny(
     self,
     tool_cna_files: List[str],
     tool_names: List[str],
-    outfile: Optional[str] = "parsimony_score.csv"
+    outfile: Optional[str] = "cna_phylogeny.csv"
 ) -> pd.DataFrame
 ```
 
@@ -28,7 +28,7 @@ The function writes a single CSV file containing the parsimony scores of all too
 | ---------------- | --------------- | ------------------------------------------------------------ |
 | `tool_cna_files` | `List[str]`     | List of CNA profile CSV files from different tools. Must align with `tool_names` in order. |
 | `tool_names`     | `List[str]`     | Tool names used for labeling outputs and result table.       |
-| `outfile`        | `Optional[str]` | Output filename for the summary table. Default: `"parsimony_score.csv"`. |
+| `outfile`        | `Optional[str]` | Output filename for the summary table. Default: `"cna_phylogeny.csv"`. |
 
 ------
 
@@ -137,13 +137,13 @@ from hcbench.realbench.realbench import RealBench
 
 bench = RealBench(output_dir="out/real_output")
 
-bench.dolazactree(
+bench.cna_phylogeny(
     tool_cna_files=[
         "/path/to/chisel/cna.csv",
         "/path/to/signals/cna.csv",
     ],
     tool_names=["CHISEL", "SIGNALS"],
-    outfile="parsimony_score.csv"
+    outfile="cna_phylogeny.csv"
 )
 ```
 

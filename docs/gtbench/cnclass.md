@@ -1,7 +1,7 @@
 ## Function
 
 ```python
-cnclass(
+cna_states(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
@@ -10,7 +10,7 @@ cnclass(
     profile_hap2_cna_file: str,
     type: str = "hcCNA",
     profile_bin_size=100000,
-    outfile: str = "cnclass_results.csv",
+    outfile: str = "cna_states.csv",
 ) -> pd.DataFrame
 ```
 
@@ -42,7 +42,7 @@ For each tool, the function:
 | `profile_hap2_cna_file` | `str`       | Path to GT CNA profile CSV for haplotype 2 (or major).       |
 | `type`                  | `str`       | CNA type. Must be `"hcCNA"` or `"acCNA"`. Default: `"hcCNA"`. |
 | `profile_bin_size`      | `int`       | Bin size used to split regions for tool predictions before alignment. Default: `100000` (100kb). |
-| `outfile`               | `str`       | Output filename for the final aggregated result table. Default: `"cnclass_results.csv"`. |
+| `outfile`               | `str`       | Output filename for the final aggregated result table. Default: `"cna_states.csv"`. |
 
 ------
 
@@ -138,7 +138,7 @@ os.path.join(self.output_dir, outfile)
 Default:
 
 ```
-{self.output_dir}/cnclass_results.csv
+{self.output_dir}/cna_states.csv
 ```
 
 ------
@@ -174,7 +174,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.cnclass(
+df = bench.cna_states(
     tool_hap1_cna_files=[
         "/path/to/chisel/hap1.csv",
         "/path/to/signals/hap1.csv",
@@ -188,7 +188,7 @@ df = bench.cnclass(
     profile_hap2_cna_file="/path/to/gt/hap2.csv",
     type="hcCNA",
     profile_bin_size=100000,
-    outfile="cnclass_results.csv",
+    outfile="cna_states.csv",
 )
 
 print(df.head())

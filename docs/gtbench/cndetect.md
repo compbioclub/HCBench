@@ -1,14 +1,14 @@
 ## Function
 
 ```python
-cndetect(
+cna_values(
     self,
     tool_cna_files: List[str],
     cna_profile_file: str,
     tool_names: List[str],
     haplotype: str = "combined",
     profile_bin_size=100000,
-    outfile: str = "bin_level_results.csv",
+    outfile: str = "cna_values.csv",
     index_col: Optional[int] = 0,
 ) -> pd.DataFrame
 ```
@@ -34,7 +34,7 @@ For each tool CNA matrix, it:
 | `tool_names`       | `List[str]`     | Tool names used in logs and the result table.                |
 | `haplotype`        | `str`           | Haplotype evaluation mode passed to `evaluate_haplotype_predictions`. Default: `"combined"`. |
 | `profile_bin_size` | `int`           | Bin size used to split regions in tool predictions before alignment. Default: `100000` (100kb). |
-| `outfile`          | `str`           | Output filename for the summary table. Default: `"bin_level_results.csv"`. |
+| `outfile`          | `str`           | Output filename for the summary table. Default: `"cna_values.csv"`. |
 | `index_col`        | `Optional[int]` | (Currently unused in implementation.) Intended CSV index column specification. Default: `0`. |
 
 ------
@@ -109,7 +109,7 @@ os.path.join(self.output_dir, outfile)
 Default path:
 
 ```
-{self.output_dir}/bin_level_results.csv
+{self.output_dir}/cna_values.csv
 ```
 
 Example output:
@@ -140,7 +140,7 @@ from hcbench.gtbench.gtbench import GTBench
 
 bench = GTBench(output_dir="out/gt_output")
 
-df = bench.cndetect(
+df = bench.cna_values(
     tool_cna_files=[
         "/path/to/chisel/haplotype_combined.csv",
         "/path/to/signals/haplotype_combined.csv",
@@ -149,7 +149,7 @@ df = bench.cndetect(
     tool_names=["CHISEL", "SIGNALS"],
     haplotype="combined",
     profile_bin_size=100000,
-    outfile="bin_level_results.csv",
+    outfile="cna_values.csv",
 )
 print(df)
 ```

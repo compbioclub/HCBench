@@ -25,7 +25,7 @@ Assesses quantitative accuracy using RMSE and SCC for major and minor alleles. I
 
 ```python
 # acCNA values
-bench.cndetect(
+bench.cna_values(
     tool_cna_files=[
         "/path/to/signals/minor_major.csv",
         "/path/to/seacon/minor_major.csv",
@@ -36,7 +36,7 @@ bench.cndetect(
         "seacon",
     ],
     haplotype="combined",
-    outfile="bin_level_results_accna.csv",
+    outfile="cna_values_accna.csv",
 )
 ```
 
@@ -48,7 +48,7 @@ Treats copy number detection as a binary classification problem (Gain, Neutral, 
 
 ```python
 # acCNA states
-bench.cnclass(
+bench.cna_states(
     tool_hap1_cna_files=[
         "/path/to/signals/minor.csv",
         "/path/to/seacon/minor.csv",
@@ -63,7 +63,7 @@ bench.cnclass(
     ],
     profile_hap1_cna_file="/path/to/gt/cell/minor.csv",
     profile_hap2_cna_file="/path/to/gt/cell/major.csv",
-    outfile="cnclass_results_accna.csv",
+    outfile="cna_states_accna.csv",
 )
 ```
 
@@ -75,7 +75,7 @@ Calculates the average RMSE and SCC across both individual haplotypes and evalua
 
 ```python
 # hcCNA values
-bench.cndetect(
+bench.cna_values(
     tool_cna_files=[
         "/path/to/signals/haplotype_combined.csv",
         "/path/to/seacon/haplotype_combined.csv",
@@ -86,7 +86,7 @@ bench.cndetect(
         "seacon",
     ],
     haplotype="combined",
-    outfile="bin_level_results.csv",
+    outfile="cna_values_hccna.csv",
 )
 ```
 
@@ -98,7 +98,7 @@ Assesses phased CN calling performance via binary classification across multiple
 
 ```python
 # hcCNA states
-bench.cnclass(
+bench.cna_states(
     tool_hap1_cna_files=[
         "/path/to/signals/haplotype_1.csv",
         "/path/to/seacon/haplotype_1.csv",
@@ -113,8 +113,8 @@ bench.cnclass(
     ],
     profile_hap1_cna_file="/path/to/gt/cell/haplotype_1.csv",
     profile_hap2_cna_file="/path/to/gt/cell/haplotype_2.csv",
-    type="hcCNA",                       # Keep only if your cnclass() signature supports it
-    outfile="cnclass_results.csv",
+    type="hcCNA",                       # Keep only if your cna_states() signature supports it
+    outfile="cna_states_hccna.csv",
 )
 ```
 
@@ -132,7 +132,7 @@ Uses global metrics like Adjusted Mutual Information (AMI) and Adjusted Rand Ind
 
 ```python
 # Global tumor clones
-bench.clusterConsistency(
+bench.global_tumor_clones(
     tool_clone_files=[
         "/path/to/signals/clusters.csv",
         "/path/to/seacon/clusters.csv",
@@ -152,7 +152,7 @@ Evaluates clustering accuracy stratified by clone size using Clone Size Deviatio
 
 ```python
 # Rare and dominant clones
-bench.cloneSizebycluster(
+bench.rare_and_dominant_clones(
     tool_cluster_files=[
         "/path/to/signals/clusters.csv",
         "/path/to/seacon/clusters.csv",
@@ -162,7 +162,7 @@ bench.cloneSizebycluster(
         "signals",
         "seacon",
     ],
-    outfile="clone_size_by_cluster.csv",
+    outfile="rare_and_dominant_clones.csv",
 )
 ```
 
@@ -174,7 +174,7 @@ Analyzes "Unique Profile Groups" (UPGs) using Unique Profile Count Error (UPCE) 
 
 ```python
 # Unique acCNA profiles
-bench.cellprofile(
+bench.unique_cna_profile_counts(
     tool_cna_files=[
         "/path/to/gt/cell/minor_major.csv",
         "/path/to/signals/minor_major.csv",
@@ -185,10 +185,10 @@ bench.cellprofile(
         "signals",
         "seacon",
     ],
-    outfile="unique_cell_profile_accna.csv",
+    outfile="unique_cna_profile_counts_accna.csv",
 )
 
-bench.cloneSizebycellprofile(
+bench.unique_cna_profile_sizes(
     tool_cna_files=[
         "/path/to/signals/minor_major.csv",
         "/path/to/seacon/minor_major.csv",
@@ -198,7 +198,7 @@ bench.cloneSizebycellprofile(
         "signals",
         "seacon",
     ],
-    outfile="clone_size_by_cell_profile_accna.csv",
+    outfile="unique_cna_profile_sizes_accna.csv",
 )
 ```
 
@@ -210,7 +210,7 @@ Quantifies performance based on cells sharing identical haplotype-specific CN st
 
 ```python
 # Unique hcCNA profiles
-bench.cellprofile(
+bench.unique_cna_profile_counts(
     tool_cna_files=[
         "/path/to/gt/cell/haplotype_combined.csv",
         "/path/to/signals/haplotype_combined.csv",
@@ -221,10 +221,10 @@ bench.cellprofile(
         "signals",
         "seacon",
     ],
-    outfile="unique_cell_profile.csv",  # Output CSV name under output_dir
+    outfile="unique_cna_profile_counts_hccna.csv",  # Output CSV name under output_dir
 )
 
-bench.cloneSizebycellprofile(
+bench.unique_cna_profile_sizes(
     tool_cna_files=[
         "/path/to/signals/haplotype_combined.csv",
         "/path/to/seacon/haplotype_combined.csv",
@@ -234,7 +234,7 @@ bench.cloneSizebycellprofile(
         "signals",
         "seacon",
     ],
-    outfile="clone_size_by_cell_profile.csv",
+    outfile="unique_cna_profile_sizes_hccna.csv",
 )
 ```
 
@@ -252,7 +252,7 @@ Applies a maximum parsimony criterion to reconstructed cell lineages. It measure
 
 ```python
 # acCNA phylogeny
-bench.dolazactree(
+bench.cna_phylogeny(
     tool_cna_files=[
         "/path/to/gt/cell/minor_major.csv",
         "/path/to/signals/minor_major.csv",
@@ -263,7 +263,7 @@ bench.dolazactree(
         "signals",
         "seacon",
     ],
-    outfile="parsimony_score_accna.csv",
+    outfile="cna_phylogeny_accna.csv",
 )
 ```
 
@@ -275,7 +275,7 @@ Calculates PSD using phased CN profiles as input to build the phylogeny, ensurin
 
 ```python
 # hcCNA phylogeny
-bench.dolazactree(
+bench.cna_phylogeny(
     tool_cna_files=[
         "/path/to/gt/cell/haplotype_combined.csv",
         "/path/to/signals/haplotype_combined.csv",
@@ -286,7 +286,7 @@ bench.dolazactree(
         "signals",
         "seacon",
     ],
-    outfile="parsimony_score.csv",
+    outfile="cna_phylogeny_hccna.csv",
 )
 ```
 
@@ -308,13 +308,13 @@ bench.dolazactree(
 
 ```python
 # Evolution-onset benchmarks: run for focal / medium / broad changes
-# Parental CN at onset: hconsetcn
-# CN change at onset: hccnchange
-# Complex hcCNA at onset: hconsetacc
-# Complex hcCNA stability: hccnstable
+# Parental CN at onset: parental_cn_at_onset
+# CN change at onset: cn_change_at_onset
+# Complex hcCNA at onset: complex_hccna_at_onset
+# Complex hcCNA stability: complex_hccna_stability
 for size in ["focal", "medium", "broad"]:
 
-    bench.hconsetcn(
+    bench.parental_cn_at_onset(
         tool_hap1_cna_files=[
             "/path/to/signals/haplotype_1.csv",
             "/path/to/seacon/haplotype_1.csv",
@@ -328,10 +328,10 @@ for size in ["focal", "medium", "broad"]:
             "seacon",
         ],
         changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
-        outfile=f"evolution_onset_parent_CN_{size}.csv",
+        outfile=f"parental_cn_at_onset_{size}.csv",
     )
 
-    bench.hccnchange(
+    bench.cn_change_at_onset(
         tool_hap1_cna_files=[
             "/path/to/signals/haplotype_1.csv",
             "/path/to/seacon/haplotype_1.csv",
@@ -345,10 +345,10 @@ for size in ["focal", "medium", "broad"]:
             "seacon",
         ],
         changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
-        outfile=f"evolution_onset_CN_Change_{size}.csv",
+        outfile=f"cn_change_at_onset_{size}.csv",
     )
 
-    bench.hconsetacc(
+    bench.complex_hccna_at_onset(
         tool_hap1_cna_files=[
             "/path/to/signals/haplotype_1.csv",
             "/path/to/seacon/haplotype_1.csv",
@@ -362,10 +362,10 @@ for size in ["focal", "medium", "broad"]:
             "seacon",
         ],
         changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
-        outfile=f"evolution_onset_acc_{size}.csv",
+        outfile=f"complex_hccna_at_onset_{size}.csv",
     )
 
-    bench.hccnstable(
+    bench.complex_hccna_stability(
         tool_hap1_cna_files=[
             "/path/to/signals/haplotype_1.csv",
             "/path/to/seacon/haplotype_1.csv",
@@ -380,7 +380,7 @@ for size in ["focal", "medium", "broad"]:
         ],
         changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
         tree_file="/path/to/tree/tree_new.newick",
-        outfile=f"evolution_cn_stability_acc_{size}.csv",
+        outfile=f"complex_hccna_stability_{size}.csv",
     )
 ```
 
@@ -396,7 +396,7 @@ This section assesses the final "burden" of complex hcCNAs. Rather than looking 
 
 ```python
 # Complex hcCNAs
-bench.segmentation(
+bench.complex_hccnas(
     tool_cna_files=[
         "/path/to/signals/haplotype_combined.csv",
         "/path/to/seacon/haplotype_combined.csv",
@@ -406,11 +406,28 @@ bench.segmentation(
         "signals",
         "seacon",
     ],
-    threshold=0.8,            # Similarity threshold used by the segmentation evaluation
+    threshold=0.8,            # Similarity threshold used by the complex_hccnas evaluation
     profile_bin_size=100000,  # Bin size used in the GT profile (e.g., 100kb)
-    outprefix="segmentation_thre0.8",
+    outprefix="complex_hccnas_thre0.8",
 )
 ```
+
+`complex_hccnas` also accepts `save_annotated_df=False` and
+`chromosomes=None`. `None` uses all input chromosomes; for example,
+`chromosomes=["chr1", "chr2"]` restricts annotation and evaluation to those
+chromosomes (`"1"` and `"2"` are also accepted). An empty list selects none.
+
+With `save_annotated_df=True`, each tool's annotation is saved under
+`{output_dir}/{outprefix}annotated/`. The combined file is named
+`{tool}_annotated.csv`. If a chromosome list is supplied, additional files
+`{tool}_annotated_chr1.csv`, etc. are written for each requested chromosome.
+Chromosomes with no annotated events produce a header-only file. Per-chromosome
+files are subsets of the combined annotation, not independent re-annotations.
+WGD classification retains the existing whole-genome reference denominator.
+
+For GT comparisons, saving additionally annotates each tool's input profile.
+These saved tool annotations do not replace the existing GT-based metric
+calculation.
 
 ### Mirrored-subclonal-CNAs
 
@@ -418,7 +435,7 @@ bench.segmentation(
 
 ```python
 # Mirrored-subclonal-CNAs
-bench..mirrorsubclone(
+bench.mirrored_subclonal_cnas(
     tool_cna_files=[
         "/path/to/signals/haplotype_combined.csv",
         "/path/to/seacon/haplotype_combined.csv",
@@ -427,7 +444,7 @@ bench..mirrorsubclone(
         "signals",
         "seacon",
     ],
-    changes_file= "/path/to/gt/mirrored_subclonal_cnas.csv",
+    changes_file= "/path/to/gt/mirrored_subclonal_cnas_cnas.csv",
     profile_bin_size=100000,
     cal_event_level = True
 )
@@ -450,7 +467,7 @@ The analysis uses normalized Hamming distance to account for potential global ph
 
 ```python
 # Shared-heterozygous mode
-bench.hcPhasing(
+bench.global_cn_phasing(
     tool_hap1_cna_files=[
         "/path/to/signals/haplotype_1.csv",
         "/path/to/seacon/haplotype_1.csv",
@@ -467,11 +484,11 @@ bench.hcPhasing(
     ground_truth_hap2_file="/path/to/gt/cell/haplotype_2.csv",
     mode="heterozygous-only",
     is_clone=False,
-    # outprefix="hcPhasing_both",        # Uncomment if your implementation supports outprefix
+    # outprefix="global_cn_phasing_both",        # Uncomment if your implementation supports outprefix
 )
 
 # GT-heterozygous mode
-bench.hcPhasing(
+bench.global_cn_phasing(
     tool_hap1_cna_files=[
         "/path/to/signals/haplotype_1.csv",
         "/path/to/seacon/haplotype_1.csv",
@@ -488,7 +505,7 @@ bench.hcPhasing(
     ground_truth_hap2_file="/path/to/gt/cell/haplotype_2.csv",
     mode="homozygous-inclusive-pred",
     is_clone=False,
-    # outprefix="hcPhasing_gt",
+    # outprefix="global_cn_phasing_gt",
 )
 ```
 
