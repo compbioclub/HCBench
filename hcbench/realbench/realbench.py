@@ -175,10 +175,8 @@ class RealBench:
                     ami = AMI(true_clones, pred_clones)
                     
                     result_df_ari.loc[tool1, tool2] = ari
-                    # result_df_ari.loc[tool2, tool1] = ari
     
                     result_df_ami.loc[tool1, tool2] = ami
-                    # result_df_ami.loc[tool2, tool1] = ami
     
             out_ari = os.path.join(self.output_dir, "exact_profile_group_ARI.csv")
             result_df_ari.to_csv(out_ari)
@@ -663,14 +661,11 @@ class RealBench:
         ):
 
                 
-        # tool_annotated_dfs = {}
-        # tool_mirrored_subclone = {}
         for i in range(len(tool_names)):
             df = pd.read_csv(tool_cna_files[i], index_col=0)
 
             cna_annotated_df = annotate_segments(df.T, detect_cnv_type=False)
             cna_annotated_df['region'] = cna_annotated_df['Chrom'] + ":" + cna_annotated_df['Start'].astype(str) + "-" + cna_annotated_df['End'].astype(str)
-            # tool_annotated_dfs[tool_names[i]] = cna_annotated_df
             if use_segemnt:
                 tool_annotated_df = cna_annotated_df[['cell','Segment','size','value']].drop_duplicates().copy()
                 pair_df_segment = find_mirrored_subclone_pairs(tool_annotated_df,segment_col='Segment')
@@ -681,7 +676,6 @@ class RealBench:
                 tool_annotated_df = cna_annotated_df[['cell','region','size','value']].drop_duplicates().copy()
                 pair_df_segment = find_mirrored_subclone_pairs(tool_annotated_df,segment_col='region')
 
-            # tool_mirrored_subclone[tool_names[i]] = pair_df_segment
             if save_tmp:
                 tmp_dir = f"{self.output_dir}/mirror_subclone_tmp"
                 os.makedirs(tmp_dir, exist_ok=True)
@@ -698,11 +692,7 @@ class RealBench:
                     print("ERROR: No tmp files found...")
                     return None
 
-                    # pair_df_segment_1 = tool_mirrored_subclone[tool_names[i]]
-                    # pair_df_segment_2 = tool_mirrored_subclone[tool_names[j]]
 
-                # pair_df_segment_1.rename(columns={'Segment' : "region"}, inplace=True)
-                # pair_df_segment_2.rename(columns={'Segment' : "region"}, inplace=True)
                 if not (pair_df_segment_1.empty or pair_df_segment_2.empty):
                     tool1_df, tool2_df = align_cna_bins(pair_df_segment_1, pair_df_segment_2)
 

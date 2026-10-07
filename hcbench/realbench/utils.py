@@ -391,11 +391,8 @@ def get_final_parsimony_score(json_file):
     with open(json_file, "r") as f:
         data = json.load(f)
 
-    # last_iter = data[-1]
-    # scores = last_iter["scores"]
 
     
-    # counter = Counter(scores)
     final_score =  min(s
         for it in data
         for s in it["scores"]

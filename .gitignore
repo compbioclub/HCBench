@@ -76,3 +76,11 @@ benchmark_rename_changes.txt
 
 !hcbench/ref/
 !hcbench/ref/*.csv
+
+docs/refactoring/
+
+validation/
+
+refactoring_log.md
+
+AGENTS.md

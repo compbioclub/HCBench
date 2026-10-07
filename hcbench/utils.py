@@ -6,7 +6,6 @@ import pandas as pd
 from typing import List, Tuple, Dict, Optional
 from .parsers.utils import read_table_auto
 from sklearn.isotonic import spearmanr
-from sklearn.metrics import mean_squared_error
 from sklearn.metrics import (
     mean_squared_error, roc_auc_score, precision_recall_curve, auc,
     accuracy_score, precision_score, recall_score, f1_score,
@@ -68,10 +67,6 @@ def flatten_pair(a: pd.DataFrame, b: pd.DataFrame) -> Tuple[np.ndarray, np.ndarr
     xa, xb = a.values.flatten().astype(float), b.values.flatten().astype(float)
     mask = ~np.isnan(xa) & ~np.isnan(xb)
     return xa[mask], xb[mask]
-
-def to_numeric(df: pd.DataFrame) -> pd.DataFrame:
-    return df.apply(pd.to_numeric, errors="coerce")
-
 
 def safe_rmse(a: pd.DataFrame, b: pd.DataFrame) -> float:
     xa, xb = flatten_pair(a, b)
@@ -978,29 +973,6 @@ def find_mirrored_clones(df: pd.DataFrame) -> pd.DataFrame:
     clone_cols = df.columns
     mirrored_rows = []
 
-    # for seg, row in df.iterrows():
-    #     for i in range(len(clone_cols)):
-    #         for j in range(i + 1, len(clone_cols)):
-    #             c1, c2 = row[clone_cols[i]], row[clone_cols[j]]
-    #             if pd.isna(c1) or pd.isna(c2):
-    #                 continue
-    #             try:
-    #                 hap1 = tuple(map(int, c1.split("|")))
-    #                 hap2 = tuple(map(int, c2.split("|")))
-    #             except ValueError:
-    #                 continue
-    #             if hap1 == hap2[::-1] and hap1[0] != hap1[1]:
-    #                 mirrored_rows.append(
-    #                     {
-    #                         "region": seg,
-    #                         "Clone1": clone_cols[i],
-    #                         "Clone2": clone_cols[j],
-    #                         "Clone1_CNA": c1,
-    #                         "Clone2_CNA": c2,
-    #                     }
-    #                 )
-
-    # mirrored_df = pd.DataFrame(mirrored_rows)
     mirrored_df = find_mirrored_pairs(df, clone_cols)
     print(f"[hcbench] Found {len(mirrored_df)} mirrored clone events.")
     return mirrored_df
