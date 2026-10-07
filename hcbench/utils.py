@@ -601,17 +601,29 @@ def _mark_arm_events(df, centromeres_df, THRESH=0.8, ARM_DUP_SET = {"DUP", "ARM-
 
 def _chromosome_mask(values, chromosomes):
     """Match chromosome names with or without the chr prefix."""
-    selected = {str(chrom).removeprefix("chr") for chrom in chromosomes}
-    return pd.Index(values).astype(str).str.removeprefix("chr").isin(selected)
+    selected = {
+        str(chrom)[3:] if str(chrom).startswith("chr") else str(chrom)
+        for chrom in chromosomes
+    }
+
+    normalized = pd.Index(values).astype(str).str.replace(
+        r"^chr", "", regex=True
+    )
+    return normalized.isin(selected)
 
 
 def save_annotated_segments(df, output_file, chromosomes=None):
     """Save the combined annotation and, when requested, one file per chromosome."""
     os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
     df.to_csv(output_file, index=False)
+
     if chromosomes is not None:
         stem, ext = os.path.splitext(output_file)
-        for chrom in dict.fromkeys(str(c).removeprefix("chr") for c in chromosomes):
+
+        for chrom in dict.fromkeys(
+            str(c)[3:] if str(c).startswith("chr") else str(c)
+            for c in chromosomes
+        ):
             subset = df.loc[_chromosome_mask(df["Chrom"], [chrom])]
             subset.to_csv(f"{stem}_chr{chrom}{ext}", index=False)
 
