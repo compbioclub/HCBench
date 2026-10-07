@@ -74,3 +74,5 @@ desktop.ini
 site/
 benchmark_rename_changes.txt
 
+!hcbench/ref/
+!hcbench/ref/*.csv
