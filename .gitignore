@@ -76,6 +76,8 @@ benchmark_rename_changes.txt
 
 !hcbench/ref/
 !hcbench/ref/*.csv
+!exp/
+!exp/**/*.csv
 
 docs/refactoring/
 
