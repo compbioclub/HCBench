@@ -2086,3 +2086,12 @@ def get_exact_profile_group(cna_df):
         clone_codes, _ = pd.factorize(profiles, sort=True)
         pred_clones = pd.Series(clone_codes)
         return pred_clones
+
+def run_focal_gene_pathway_analysis(annotated_inputs, output_dir, **kwargs):
+    """Run independent annotated-CNA enrichment with local GTF/GMT resources.
+
+    See hcbench.enrichment.run_focal_gene_pathway_analysis for keyword options.
+    Import the enrichment implementation only when this feature is requested.
+    """
+    from .enrichment import run_focal_gene_pathway_analysis as run_analysis
+    return run_analysis(annotated_inputs, output_dir, **kwargs)

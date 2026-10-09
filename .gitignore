@@ -81,6 +81,8 @@ docs/refactoring/
 
 validation/
 
-refactoring_log.md
+*_log.md
 
 AGENTS.md
+docs/realbench/focal_genes_and_pathways.md
+hcbench/realbench/annotate_enrich.py

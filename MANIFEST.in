@@ -1,0 +1,3 @@
+include hcbench/lib/pathways/MSigDB_Hallmark_2020.gmt
+include hcbench/lib/pathways/Reactome_2022.gmt
+include hcbench/lib/pathways/KEGG_2021_Human.gmt

@@ -402,3 +402,47 @@ realbench_runner.global_cn_phasing(
 )
 ```
 
+
+## Focal genes and pathways analysis
+
+**Are focal hcCNA-associated genes and pathways consistent across callers and resolutions?** Annotates genes overlapping focal hcCNA regions, performs over-representation analysis (ORA), and calculates gene/pathway Jaccard similarity between callers and resolutions. 
+
+### Prepare the GTF resource
+
+The three GMT pathway libraries (`MSigDB_Hallmark_2020`, `Reactome_2022`, `KEGG_2021_Human`) are bundled in `hcbench/lib/pathways/` and included in the pip package. Only the GTF must be supplied by the user: use [GENCODE v46 for hg38](https://www.gencodegenes.org/human/release_46.html) or [v19 for hg19](https://www.gencodegenes.org/human/release_19.html). The CNA coordinates must match the selected genome.
+
+The example below uses an explicit GTF path and release; bundled GMTs are selected automatically. You can still select a subset with `libraries`, supply exact custom GMT paths with `gene_sets`, or use `resource_dir` for a custom GTF/GMT directory. An explicit `resource_dir` selects its `pathways/` directory instead of the bundled GMTs; leave it unset when using the bundled libraries with an explicit GTF path.
+
+### Run focal genes and pathways analysis
+
+```python
+# Focal genes and pathways analysis
+realbench_runner.focal_genes_and_pathways(
+    annotated_inputs=[
+        {
+            "sample": "sample1",
+            "tool": "CHISEL",
+            "bin_size": "100kb",
+            "files": f"{output_dir}/CHISEL_annotated.csv"
+        },
+        {
+            "sample": "sample1",
+            "tool": "SEACON",
+            "bin_size": "100kb",
+            "files": [
+                f"{output_dir}/SEACON_chr1.csv",
+                f"{output_dir}/SEACON_chr2.csv"
+            ]
+        }
+    ],
+    genome="hg38",
+    gtf_path="~/hcbench_resources/genes/hg38/gencode.v46.annotation.gtf.gz",
+    annotation_release="GENCODE v46",
+    workers=2,
+    # outprefix="focal_genes_and_pathways"
+)
+```
+
+The results include focal gene annotations, ORA enrichment, gene/pathway Jaccard comparisons, and summary statistics. Both combined multi-chromosome CSV files and separate chromosome files are supported.
+
+See the [detailed documentation](focal_genes_and_pathways.md) for additional parameters and output descriptions.

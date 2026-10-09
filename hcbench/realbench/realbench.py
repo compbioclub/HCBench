@@ -24,6 +24,35 @@ class RealBench:
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
 
+    def focal_genes_and_pathways(
+        self, annotated_inputs, *, genome="hg38", resource_dir=None,
+        gtf_path=None, annotation_release=None, gene_sets=None, libraries=None,
+        workers=2, annotation_mode="full", resume=False, background="genome",
+        min_query_size=3, min_set_size=10, max_set_size=500, min_overlap=3,
+        fdr=0.05, outprefix="focal_genes_and_pathways",
+    ):
+        """Annotate focal genes, run local ORA and compare tools by Jaccard.
+
+        annotated_inputs contains sample/tool/bin_size/files records from
+        independently annotated CNA. Results go to output_dir/outprefix.
+        No alignment or annotate_segments call is performed. With workers > 1,
+        invoke from a multiprocessing-safe entry point (see the tutorial).
+        """
+        from ..utils import run_focal_gene_pathway_analysis
+
+        if (not isinstance(outprefix, str) or not outprefix
+                or outprefix in {".", ".."} or any(c in outprefix for c in "/\\\x00")):
+            raise ValueError("outprefix must be a single nonempty directory name")
+        return run_focal_gene_pathway_analysis(
+            annotated_inputs, os.path.join(self.output_dir, outprefix),
+            genome=genome, resource_dir=resource_dir, gtf_path=gtf_path,
+            annotation_release=annotation_release, gene_sets=gene_sets,
+            libraries=libraries, workers=workers, annotation_mode=annotation_mode,
+            resume=resume, background=background, min_query_size=min_query_size,
+            min_set_size=min_set_size, max_set_size=max_set_size,
+            min_overlap=min_overlap, fdr=fdr,
+        )
+
     def total_cn_vs_rdr(
         self,
         tool_cna_files: List[str],
