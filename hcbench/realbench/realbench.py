@@ -26,7 +26,7 @@ class RealBench:
 
     def focal_genes_and_pathways(
         self, annotated_inputs, *, genome="hg38", resource_dir=None,
-        gtf_path=None, annotation_release=None, gene_sets=None, libraries=None,
+        gtf_path=None, gene_sets=None, libraries=None,
         workers=2, annotation_mode="full", resume=False, background="genome",
         min_query_size=3, min_set_size=10, max_set_size=500, min_overlap=3,
         fdr=0.05, outprefix="focal_genes_and_pathways",
@@ -46,7 +46,7 @@ class RealBench:
         return run_focal_gene_pathway_analysis(
             annotated_inputs, os.path.join(self.output_dir, outprefix),
             genome=genome, resource_dir=resource_dir, gtf_path=gtf_path,
-            annotation_release=annotation_release, gene_sets=gene_sets,
+            gene_sets=gene_sets,
             libraries=libraries, workers=workers, annotation_mode=annotation_mode,
             resume=resume, background=background, min_query_size=min_query_size,
             min_set_size=min_set_size, max_set_size=max_set_size,

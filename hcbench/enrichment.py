@@ -16,6 +16,9 @@ import os
 from pathlib import Path
 import re
 import sys
+import shutil
+import tempfile
+from urllib.request import urlopen
 from types import SimpleNamespace
 import numpy as np
 import pandas as pd
@@ -25,7 +28,10 @@ LIBRARIES = ['MSigDB_Hallmark_2020', 'Reactome_2022', 'KEGG_2021_Human']
 KEY = ['sample', 'caller', 'bin_size', 'hcCNA_type']
 GENES = {}
 AUTOSOMES = {f'chr{i}' for i in range(1, 23)}
-DEFAULT_RELEASES = {'hg19': 'v19', 'hg38': 'v46'}
+DEFAULT_GTFS = {
+    'hg38': ('v46', 'https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/gencode.v46.annotation.gtf.gz'),
+    'hg19': ('v46lift37', 'https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh37_mapping/gencode.v46lift37.annotation.gtf.gz'),
+}
 ASSEMBLIES = {'hg19': 'GRCh37', 'hg38': 'GRCh38'}
 
 def sha256(path):
@@ -444,7 +450,7 @@ def analyze(records, args):
     write_csv(cellrows, args.output / 'cell_coverage_audit.csv')
     manifest = {'created_utc': datetime.now(timezone.utc).isoformat(), 'assembly': ASSEMBLIES[args.genome], 'genome': args.genome,
                 'assembly_basis': 'Explicit API genome; input CNA assembly must match' ,
-                'gtf': str(args.gtf), 'gtf_sha256': sha256(args.gtf), 'gtf_version': args.annotation_release, 'gtf_header': args.gtf_header,
+                'gtf': str(args.gtf), 'gtf_sha256': sha256(args.gtf), 'gtf_header': args.gtf_header,
                 'coordinate_convention': '1-based inclusive', 'focal_rule': 'input size label equals focal',
                 'annotation_mode': args.annotation_mode, 'ora': 'local GSEApy enrich; hypergeometric ORA, not ranked GSEA',
                 'gene_scope': 'all biotypes annotated; unique protein-coding symbols tested',
@@ -507,9 +513,51 @@ def _normalize_inputs(annotated_inputs, output):
     return inputs
 
 
+def ensure_gtf(genome='hg38', resource_dir=None, gtf_path=None):
+    """Use a supplied GTF or locate/download the configured default GTF."""
+    genome = {'GRCh37': 'hg19', 'GRCh38': 'hg38'}.get(genome, genome)
+    if genome not in ASSEMBLIES:
+        raise ValueError('genome must be hg19/GRCh37 or hg38/GRCh38')
+    if gtf_path is not None:
+        path = Path(gtf_path).expanduser().resolve()
+        if not path.is_file():
+            raise FileNotFoundError(f'Missing user-provided GTF: {path}')
+        print(f'Using user-provided GTF: {path}', flush=True)
+        return path
+    resources = Path(resource_dir or '~/.cache/hcbench/resources').expanduser().resolve()
+    version, url = DEFAULT_GTFS[genome]
+    path = resources / 'genes' / genome / f'gencode.{version}.annotation.gtf.gz'
+    if not path.exists() and path.with_suffix('').is_file():
+        path = path.with_suffix('')
+    if path.is_file():
+        print(f'Using GENCODE {version} ({ASSEMBLIES[genome]}) GTF: {path}', flush=True)
+        return path
+    if path.exists():
+        raise ValueError(f'GTF path is not a file: {path}')
+    pending = None
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        print(f'Downloading GENCODE {version} ({ASSEMBLIES[genome]}) GTF from {url}', flush=True)
+        with urlopen(url, timeout=60) as response:
+            with tempfile.NamedTemporaryFile(dir=path.parent, prefix=path.name + '.', suffix='.part', delete=False) as handle:
+                pending = Path(handle.name)
+                shutil.copyfileobj(response, handle)
+            length = response.headers.get('Content-Length')
+            if pending.stat().st_size == 0 or (length is not None and pending.stat().st_size != int(length)):
+                raise OSError('Incomplete GTF download')
+        pending.replace(path)
+    except Exception as exc:
+        raise RuntimeError(f'Failed to download GTF from {url} to {path}: {exc}') from exc
+    finally:
+        if pending is not None and pending.exists():
+            pending.unlink()
+    print(f'Downloaded GENCODE {version} GTF: {path}', flush=True)
+    return path
+
+
 def run_focal_gene_pathway_analysis(
     annotated_inputs, output_dir, *, genome='hg38', resource_dir=None,
-    gtf_path=None, annotation_release=None, gene_sets=None, libraries=None,
+    gtf_path=None, gene_sets=None, libraries=None,
     workers=2, annotation_mode='full', resume=False, background='genome',
     min_query_size=3, min_set_size=10, max_set_size=500, min_overlap=3, fdr=0.05,
 ):
@@ -517,12 +565,12 @@ def run_focal_gene_pathway_analysis(
 
     Each input record has sample, tool, bin_size and files (one path or a list
     of disjoint chromosome files). No alignment or CNA classification occurs.
-    Default GTF: genes/hg19/gencode.v19.annotation.gtf.gz or
+    Default GTF: genes/hg19/gencode.v46lift37.annotation.gtf.gz or
     genes/hg38/gencode.v46.annotation.gtf.gz under resource_dir
-    (default ~/.cache/hcbench/resources). GMTs default to bundled lib/pathways;
-    an explicit resource_dir selects its pathways/<library>.gmt instead.
-    Custom GTF versions must
-    be named explicitly with annotation_release. Downloads are never performed.
+    (default ~/.cache/hcbench/resources); missing defaults are downloaded.
+    An explicit gtf_path is used directly without downloading.
+    GMTs default to bundled lib/pathways; an explicit resource_dir selects
+    its pathways/<library>.gmt instead.
     Existing output can only be resumed with the same inputs and parameters.
     """
     genome = {'GRCh37': 'hg19', 'GRCh38': 'hg38'}.get(genome, genome)
@@ -537,18 +585,7 @@ def run_focal_gene_pathway_analysis(
     output = Path(output_dir).expanduser().resolve()
     inputs = _normalize_inputs(annotated_inputs, output)
     resources = Path(resource_dir or '~/.cache/hcbench/resources').expanduser().resolve()
-    if gtf_path is None:
-        expected_release = DEFAULT_RELEASES[genome]
-        if annotation_release not in (None, expected_release, 'GENCODE ' + expected_release):
-            raise ValueError('Nondefault annotation_release requires an explicit gtf_path')
-        annotation_release = 'GENCODE ' + expected_release
-        gtf = resources / 'genes' / genome / f'gencode.{expected_release}.annotation.gtf.gz'
-        if not gtf.exists() and gtf.with_suffix('').exists():
-            gtf = gtf.with_suffix('')
-    else:
-        gtf = Path(gtf_path).expanduser().resolve()
-        if not isinstance(annotation_release, str) or not annotation_release.strip():
-            raise ValueError('Provide annotation_release for a custom gtf_path')
+    gtf = ensure_gtf(genome, resource_dir, gtf_path)
     if gene_sets is None:
         libraries = LIBRARIES if libraries is None else libraries
         if isinstance(libraries, str):
@@ -569,7 +606,7 @@ def run_focal_gene_pathway_analysis(
     module_hash = sha256(Path(__file__))
     source_hashes = {path: sha256(path) for item in inputs for path in item['files']}
     config = {'schema_version': 1, 'implementation_sha256': module_hash, 'genome': genome,
-              'annotation_release': annotation_release, 'gtf': str(gtf), 'gtf_sha256': gtf_hash,
+              'gtf': str(gtf), 'gtf_sha256': gtf_hash,
               'libraries': {lib: {'path': str(path), 'sha256': sha256(path)} for lib, path in gene_sets.items()},
               'inputs': inputs, 'input_sha256': source_hashes, 'annotation_mode': annotation_mode,
               'background': background, 'min_query_size': min_query_size, 'min_set_size': min_set_size,
@@ -587,10 +624,6 @@ def run_focal_gene_pathway_analysis(
     # Re-parse the selected GTF; never trust a table solely because it exists.
     genes = parse_gtf(gtf, gene_path, genome)
     gtf_header = genes.attrs['gtf_header']
-    declared_version = re.fullmatch(r'(?:GENCODE )?v(\d+)', annotation_release)
-    header_versions = {v for line in gtf_header for v in re.findall(r'\bversion (\d+)\b', line)}
-    if declared_version and header_versions and header_versions != {declared_version[1]}:
-        raise ValueError('annotation_release conflicts with the GTF header version')
     for path in gene_sets.values():
         read_gmt(path)
     jobs = []
@@ -601,7 +634,7 @@ def run_focal_gene_pathway_analysis(
                          'caller': item['caller'], 'bin_size': item['bin_size'], 'file_id': file_id,
                          'mode': annotation_mode, 'resume': resume,
                          'signature': {'source_sha256': source_hashes[path], 'gtf_sha256': gtf_hash,
-                                       'genome': genome, 'release': annotation_release,
+                                       'genome': genome,
                                        'run_signature': run_signature}})
     if workers == 1:
         init_worker(str(gene_path))
@@ -618,7 +651,7 @@ def run_focal_gene_pathway_analysis(
             raise ValueError(f'Overlapping chromosome files in {key}: {sorted(overlap)}; do not mix a combined file and its splits')
         seen_chromosomes[key].update(record['chromosomes'])
     args = SimpleNamespace(output=output, gene_path=gene_path, gtf=gtf, genome=genome,
-        annotation_release=annotation_release, gtf_header=gtf_header, gene_sets=gene_sets, inputs=inputs,
+        gtf_header=gtf_header, gene_sets=gene_sets, inputs=inputs,
         run_signature=run_signature, annotation_mode=annotation_mode, background=background,
         min_query_size=min_query_size, min_set_size=min_set_size, max_set_size=max_set_size,
         min_overlap=min_overlap, fdr=fdr)

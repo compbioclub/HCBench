@@ -2090,6 +2090,7 @@ def get_exact_profile_group(cna_df):
 def run_focal_gene_pathway_analysis(annotated_inputs, output_dir, **kwargs):
     """Run independent annotated-CNA enrichment with local GTF/GMT resources.
 
+    Supply gtf_path to use a local GTF; missing default GTFs are downloaded.
     See hcbench.enrichment.run_focal_gene_pathway_analysis for keyword options.
     Import the enrichment implementation only when this feature is requested.
     """

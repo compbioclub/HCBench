@@ -409,9 +409,9 @@ realbench_runner.global_cn_phasing(
 
 ### Prepare the GTF resource
 
-The three GMT pathway libraries (`MSigDB_Hallmark_2020`, `Reactome_2022`, `KEGG_2021_Human`) are bundled in `hcbench/lib/pathways/` and included in the pip package. Only the GTF must be supplied by the user: use [GENCODE v46 for hg38](https://www.gencodegenes.org/human/release_46.html) or [v19 for hg19](https://www.gencodegenes.org/human/release_19.html). The CNA coordinates must match the selected genome.
+The three GMT pathway libraries (`MSigDB_Hallmark_2020`, `Reactome_2022`, `KEGG_2021_Human`) are bundled in `hcbench/lib/pathways/` and included in the pip package. GTF is not bundled. If `gtf_path` is omitted, HCBench uses a cached default or automatically downloads [GENCODE v46 for hg38](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/gencode.v46.annotation.gtf.gz) or [v46lift37 for hg19](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh37_mapping/gencode.v46lift37.annotation.gtf.gz). An explicit `gtf_path` uses the existing file without downloading; no release parameter is required. The CNA coordinates must match the selected genome.
 
-The example below uses an explicit GTF path and release; bundled GMTs are selected automatically. You can still select a subset with `libraries`, supply exact custom GMT paths with `gene_sets`, or use `resource_dir` for a custom GTF/GMT directory. An explicit `resource_dir` selects its `pathways/` directory instead of the bundled GMTs; leave it unset when using the bundled libraries with an explicit GTF path.
+The example below uses an explicit GTF path; bundled GMTs are selected automatically. You can still select a subset with `libraries`, supply exact custom GMT paths with `gene_sets`, or use `resource_dir` for a custom GTF/GMT directory. An explicit `resource_dir` selects its `pathways/` directory instead of the bundled GMTs; leave it unset when using the bundled libraries with an explicit GTF path.
 
 ### Run focal genes and pathways analysis
 
@@ -437,11 +437,12 @@ realbench_runner.focal_genes_and_pathways(
     ],
     genome="hg38",
     gtf_path="~/hcbench_resources/genes/hg38/gencode.v46.annotation.gtf.gz",
-    annotation_release="GENCODE v46",
     workers=2,
     # outprefix="focal_genes_and_pathways"
 )
 ```
+
+With no `gtf_path`, the GTF cache defaults to `~/.cache/hcbench/resources/genes/<genome>/`; the version and path are printed when reused, and the completed path is printed after download. Download failures remove the incomplete temporary file and raise an error. The hg19 default is now v46lift37 rather than v19, so changing annotation resources can change results.
 
 The results include focal gene annotations, ORA enrichment, gene/pathway Jaccard comparisons, and summary statistics. Both combined multi-chromosome CSV files and separate chromosome files are supported.
 
