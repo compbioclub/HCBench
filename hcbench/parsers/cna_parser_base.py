@@ -23,6 +23,27 @@ class CNAParser(BaseParser):
         self.expand_bins = expand_bins
         super().__init__(*args, **kwargs)
 
+    def annotate_segments(
+        self, cna_df_path, threshold=0.8, detect_cnv_type=True,
+        out_file="annotated_segments.csv", *, small_size=3_000_000,
+        mid_size=10_000_000, genome=None, chromosomes=None,
+    ):
+        """Manually annotate a standardized region-by-cell CSV; run is unchanged."""
+        from ..utils import annotate_segments, save_annotated_segments
+
+        df = pd.read_csv(cna_df_path)
+        df.set_index("region", inplace=True)
+        annotated_df = annotate_segments(
+            df.T, small_size=small_size, mid_size=mid_size,
+            genome=self.ref_genome if genome is None else genome,
+            threshold=threshold, detect_cnv_type=detect_cnv_type,
+            chromosomes=chromosomes,
+        )
+        annotated_path = os.path.join(self.output_path, out_file)
+        save_annotated_segments(annotated_df, annotated_path, chromosomes)
+        print(f"[hcbench] Saved size/type classification → {annotated_path}")
+        return annotated_df
+
     def preprocess_value(self, value):
         return value
 

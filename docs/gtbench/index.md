@@ -392,7 +392,9 @@ This section assesses the final "burden" of complex hcCNAs. Rather than looking 
 
 ### Complex hcCNAs
 
-**Are accumulated complex hcCNAs correct?** Compares the final predicted copy number vectors against the ground truth for terminal cells or clones. It uses RMSE and SCC to evaluate the similarity of the profiles and ACC to measure the exact match rate of the phased CN strings.
+**Are accumulated complex hcCNAs correct?**
+
+Compares predicted complex hcCNA profiles against the ground truth (GT) using RMSE, SCC, and ACC to assess numerical agreement and exact matches of haplotype-specific CN values.
 
 ```python
 # Complex hcCNAs
@@ -402,32 +404,50 @@ bench.complex_hccnas(
         "/path/to/seacon/haplotype_combined.csv",
     ],
     gt_cna_file="/path/to/gt/cell/haplotype_combined.csv",
-    tool_names=[
-        "signals",
-        "seacon",
-    ],
-    threshold=0.8,            # Similarity threshold used by the complex_hccnas evaluation
-    profile_bin_size=100000,  # Bin size used in the GT profile (e.g., 100kb)
+    tool_names=["signals", "seacon"],
+    threshold=0.8,
+    profile_bin_size=100000,
     outprefix="complex_hccnas_thre0.8",
 )
 ```
 
-`complex_hccnas` also accepts `save_annotated_df=False` and
-`chromosomes=None`. `None` uses all input chromosomes; for example,
-`chromosomes=["chr1", "chr2"]` restricts annotation and evaluation to those
-chromosomes (`"1"` and `"2"` are also accepted). An empty list selects none.
+The `threshold` parameter controls the similarity threshold used in complex hcCNA evaluation (default: `0.95`), while `profile_bin_size` specifies the GT profile resolution in base pairs (default: `100000`). The `genome` parameter selects the reference genome (`"hg38"` by default; `"hg19"` is also supported).
 
-With `save_annotated_df=True`, each tool's annotation is saved under
-`{output_dir}/{outprefix}annotated/`. The combined file is named
-`{tool}_annotated.csv`. If a chromosome list is supplied, additional files
-`{tool}_annotated_chr1.csv`, etc. are written for each requested chromosome.
-Chromosomes with no annotated events produce a header-only file. Per-chromosome
-files are subsets of the combined annotation, not independent re-annotations.
-WGD classification retains the existing whole-genome reference denominator.
+#### Save annotated complex hcCNAs
 
-For GT comparisons, saving additionally annotates each tool's input profile.
-These saved tool annotations do not replace the existing GT-based metric
-calculation.
+Set `save_annotated_df=True` to save annotated complex hcCNA events for each tool. The annotations are written to `{output_dir}/{outprefix}annotated/`, with one combined file per tool named `{tool}_annotated.csv`.
+
+Use `chromosomes` to restrict annotation and evaluation to selected chromosomes. For example, `chromosomes=["chr1", "chr2"]` selects chromosomes 1 and 2, while the default `None` includes all chromosomes. When specific chromosomes are provided, separate files such as `{tool}_annotated_chr1.csv` are also generated.
+
+```python
+bench.complex_hccnas(
+    gt_cna_file="/results/gt/haplotype_combined.csv",
+    tool_cna_files=[
+        "/results/chisel/haplotype_combined.csv"
+    ],
+    tool_names=["CHISEL"],
+    genome="hg38",
+    save_annotated_df=True,
+)
+```
+
+Saved annotations are generated independently for each tool and do not affect GT-based metric calculations.
+
+#### Annotate GT complex hcCNAs
+
+GT complex hcCNA events can also be annotated separately using `GTParser.annotate_segments()`:
+
+```python
+gt_parser.annotate_segments(
+    "/results/gt/haplotype_combined.csv",
+    detect_cnv_type=True,
+    out_file="ground_truth_classified.csv",
+)
+```
+
+Set `detect_cnv_type=True` to classify CNA events. The annotation supports configurable thresholds, reference genomes, and chromosome selection.
+
+For pairwise comparisons using previously annotated event files without GT, see [RealBench.complex_hccnas](../realbench/index.md).
 
 ### Mirrored-subclonal-CNAs
 

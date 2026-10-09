@@ -623,6 +623,70 @@ def save_annotated_segments(df, output_file, chromosomes=None):
             subset.to_csv(f"{stem}_chr{chrom}{ext}", index=False)
 
 
+def load_annotated_segments(source, chromosomes=None):
+    """Read/validate an event table without reclassifying or collapsing rows."""
+    df = source.copy() if isinstance(source, pd.DataFrame) else pd.read_csv(
+        source, keep_default_na=False,
+        dtype={"cell": str, "Chrom": str, "Segment": str, "value": str}
+    )
+    required = ["cell", "Chrom", "Start", "End", "value", "Segment", "size", "type"]
+    missing = set(required) - set(df.columns)
+    if missing:
+        raise ValueError(f"Annotated CNA requires columns {sorted(missing)}; use detect_cnv_type=True")
+    if df[required].isna().any().any() or df[required].eq("").any().any():
+        raise ValueError("Annotated CNA contains missing event fields")
+    for col in ["Start", "End"]:
+        values = pd.to_numeric(df[col], errors="raise")
+        if (values % 1 != 0).any():
+            raise ValueError("Annotated CNA coordinates must be integers")
+        df[col] = values.astype(int)
+    if (df.Start < 1).any() or (df.End < df.Start).any():
+        raise ValueError("Annotated CNA requires positive, 1-based inclusive intervals")
+    df["cell"] = df["cell"].astype(str)
+    df["Chrom"] = df["Chrom"].astype(str)
+    if chromosomes is not None:
+        df = df.loc[_chromosome_mask(df["Chrom"], chromosomes)].copy()
+    df["region"] = df["Chrom"] + ":" + df["Start"].astype(str) + "-" + df["End"].astype(str)
+    return df
+
+
+def align_annotated_segments(df1, df2):
+    """Split every event on shared inclusive boundaries; retain all event rows.
+
+    Only Start/End/region change. Missing events are never filled; Segment,
+    size, type and value retain their independently assigned labels.
+    """
+    frames = [load_annotated_segments(df1), load_annotated_segments(df2)]
+    chroms = [frame["Chrom"].str.replace(r"^chr", "", regex=True) for frame in frames]
+    boundaries = {}
+    for chrom in sorted(set(chroms[0]) | set(chroms[1])):
+        points = []
+        for frame, labels in zip(frames, chroms):
+            sub = frame.loc[labels.eq(chrom)]
+            points.extend(sub["Start"])
+            points.extend(sub["End"] + 1)
+        boundaries[chrom] = np.array(sorted(set(points)), dtype=np.int64)
+    aligned = []
+    for frame, labels in zip(frames, chroms):
+        indices, starts, ends, regions = [], [], [], []
+        for i, (chrom, start, end) in enumerate(zip(labels, frame["Start"], frame["End"])):
+            points = boundaries[chrom]
+            left = np.searchsorted(points, start)
+            right = np.searchsorted(points, end + 1)
+            for j in range(left, right):
+                a, b = int(points[j]), int(points[j + 1] - 1)
+                indices.append(i)
+                starts.append(a)
+                ends.append(b)
+                regions.append(f"chr{chrom}:{a}-{b}")
+        result = frame.iloc[indices].copy().reset_index(drop=True)
+        result["Start"] = pd.Series(starts, dtype="int64")
+        result["End"] = pd.Series(ends, dtype="int64")
+        result["region"] = pd.Series(regions, dtype="object")
+        aligned.append(result)
+    return tuple(aligned)
+
+
 def annotate_segments(
         df: pd.DataFrame,
         small_size: int = 3_000_000,

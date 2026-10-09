@@ -93,148 +93,17 @@ class GTParser(CNAParser):
     #             "combined": result["combined"],
     #         }
 
-    def annotate_segments(self, cna_df_path,threshold = 0.9,detect_cnv_type=False,out_file= "ground_truth_classified.csv"):
-        df = pd.read_csv(cna_df_path)
-        df.set_index("region",inplace=True)
-        annotated_df = annotate_segments(df.T, threshold=threshold, detect_cnv_type=detect_cnv_type)
-        annotated_path = os.path.join(self.output_path, out_file)
-        annotated_df.to_csv(annotated_path, index=False)
-        print(f"[hcbench] Saved size/type classification → {annotated_path}")
-
-    # def _annotate_segments(
-    #     self,
-    #     df: pd.DataFrame,
-    #     small_size: int = 3_000_000,
-    #     mid_size: int = 10_000_000,
-    #     genome: str = "hg38",
-    # ) -> pd.DataFrame:
-    #     print("[hcbench] Annotating ground truth CNV by size/type (whole-arm first)...")
-
-    #     centromeres_df = self._load_centromeres(genome)
-    #     merged_list = []
-    #     cur_bin = []
-        
-
-    #     for cell, row in df.iterrows():
-    #         chrom = start = end = cur_val = None
-
-    #         for key, val in row.items():
-    #             chrom_new = key.split(":")[0]
-    #             start_new = key.split("-")[0].split(":")[-1]
-    #             end_new = key.split("-")[-1]
-
-    #             if val == "1|1" or val == "nan|nan" :
-    #                 if chrom is not None:
-    #                     cur_df = pd.DataFrame(cur_bin)
-    #                     cur_df['size'] = self._classify_size(start, end, small_size, mid_size)
-    #                     cur_df['type'] = self._classify_whole_arm_events(cur_val,chrom,start,end,centromeres_df)
-    #                     merged_list.append(cur_df)
-    #                     cur_bin = []
-    #                 chrom = start = end = cur_val = None
-    #                 continue
-
-    #             if chrom is None or chrom_new != chrom or val != cur_val:
-    #                 if len(cur_bin) >0:
-    #                     cur_df = pd.DataFrame(cur_bin)
-    #                     cur_df['size'] = self._classify_size(start, end,small_size, mid_size)
-    #                     cur_df['type'] = self._classify_whole_arm_events(cur_val,chrom,start,end,centromeres_df)
-    #                     merged_list.append(cur_df)
-    #                 # print(f"----{len(cur_bin)} >0 ,chrom, start, end, cur_val = {chrom_new},{ start_new}, {end_new}, {val} ")
-    #                 chrom, start, end, cur_val = chrom_new, start_new, end_new, val
-    #                 cur_bin = [{"cell": cell, "Segment": f"{chrom}:{start}-{end}", "value": cur_val}]
-
-    #             else:
-    #                 end = end_new
-    #                 cur_bin.append({"cell": cell, "Segment": f"{chrom}:{start_new}-{end_new}", "value": cur_val})
-
-
-    #         # Finalize last segment for each cell
-    #         if chrom is not None:
-    #             cur_df = pd.DataFrame(cur_bin)
-    #             cur_df['size'] = self._classify_size(start, end, small_size, mid_size)
-    #             cur_df['type'] = self._classify_whole_arm_events(cur_val,chrom,start,end,centromeres_df)
-    #             merged_list.append(cur_df)
-    #             cur_bin =[]
-
-    #     return pd.concat(merged_list, ignore_index=True)
-
-
-
-        
-    # @staticmethod
-    # def _get_ref_path(filename):
-    #     return os.path.join(os.path.dirname(os.path.dirname(__file__)), "ref", filename)
-
-    # def _load_centromeres(self, genome="hg38"):
-    #     print(f"[hcbench] Loading {genome} centromere data")
-    #     df = pd.read_csv(self._get_ref_path(f"{genome}_centromeres.csv"))
-    #     # print(f"[hcbench] Loading centromere data from {data_path}...")
-    #     return df
-
-    # @staticmethod
-    # def _classify_size(start, end, small_size, mid_size):
-    #     size = int(end) - int(start) + 1
-    #     if size < small_size:
-    #         return "focal"
-    #     elif size <= mid_size:
-    #         return "medium"
-    #     return "broad"
-
-    # @staticmethod
-    # def _classify_cnv(val: str) -> str:
-    #     try:
-    #         left, right = map(int, str(val).split("|"))
-    #     except Exception:
-    #         return "UNKNOWN"
-
-    #     s = left + right
-    #     if s == 0:
-    #         return "DEL"
-    #     elif s == 1:
-    #         return "CNL_LOH"
-    #     elif s == 2 and (left == 0 or right == 0):
-    #         return "CNN_LOH"
-    #     elif s > 2 and (left == 0 or right == 0):
-    #         return "CNG_LOH"
-    #     elif s > 2 and (left != 0 and right != 0):
-    #         return "DUP"
-    #     return "UNKNOWN"
-
-    # def _classify_whole_arm_events(
-    #     self, val: str, chrom: str, start: int, end: int, centromeres_df: pd.DataFrame
-    # ) -> str:
-    #     try:
-    #         left, right = map(int, str(val).split("|"))
-    #     except Exception:
-    #         return "UNKNOWN"
-
-    #     ch = str(chrom)
-    #     if not ch.startswith("chr"):
-    #         ch = "chr" + ch
-
-    #     row = centromeres_df.loc[centromeres_df["chrom"] == ch]
-    #     if row.empty:
-    #         return self._classify_cnv(val)
-    #     row = row.iloc[0]
-
-    #     p_end = int(row["p_arm_end"])
-    #     q_start = int(row["q_arm_start"])
-    #     chr_len = int(row["chrom_length"])
-
-    #     covers_p = (start <= 1) and (end >= p_end)
-    #     covers_q = (start <= q_start) and (end >= chr_len)
-
-    #     if (left == 0 or right == 0) and ((start <= 1) and (end >= chr_len)):
-    #         return "WCL"  # Whole-arm loss
-    #     if (left > 1 or right > 1) and ((start <= 1) and (end >= chr_len)):
-    #         return "WCD"  # Whole-arm gain
-        
-    #     if (left == 0 or right == 0) and (covers_p or covers_q):
-    #         return "ARM-DEL"  # Whole-arm loss
-    #     if (left > 1 or right > 1) and (covers_p or covers_q):
-    #         return "ARM-DUP"  # Whole-arm gain
-
-    #     return self._classify_cnv(val)
+    def annotate_segments(
+        self, cna_df_path, threshold=0.9, detect_cnv_type=False,
+        out_file="ground_truth_classified.csv", *, small_size=3_000_000,
+        mid_size=10_000_000, genome=None, chromosomes=None,
+    ):
+        """Keep the GT call defaults/path while using the shared annotation core."""
+        super().annotate_segments(
+            cna_df_path, threshold, detect_cnv_type, out_file,
+            small_size=small_size, mid_size=mid_size, genome=genome,
+            chromosomes=chromosomes,
+        )
 
     def segmentation(self,
         gt_cna_file: str,
@@ -243,7 +112,7 @@ class GTParser(CNAParser):
         ):
 
         gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
-        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold)
+        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, genome=self.ref_genome)
         gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
 
         gt_cna_event_counts = get_seg_cna_event_num(gt_annotated_df)

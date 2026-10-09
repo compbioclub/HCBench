@@ -1018,10 +1018,11 @@ class GTBench:
         changes_file: Optional[str] = '',
         save_annotated_df: bool = False,
         chromosomes: Optional[List[str]] = None,
+        *, genome: str = "hg38",
         ):
 
         gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
-        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes)
+        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes, genome=genome)
         gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
 
         metric_results = []
@@ -1036,7 +1037,7 @@ class GTBench:
             if save_annotated_df:
                 tool_annotated_df = annotate_segments(
                     tool_cna_df.set_index("region").T,
-                    detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes,
+                    detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes, genome=genome,
                 )
                 tool_annotated_df["region"] = (
                     tool_annotated_df["Chrom"].astype(str) + ":"

@@ -1,4 +1,4 @@
-from hcbench.utils import _chromosome_mask, save_annotated_segments
+from hcbench.utils import _chromosome_mask, save_annotated_segments, load_annotated_segments, align_annotated_segments
 # hcbench/realbench/realbench.py
 import gzip
 from operator import gt
@@ -595,73 +595,78 @@ class RealBench:
         
     def complex_hccnas(
         self,
-        tool_cna_files: List[str],
-        tool_names: List[str],
+        tool_cna_files: Optional[List[str]] = None,
+        tool_names: Optional[List[str]] = None,
         threshold: float = 0.95,
         outprefix: str = "complex_hccnas_",
         save_annotated_df: bool = False,
         chromosomes: Optional[List[str]] = None,
+        *, annotated_files=None, genome: str = "hg38",
     ):
+        """Annotate each tool once, then split event tables for pairwise metrics.
+
+        annotated_files is a tool-name/path mapping or a list matching tool_names.
+        Existing labels are used as supplied; threshold/genome do not reclassify
+        preannotated events. Do not combine raw and annotated inputs.
+        """
+        if annotated_files is not None:
+            if tool_cna_files is not None:
+                raise ValueError("Specify tool_cna_files or annotated_files, not both")
+            if isinstance(annotated_files, dict):
+                tool_names = list(annotated_files) if tool_names is None else list(tool_names)
+                if set(tool_names) != set(annotated_files):
+                    raise ValueError("annotated_files must match tool_names exactly")
+                files = [annotated_files[name] for name in tool_names]
+            else:
+                if tool_names is None or isinstance(annotated_files, (str, os.PathLike)):
+                    raise ValueError("Annotated file lists require tool_names and one path per tool")
+                files = list(annotated_files)
+        else:
+            if tool_names is None or tool_cna_files is None:
+                raise ValueError("Provide tool_names and tool_cna_files, or annotated_files")
+            files = list(tool_cna_files)
+        tool_names = list(tool_names)
+        if len(files) != len(tool_names) or len(set(tool_names)) != len(tool_names):
+            raise ValueError("Provide exactly one input per distinct tool name")
+        annotations = []
+        source_paths = {os.path.abspath(os.path.expanduser(os.fspath(f))) for f in files}
+        for source, name in zip(files, tool_names):
+            if annotated_files is not None:
+                annotated = load_annotated_segments(os.path.expanduser(os.fspath(source)), chromosomes)
+            else:
+                df = pd.read_csv(os.path.expanduser(os.fspath(source)))
+                cols_except_region = [c for c in df.columns if c != "region"]
+                df = df.dropna(subset=cols_except_region, how="all")
+                annotated = annotate_segments(
+                    df.set_index("region").T, detect_cnv_type=True,
+                    threshold=threshold, chromosomes=chromosomes, genome=genome,
+                )
+                annotated = load_annotated_segments(annotated)
+            annotations.append(annotated)
+            if save_annotated_df:
+                output_file = os.path.join(
+                    self.output_dir, f"{outprefix}annotated", f"{name}_annotated.csv"
+                )
+                destinations = [output_file]
+                if chromosomes is not None:
+                    stem, ext = os.path.splitext(output_file)
+                    destinations.extend(
+                        f"{stem}_chr{str(c)[3:] if str(c).startswith('chr') else str(c)}{ext}"
+                        for c in chromosomes
+                    )
+                if any(os.path.abspath(f) in source_paths for f in destinations):
+                    raise ValueError("Annotation output must not overwrite an input file; choose another outprefix")
+                save_annotated_segments(annotated, output_file, chromosomes)
         overlap_results = []
         metric_results = []
-
         n = len(tool_names)
         for i in range(n):
             for j in range(i + 1, n):
-                df1 = pd.read_csv(tool_cna_files[i])
-                df2 = pd.read_csv(tool_cna_files[j])
-
-                tool1_df, tool2_df = align_cna_bins(df1, df2)
-
-                cols_except_region = [c for c in tool1_df.columns if c != "region"]
-                tool1_df = tool1_df.dropna(subset=cols_except_region, how="all")
-                cols_except_region = [c for c in tool2_df.columns if c != "region"]
-                tool2_df = tool2_df.dropna(subset=cols_except_region, how="all")
-
                 name1 = tool_names[i]
                 name2 = tool_names[j]
-
-                tool1_annotated_df = annotate_segments(
-                    tool1_df.set_index("region").T, detect_cnv_type=True,
-                    threshold=threshold, chromosomes=chromosomes
+                tool1_annotated_df, tool2_annotated_df = align_annotated_segments(
+                    annotations[i], annotations[j]
                 )
-
-                tool1_annotated_df["region"] = (
-                    tool1_annotated_df["Chrom"].astype(str)
-                    + ":"
-                    + tool1_annotated_df["Start"].astype(int).astype(str)
-                    + "-"
-                    + tool1_annotated_df["End"].astype(int).astype(str)
-                )
-
-                tool2_annotated_df = annotate_segments(
-                    tool2_df.set_index("region").T,detect_cnv_type=True,
-                    threshold=threshold, chromosomes=chromosomes
-                )
-
-                tool2_annotated_df["region"] = (
-                    tool2_annotated_df["Chrom"].astype(str)
-                    + ":"
-                    + tool2_annotated_df["Start"].astype(int).astype(str)
-                    + "-"
-                    + tool2_annotated_df["End"].astype(int).astype(str)
-                )
-                
-                if save_annotated_df:
-                    annotation_dir = os.path.join(
-                        self.output_dir, f"{outprefix}annotated", f"{name1}__{name2}"
-                    )
-                    for tool_name, annotated in [
-                        (name1, tool1_annotated_df), (name2, tool2_annotated_df)
-                    ]:
-                        save_annotated_segments(
-                            annotated, os.path.join(annotation_dir, f"{tool_name}_annotated.csv"),
-                            chromosomes,
-                        )
-
-                print(f"tool1 after align : {tool2_annotated_df.head()}")
-                print(f"tool2 after align: {tool2_annotated_df.head()}")
-
 
                 result_overlap = get_segment_overlap_ratio(tool1_annotated_df, tool2_annotated_df)
                 result_metric = get_segment_metric_both(tool1_annotated_df, tool2_annotated_df)
