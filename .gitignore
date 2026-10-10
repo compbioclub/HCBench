@@ -88,3 +88,4 @@ validation/
 AGENTS.md
 docs/realbench/focal_genes_and_pathways.md
 hcbench/realbench/annotate_enrich.py
+docs/*.json

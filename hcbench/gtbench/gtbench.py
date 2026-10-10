@@ -766,11 +766,13 @@ class GTBench:
 
             cna_df = read_and_drop_empty(cna_file)
 
-            gt_cna_df, cna_df = align(gt_cna_df, cna_df)
+            gt_aligned, cna_df = align(gt_cna_df.set_index("region"), cna_df.set_index("region"))
+            gt_aligned = gt_aligned.reset_index()
+            cna_df = cna_df.reset_index()
 
 
             pred_clones = get_exact_profile_group(cna_df)
-            true_clones = get_exact_profile_group(gt_cna_df)
+            true_clones = get_exact_profile_group(gt_aligned)
 
 
             ari = adjustedRandIndex(true_clones, pred_clones)

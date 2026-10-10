@@ -5,7 +5,7 @@
 ## Setup
 
 ```python
-from hcbench.gtbench.gtbench import GTBench
+from hcbench.gtbench import GTBench
 
 # All benchmark outputs will be written under this directory
 bench = GTBench(output_dir="/path/to/results/gt_output/cell_level")

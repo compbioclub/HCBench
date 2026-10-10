@@ -41,7 +41,7 @@ SIGNALS,980
 ## Example
 
 ```python
-rom hcbench.gtbench import gtbench
+from hcbench.gtbench import gtbench
 
 runner = gtbench.GTBench(output_dir="out/gt_output/")
 

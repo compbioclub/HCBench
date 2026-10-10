@@ -97,8 +97,8 @@ def to_numeric(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def safe_acc_combined(pred_df: pd.DataFrame, truth_df: pd.DataFrame) -> float:
-    a_str = pred_df.astype("string")
-    b_str = truth_df.astype("string")
+    a_str = pred_df.drop(columns="region", errors="ignore").astype("string")
+    b_str = truth_df.drop(columns="region", errors="ignore").astype("string")
 
     mask = ~(a_str.isna() | b_str.isna())
 
@@ -1170,7 +1170,7 @@ def compute_rd_cn_l1(bin_path: str, cn_path: str):
         cn_path (str): Path to the predicted copy number CSV file (e.g. haplotype_combined.csv).
 
     Returns:
-        pd.Series: L1 error per bin.
+        pd.Series: L1 error per cell.
     """
 
     # ---------- Step 1: Read input files ----------

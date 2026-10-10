@@ -12,7 +12,7 @@ Run the examples from the repository root, or set `example_dir` to the location 
 
 ```python
 from pathlib import Path
-from hcbench.realbench.realbench import RealBench
+from hcbench.realbench import RealBench
 
 example_dir = Path("exp")
 output_dir = "output/realbench_examples"
@@ -128,20 +128,20 @@ This example dataset does not include SNV matrices. To run this analysis, provid
 
 ```python
 # Major/minor CN vs. VAF
-# realbench_runner.major_minor_cn_vs_vaf(
-#     tool_hap1_files=[
-#         f"{example_dir}/Alleloscope/haplotype_1.csv",
-#         f"{example_dir}/CHISEL/haplotype_1.csv",
-#     ],
-#     tool_hap2_files=[
-#         f"{example_dir}/Alleloscope/haplotype_2.csv",
-#         f"{example_dir}/CHISEL/haplotype_2.csv",
-#     ],
-#     tool_names=tools,
-#     snv_paths=snv_paths,
-#     cell_lists  = cell_lists,
-#     variant_pos_dfs = variant_pos_dfs,
-# )
+realbench_runner.major_minor_cn_vs_vaf(
+    tool_hap1_files=[
+        f"{example_dir}/Alleloscope/haplotype_1.csv",
+        f"{example_dir}/CHISEL/haplotype_1.csv",
+    ],
+    tool_hap2_files=[
+        f"{example_dir}/Alleloscope/haplotype_2.csv",
+        f"{example_dir}/CHISEL/haplotype_2.csv",
+    ],
+    tool_names=tools,
+    snv_paths=snv_paths,
+    cell_lists  = cell_lists,
+    variant_pos_dfs = variant_pos_dfs,
+)
 ```
 
 ------
@@ -302,10 +302,10 @@ If your CN profiles have already been annotated, provide the annotation tables d
 To reuse previously annotated events, first generate them with `save_annotated_df=True` (or through the Parser). Supply the resulting file paths in `annotated_files`, keyed by caller. For the example above, annotations are saved under `{output_dir}/complex_hccnas_0.8annotated/`:
 
 ```python
-# realbench_runner.complex_hccnas(
-#     annotated_files=annotated_files,
-#     outprefix="complex_hccnas_reused_",
-# )
+realbench_runner.complex_hccnas(
+    annotated_files=annotated_files,
+    outprefix="complex_hccnas_reused_",
+)
 ```
 
 Each tool requires one combined CSV file with the columns `cell`, `Chrom`, `Start`, `End`, `value`, `Segment`, `size`, and `type`. Coordinates must be positive, 1-based, and inclusive. The files should contain the complete independently annotated events, rather than only focal events or events derived from pairwise-aligned data. You can also pass a list of file paths through `annotated_files`, together with matching `tool_names`. Do not use `tool_cna_files` and `annotated_files` in the same call.
@@ -350,13 +350,28 @@ Generate annotated hcCNA events before running this analysis. Set `annotated_inp
 
 ```python
 # Focal genes and pathways
-# realbench_runner.focal_genes_and_pathways(
-#     annotated_inputs=annotated_inputs,
-#     genome="hg38",
-#     gtf_path=gtf_path,
-#     workers=2,
-#     # outprefix="focal_genes_and_pathways"
-# )
+annotated_inputs=[
+            {
+                "sample": "sample1",
+                "tool": "Alleloscope",
+                "bin_size": "5Mb",
+                "files": f"{output_dir}/complex_hccnas_0.8annotated/Alleloscope_annotated.csv"
+            },
+            {
+                "sample": "sample1",
+                "tool": "CHISEL",
+                "bin_size": "5Mb",
+                "files": [
+                    f"{output_dir}/complex_hccnas_0.8annotated/CHISEL_annotated.csv",
+                ]
+            }
+        ]
+realbench_runner.focal_genes_and_pathways(
+    annotated_inputs=annotated_inputs,
+    genome="hg38",
+    gtf_path=None,  # optionally replace None with a local GTF path
+    # outprefix="focal_genes_and_pathways"
+)
 ```
 
 Each entry in `annotated_inputs` identifies a sample, a caller, a bin size, and its annotated CNA file(s). You can provide either a combined CSV covering multiple chromosomes or a list of chromosome-specific CSV files. Multiple entries allow comparisons across callers and resolutions.

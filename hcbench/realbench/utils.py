@@ -71,7 +71,7 @@ def compute_rd_cn_l1(bin_path: str, cn_path: str):
         cn_path (str): Path to the predicted copy number CSV file (e.g. haplotype_combined.csv).
 
     Returns:
-        pd.Series: L1 error per bin.
+        pd.Series: L1 error per cell.
     """
 
     # ---------- Step 1: Read input files ----------

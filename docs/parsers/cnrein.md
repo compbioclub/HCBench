@@ -18,7 +18,7 @@ Key features:
 Python
 
 ```
-from hcbench.parsers.cnrein import CNReinParser
+from hcbench.parsers.CNRein import CNReinParser
 
 cnrein_input = "/demo_output/cnrein/finalPrediction/CNReinPrediction.csv"
 cnrein_output = "/output/cnrein/"
