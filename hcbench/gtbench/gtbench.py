@@ -753,7 +753,7 @@ class GTBench:
 
     
 
-    def clusterConsistencyFromCNA(self, tool_cna_files: List[str], tool_names: List[str], gt_cna_file: str):
+    def clusterConsistencyFromCNA(self, tool_cna_files: List[str], tool_names: List[str], gt_cna_file: str, outfile: str = "exact_profile_group_result.csv") -> pd.DataFrame:
         gt_cna_df = read_and_drop_empty(gt_cna_file)
         true_clones = get_exact_profile_group(gt_cna_df)
 
@@ -785,7 +785,7 @@ class GTBench:
             })
 
         result_df = pd.DataFrame(result_list)
-        out = os.path.join(self.output_dir, "exact_profile_group_result.csv")
+        out = os.path.join(self.output_dir, outfile)
         result_df.to_csv(out, index=False)
 
         print(f"Exact profile group ARI, AMI saved to {out}")

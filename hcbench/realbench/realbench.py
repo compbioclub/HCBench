@@ -185,6 +185,7 @@ class RealBench:
             self,
             tool_cna_files: List[str],
             tool_names: List[str],
+            outprefix: str = "exact_profile_group_",
         ):
             result_df_ari = pd.DataFrame(columns=tool_names, index=tool_names)
             result_df_ami = pd.DataFrame(columns=tool_names, index=tool_names)
@@ -209,10 +210,10 @@ class RealBench:
     
                     result_df_ami.loc[tool1, tool2] = ami
     
-            out_ari = os.path.join(self.output_dir, "exact_profile_group_ARI.csv")
+            out_ari = os.path.join(self.output_dir, f"{outprefix}ARI.csv")
             result_df_ari.to_csv(out_ari)
             print(f"Exact profile group ARI matrix saved to {out_ari}") 
-            out_ami = os.path.join(self.output_dir, "exact_profile_group_AMI.csv")
+            out_ami = os.path.join(self.output_dir, f"{outprefix}AMI.csv")
             result_df_ami.to_csv(out_ami)
             print(f"Exact profile group AMI matrix saved to {out_ami}")
     
