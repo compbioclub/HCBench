@@ -196,9 +196,9 @@ class RealBench:
                     tool1_df = read_and_drop_empty(path1)
                     tool2_df = read_and_drop_empty(path2)
 
-                    tool1_df, tool2_df = align(tool1_df.set_index("region"), tool2_df.set_index("region"))
-                    tool1_df = tool1_df.reset_index()
-                    tool2_df = tool2_df.reset_index()
+                    common_cells = tool1_df.columns.drop("region").intersection(tool2_df.columns.drop("region"))
+                    tool1_df = tool1_df.loc[:, ["region", *common_cells]]
+                    tool2_df = tool2_df.loc[:, ["region", *common_cells]]
 
                     pred_clones = get_exact_profile_group(tool1_df)
                     true_clones = get_exact_profile_group(tool2_df)

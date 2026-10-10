@@ -766,9 +766,9 @@ class GTBench:
 
             cna_df = read_and_drop_empty(cna_file)
 
-            gt_aligned, cna_df = align(gt_cna_df.set_index("region"), cna_df.set_index("region"))
-            gt_aligned = gt_aligned.reset_index()
-            cna_df = cna_df.reset_index()
+            common_cells = gt_cna_df.columns.drop("region").intersection(cna_df.columns.drop("region"))
+            gt_aligned = gt_cna_df.loc[:, ["region", *common_cells]]
+            cna_df = cna_df.loc[:, ["region", *common_cells]]
 
 
             pred_clones = get_exact_profile_group(cna_df)
