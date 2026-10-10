@@ -16,7 +16,7 @@ nav:
     #   - cellprofile : gtbench/cellprofile.md
   - HCBench-real:
       - Overview: realbench/index.md
-      - Focal genes and pathways: realbench/focal_genes_and_pathways.md
+      # - Focal genes and pathways: realbench/focal_genes_and_pathways.md
 theme:
   name: material
   features:
