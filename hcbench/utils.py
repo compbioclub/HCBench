@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple, Dict, Optional
 from .parsers.utils import read_table_auto
-from sklearn.isotonic import spearmanr
+from scipy.stats import spearmanr
 from sklearn.metrics import (
     mean_squared_error, roc_auc_score, precision_recall_curve, auc,
     accuracy_score, precision_score, recall_score, f1_score,

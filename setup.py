@@ -16,5 +16,16 @@ setup(
             "lib/pathways/KEGG_2021_Human.gmt",
         ],
     },
-    install_requires=["pandas>=2.0.0"]
+    python_requires=">=3.10",
+    install_requires=[
+        "numpy>=1.22",
+        "pandas>=2.0,<3",
+        "scipy>=1.8",
+        "scikit-learn>=1.0",
+        "biopython>=1.79",
+    ],
+    extras_require={
+        "rds": ["pyreadr>=0.4.6"],
+        "enrichment": ["gseapy>=1.1.9"],
+    },
 )
