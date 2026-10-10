@@ -1,6 +1,10 @@
 # HCBench-real
 
-`HCBench-real` is an integrated module for evaluating copy number alteration (CNA) results in **real-world datasets**. Since real data often lacks a ground truth, this module focuses on pairwise cross-tool consistency and agreement with observed sequencing signals. The evaluation is organized around five evaluation questions: CNA detection, clone detection, evolution tracking, accumulated complex hcCNA detection, and CN phasing.
+HCBench-real evaluates copy number alteration (CNA) results from real datasets by comparing predictions from different callers. It supports five analyses: CNA detection, clone detection, evolution tracking, accumulated complex hcCNA detection, and CN phasing.
+
+As ground truth is generally unavailable for real datasets, most metrics describe **agreement between callers**, rather than accuracy against a known truth. The read-depth (RDR) and variant allele frequency (VAF) analyses instead compare inferred CN profiles with observed sequencing signals.
+
+The examples below compare Alleloscope and CHISEL. Replace the input paths and `tools` list with your own results. `acCNA` refers to allele- and cell/clone-specific CNAs, while `hcCNA` refers to haplotype- and cell/clone-specific CNAs.
 
 ## Setup
 
@@ -21,13 +25,11 @@ tools = ["Alleloscope", "CHISEL"]
 
 ## CNA Detection
 
-This section assesses pairwise consistency of allele-specific and haplotype-specific CN calls and evaluates whether predicted copy numbers agree with observed read depth and allele-frequency signals.
+Compare allele-specific and haplotype-specific CN values and states between callers. The RDR and VAF analyses additionally measure agreement with observed sequencing data.
 
 ### acCNA values
 
-**Are allele-, cell-, and locus-specific CN values consistent?**
-
-Quantifies the direct numerical agreement of copy number values across all shared cells and loci using RMSE, SCC, and ACC.
+Compare allele-specific CN values at shared cells and genomic loci using root mean square error (RMSE), Spearman correlation coefficient (SCC), and accuracy (ACC).
 
 ```python
 # acCNA values
@@ -44,9 +46,7 @@ realbench_runner.cna_values(
 
 ### acCNA states
 
-**Are allele-, cell-, and locus-specific CN loss, gain, and neutral states consistent?**
-
-Uses a binary classification framework to measure concordance. By treating one caller as a reference, metrics like ACC and the Kappa score are used to determine how often the two tools agree on the presence of gains, losses, or neutral states.
+Compare allele-specific CN loss, gain, and neutral states at shared cells and loci using ACC and Cohen's kappa.
 
 ```python
 # acCNA states
@@ -66,9 +66,7 @@ realbench_runner.cna_states(
 
 ### hcCNA values
 
-**Are haplotype-, cell-, and locus-specific CN values consistent?**
-
-Measures numerical consistency for phased copy numbers (e.g., matching 1|2 vs 1|2) using RMSE, SCC, and the exact match rate (ACC).
+Compare haplotype-specific CN values at shared cells and loci using RMSE, SCC, and ACC. Haplotype order is retained when comparing phased CN values.
 
 ```python
 # hcCNA values
@@ -85,9 +83,7 @@ realbench_runner.cna_values(
 
 ### hcCNA states
 
-**Are haplotype-, cell-, and locus-specific CN loss, gain, and neutral states consistent?**
-
-Evaluates the reliability of phased CN calling by measuring the concordance (ACC and Kappa score) between callers when categorizing segments into gain, loss, or neutral states.
+Compare haplotype-specific CN loss, gain, and neutral states at shared cells and loci using ACC and Cohen's kappa.
 
 ```python
 # hcCNA states
@@ -107,7 +103,7 @@ realbench_runner.cna_states(
 
 ### Total CN vs. RDR
 
-**Are total CNs consistent with observed read depths?** Evaluates the goodness of fit between the inferred total copy number and the observed read-depth signal using the Read Depth L1 Error. Statistically compares callers using paired t-tests; a lower L1 error indicates that the predicted states more accurately reflect the raw data counts.
+Measure the agreement between inferred total CN and observed read-depth ratios (RDR) using L1 error (mean absolute error). Lower values indicate closer agreement. Paired t-tests compare within-cell L1 errors on cells shared by each pair of callers.
 
 ```python
 # Total CN vs. RDR
@@ -126,9 +122,9 @@ realbench_runner.total_cn_vs_rdr(
 
 ### Major/minor CN vs. VAF
 
-**Are major and minor CN distributions consistent with observed VAFs?** Measures how well the predicted major and minor alleles align with truncal SNV frequencies (or BAFs) using log-likelihood under a binomial model. A higher log-likelihood ratio (LLR) indicates a superior fit to the observed molecular evidence.
+Assess the fit of inferred major/minor CN distributions to observed variant allele frequencies (VAFs) with a binomial-model log-likelihood ratio (LLR).
 
-`exp/` contains the CNA inputs but no VAF/SNV matrices. Before using this API, provide `snv_paths` for Alleloscope and CHISEL, each containing `cellSNP.AD.filtered.mtx` and `cellSNP.DP.filtered.mtx`, plus `cell_lists` matching their matrix columns and `variant_pos_dfs` matching their variant rows. All three lists must follow `tools` order. No VAF paths are assumed to exist in `exp/`; the following is a conditional call template:
+This example dataset does not include SNV matrices. To run this analysis, provide `snv_paths` containing `cellSNP.AD.filtered.mtx` and `cellSNP.DP.filtered.mtx` for each caller, along with `cell_lists` (matrix columns) and `variant_pos_dfs` (matrix rows). Keep all lists in `tools` order:
 
 ```python
 # Major/minor CN vs. VAF
@@ -152,13 +148,11 @@ realbench_runner.total_cn_vs_rdr(
 
 ## Clone Detection
 
-This section evaluates pairwise consistency of inferred clone architectures and the diversity of unique CN profiles between callers.
+Compare clone assignments, clone sizes, and unique CN profiles between callers.
 
 ### Global tumor clones
 
-**Are global tumor clones consistent?**
-
-Evaluates the agreement of clustering labels between two callers using AMI and ARI. These metrics quantify how similar the overall cell groupings are across the entire population.
+Compare cell-to-clone assignments using adjusted mutual information (AMI) and adjusted Rand index (ARI).
 
 ```python
 # Global tumor clones
@@ -173,9 +167,7 @@ realbench_runner.global_tumor_clones(
 
 ### Rare and dominant clones
 
-**Are rare and dominant clones consistent?**
-
-Assesses consistency stratified by predicted clone size. Using Clone Size Deviation (CSD), it examines whether a cell assigned to a cluster of size $n$ by one caller is assigned to a cluster of similar size by the other, identifying if callers disagree on the granularity of specific subclones.
+Use clone size deviation (CSD) to compare the sizes of clones assigned to shared cells, including rare and dominant clones.
 
 ```python
 # Rare and dominant clones
@@ -190,7 +182,7 @@ realbench_runner.rare_and_dominant_clones(
 
 ### Unique acCNA profiles
 
-**Are unique allele- and cell-specific CN profiles consistent?** Compares Unique Profile Counts (UPC) and Unique Profile Size Deviation (UPSD) between callers. It identifies if one caller tends to smooth profiles while the other fragments them, or if they agree on the diversity of unique genomic strings.
+Compare the number and size distribution of unique allele-specific CN profiles using unique profile count (UPC) and unique profile size deviation (UPSD).
 
 ```python
 # Unique acCNA profiles
@@ -215,7 +207,7 @@ realbench_runner.unique_cna_profile_sizes(
 
 ### Unique hcCNA profiles
 
-**Are unique haplotype- and cell-specific CN profiles consistent?** Uses UPC and UPSD to evaluate if two callers identify the same unique sets of haplotype-specific genomic profiles.
+Compare the number and size distribution of unique haplotype-specific CN profiles using UPC and UPSD.
 
 ```python
 # Unique hcCNA profiles
@@ -242,11 +234,11 @@ realbench_runner.unique_cna_profile_sizes(
 
 ## Evolution Tracking
 
-This section evaluates whether callers produce consistent CN phylogenies in the absence of simulated evolutionary ground truth.
+Evaluate phylogenetic parsimony scores (PS) derived from caller-specific CN profiles.
 
 ### acCNA phylogeny
 
-**Are allele- and cell-specific CN phylogenies consistent?** Compares the Parsimony Scores (PS) of the phylogenies reconstructed from each caller's predictions. Similar scores suggest consistency in the inferred evolutionary complexity.
+Calculate parsimony scores (PS) from allele-specific CN profiles to compare inferred evolutionary complexity between callers.
 
 ```python
 # acCNA phylogeny
@@ -262,7 +254,7 @@ realbench_runner.cna_phylogeny(
 
 ### hcCNA phylogeny
 
-**Are haplotype- and cell-specific CN phylogenies consistent?** Compares Parsimony Scores derived from phased CN profiles to check if the inferred single-cell evolutionary trees have similar structural complexity.
+Calculate parsimony scores (PS) from haplotype-specific CN profiles to compare inferred evolutionary complexity between callers.
 
 ```python
 # hcCNA phylogeny
@@ -280,11 +272,11 @@ realbench_runner.cna_phylogeny(
 
 ## Accumulated Complex hcCNA Detection
 
-This section evaluates the consistency of the accumulated "burden" of complex hcCNA events (focal, medium, and broad) between two callers in the absence of a ground truth.
+Compare accumulated complex hcCNA and mirrored-subclonal-CNA events at the cell level. For focal complex hcCNAs, compare affected genes and pathways at the sample level.
 
 ### Complex hcCNAs
 
-**Are accumulated complex hcCNAs consistent?** Quantifies the overlap of detected complex events using the Jaccard Similarity (JS) index. Within the intersecting genomic regions, it measures the numerical agreement of the copy number strings using RMSE, SCC, and the exact match rate (ACC).
+Compare accumulated complex hcCNA events between callers at the cell level. Report Jaccard similarity (JS) for event overlap and RMSE, ACC, and SCC for CN-value agreement.
 
 ```python
 # Complex hcCNAs
@@ -299,7 +291,7 @@ realbench_runner.complex_hccnas(
 )
 ```
 
-By default, `complex_hccnas()` annotates the input CN profiles and compares complex hcCNA calls between tools. Use `genome="hg38"` (default) or `genome="hg19"` to match the reference genome of your data. The default annotation threshold is `0.95`; the example above uses `0.8`.
+By default, `complex_hccnas()` annotates the input CN profiles and compares complex hcCNA calls between tools. Use `genome="hg38"` (default) or `genome="hg19"` to match the reference genome of your data. The default annotation threshold is `0.8`.
 
 To save the annotated events for each tool, set `save_annotated_df=True`. The files are written to `{output_dir}/{outprefix}annotated/` as `{tool}_annotated.csv`. You can also use `chromosomes=["chr1", "chr2"]` to limit the analysis to selected chromosomes; both `"chr1"` and `"1"` formats are accepted. By default, all chromosomes are included.
 
@@ -307,7 +299,7 @@ To save the annotated events for each tool, set `save_annotated_df=True`. The fi
 
 If your CN profiles have already been annotated, provide the annotation tables directly to avoid repeating this step:
 
-`exp/` does not contain annotated event CSVs. First generate independent annotations from its `haplotype_combined.csv` files using the preceding raw-input call with `save_annotated_df=True`, or the manual Parser method. Then define `annotated_files` as a mapping from `"Alleloscope"` and `"CHISEL"` to those actual output files. With the preceding call's outprefix, saved files are under `{output_dir}/complex_hccnas_0.8annotated/`; they are generated outputs, not files supplied in `exp/`. Only after these files exist, use this template:
+To reuse previously annotated events, first generate them with `save_annotated_df=True` (or through the Parser). Supply the resulting file paths in `annotated_files`, keyed by caller. For the example above, annotations are saved under `{output_dir}/complex_hccnas_0.8annotated/`:
 
 ```python
 # realbench_runner.complex_hccnas(
@@ -324,7 +316,7 @@ For instructions on generating annotated CNA tables, see [Parser annotation](../
 
 ### Mirrored-subclonal-CNAs
 
-**Are accumulated Mirrored-Subclonal-CNAs consistent?** Annotates mirrored events across the population and evaluates whether both callers agree on these complex evolutionary outcomes by comparing concatenated copy number vectors across the relevant segments and cells.
+Compare accumulated mirrored-subclonal-CNA events between callers at the cell level using JS, RMSE, and ACC.
 
 ```python
 # Mirrored-subclonal-CNAs
@@ -339,15 +331,47 @@ realbench_runner.mirrored_subclonal_cnas(
     )
 ```
 
+
+### Focal genes and pathways
+
+Identify genes overlapping focal complex hcCNA events, run pathway over-representation analysis (ORA), and compare affected gene and pathway sets between callers and resolutions using Jaccard similarity (JS).
+
+#### Prepare gene and pathway annotations
+
+This analysis requires annotated hcCNA events, a gene annotation (GTF) file, and pathway gene sets. HCBench includes three pathway libraries: `MSigDB_Hallmark_2020`, `Reactome_2022`, and `KEGG_2021_Human`.
+
+For gene annotation, HCBench uses [GENCODE v46 (hg38)](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/gencode.v46.annotation.gtf.gz) or [GENCODE v46lift37 (hg19)](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh37_mapping/gencode.v46lift37.annotation.gtf.gz). If `gtf_path` is not specified, the appropriate GTF file is downloaded automatically when needed and cached in `~/.cache/hcbench/resources/genes/<genome>/`. Alternatively, provide the path to a local GTF file using `gtf_path`. Make sure `genome` matches the genomic coordinates in your CNA files.
+
+By default, all three bundled pathway libraries are available. Use `libraries` to select specific libraries, `gene_sets` to provide custom GMT files, or `resource_dir` to use a custom resource directory. When using the bundled libraries, you can leave `resource_dir` unset.
+
+#### Run focal genes and pathways analysis
+
+Generate annotated hcCNA events before running this analysis. Set `annotated_inputs` to records containing `sample`, `tool`, `bin_size`, and `files` for each caller and resolution. To run offline, set `gtf_path` to a locally available GTF file:
+
+```python
+# Focal genes and pathways
+# realbench_runner.focal_genes_and_pathways(
+#     annotated_inputs=annotated_inputs,
+#     genome="hg38",
+#     gtf_path=gtf_path,
+#     workers=2,
+#     # outprefix="focal_genes_and_pathways"
+# )
+```
+
+Each entry in `annotated_inputs` identifies a sample, a caller, a bin size, and its annotated CNA file(s). You can provide either a combined CSV covering multiple chromosomes or a list of chromosome-specific CSV files. Multiple entries allow comparisons across callers and resolutions.
+
+The analysis reports genes overlapping focal hcCNA events, over-representation analysis (ORA) results, gene- and pathway-level Jaccard similarities, and summary statistics. See the output files for results from each sample, caller, and resolution.
+
 ------
 
 ## CN Phasing
 
-This section focuses on the consistency of haplotype phasing between callers. It determines if two different algorithms assign the same parental phase to heterozygous copy number states.
+Compare genome-wide CN phasing between callers at the cell level.
 
 ### Global CN phasing
 
-**Are CN values consistently phased?** Quantifies the pairwise phasing agreement by calculating the mismatch error between the callers' predicted phase strings. This is conducted in **shared-heterozygous mode**, meaning only loci identified as informative by both callers are compared. A mismatch error near 0 indicates that the two algorithms are in high agreement regarding the global and local phase.
+Calculate mismatch error between inferred CN phases in shared cells. With `mode="heterozygous-only"`, comparisons are restricted to heterozygous loci informative in both callers; lower mismatch error indicates greater agreement.
 
 ```python
 # Global CN phasing
@@ -365,35 +389,3 @@ realbench_runner.global_cn_phasing(
     # outprefix = "global_cn_phasing_heterozygous-only"
 )
 ```
-
-
-## Focal genes and pathways analysis
-
-**Are focal hcCNA-associated genes and pathways consistent across callers and resolutions?** Annotates genes overlapping focal hcCNA regions, performs over-representation analysis (ORA), and calculates gene/pathway Jaccard similarity between callers and resolutions. 
-
-### Prepare gene and pathway annotations
-
-This analysis requires annotated hcCNA events, a gene annotation (GTF) file, and pathway gene sets. HCBench includes three pathway libraries: `MSigDB_Hallmark_2020`, `Reactome_2022`, and `KEGG_2021_Human`.
-
-For gene annotation, HCBench uses [GENCODE v46 (hg38)](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/gencode.v46.annotation.gtf.gz) or [GENCODE v46lift37 (hg19)](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh37_mapping/gencode.v46lift37.annotation.gtf.gz). If `gtf_path` is not specified, the appropriate GTF file is downloaded automatically when needed and cached in `~/.cache/hcbench/resources/genes/<genome>/`. Alternatively, provide the path to a local GTF file using `gtf_path`. Make sure `genome` matches the genomic coordinates in your CNA files.
-
-By default, all three bundled pathway libraries are available. Use `libraries` to select specific libraries, `gene_sets` to provide custom GMT files, or `resource_dir` to use a custom resource directory. When using the bundled libraries, you can leave `resource_dir` unset.
-
-### Run focal genes and pathways analysis
-
-`exp/` supplies CNA matrices, not annotated hcCNA event tables. Generate the Alleloscope and CHISEL annotations as described above, then supply two `annotated_inputs` records in `tools` order, each with its actual `sample`, `tool`, `bin_size`, and generated annotation `files`. The sample identity and resolution are not inferred from the directory names and are not invented here. For an offline run, also supply an existing GTF as `gtf_path`; `exp/` has no GTF. Omitting that argument retains the automatic GTF download behavior described above. The following template requires these inputs to be prepared first:
-
-```python
-# Focal genes and pathways analysis (after preparing the missing inputs)
-# realbench_runner.focal_genes_and_pathways(
-#     annotated_inputs=annotated_inputs,
-#     genome="hg38",  # must match the input coordinates
-#     gtf_path=gtf_path,  # existing GTF; omit to use the automatic default
-#     workers=2,
-#     # outprefix="focal_genes_and_pathways"
-# )
-```
-
-Each entry in `annotated_inputs` identifies a sample, a caller, a bin size, and its annotated CNA file(s). You can provide either a combined CSV covering multiple chromosomes or a list of chromosome-specific CSV files. Multiple entries allow comparisons across callers and resolutions.
-
-The analysis reports genes overlapping focal hcCNA events, over-representation analysis (ORA) results, gene- and pathway-level Jaccard similarities, and summary statistics. See the output files for results from each sample, caller, and resolution.

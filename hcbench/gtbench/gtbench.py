@@ -1004,7 +1004,7 @@ class GTBench:
         tool_cna_files: List[str],
         tool_names: List[str],
         profile_bin_size = 100000,
-        threshold = 0.95,
+        threshold = 0.8,
         outprefix: str = "complex_hccnas_",
         level = "cell",
         changes_file: Optional[str] = '',

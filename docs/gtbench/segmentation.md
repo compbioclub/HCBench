@@ -7,7 +7,7 @@ complex_hccnas(
     tool_cna_files: List[str],
     tool_names: List[str],
     profile_bin_size=100000,
-    threshold=0.95,
+    threshold=0.8,
     outprefix: str = "complex_hccnas_",
     level="cell",
     changes_file: Optional[str] = ""
@@ -30,7 +30,7 @@ A single metrics CSV is written to disk.
 | `tool_cna_files`   | `List[str]`     | List of tool CNA profile CSVs. Must align with `tool_names`. |
 | `tool_names`       | `List[str]`     | Tool names used to label metric outputs.                     |
 | `profile_bin_size` | `int`           | Bin size used to split/standardize tool regions before metric computation. Default: `100000` (100kb). |
-| `threshold`        | `float`         | Threshold passed into `annotate_segments(...)` (used for complex_hccnas/CNV detection sensitivity). Default: `0.95`. |
+| `threshold`        | `float`         | Threshold passed into `annotate_segments(...)` (used for complex_hccnas/CNV detection sensitivity). Default: `0.8`. |
 | `outprefix`        | `str`           | Prefix used for the output metrics filename. Default: `"complex_hccnas_"`. |
 | `level`            | `str`           | Placeholder for evaluation level (`"cell"` or `"clone"`). Currently only `"cell"` path is active. |
 | `changes_file`     | `Optional[str]` | Reserved for clone-level evaluation (commented out in current implementation). Default: `""`. |

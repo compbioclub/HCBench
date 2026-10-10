@@ -61,7 +61,7 @@ class GTParser(CNAParser):
 
     def segmentation(self,
         gt_cna_file: str,
-        threshold = 0.95,
+        threshold = 0.8,
         outprefix: str = "segmentation_",
         ):
 

@@ -588,7 +588,7 @@ class RealBench:
         self,
         tool_cna_files: Optional[List[str]] = None,
         tool_names: Optional[List[str]] = None,
-        threshold: float = 0.95,
+        threshold: float = 0.8,
         outprefix: str = "complex_hccnas_",
         save_annotated_df: bool = False,
         chromosomes: Optional[List[str]] = None,

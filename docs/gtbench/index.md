@@ -411,7 +411,7 @@ bench.complex_hccnas(
 )
 ```
 
-The `threshold` parameter controls the similarity threshold used in complex hcCNA evaluation (default: `0.95`), while `profile_bin_size` specifies the GT profile resolution in base pairs (default: `100000`). The `genome` parameter selects the reference genome (`"hg38"` by default; `"hg19"` is also supported).
+The `threshold` parameter controls the similarity threshold used in complex hcCNA evaluation (default: `0.8`), while `profile_bin_size` specifies the GT profile resolution in base pairs (default: `100000`). The `genome` parameter selects the reference genome (`"hg38"` by default; `"hg19"` is also supported).
 
 #### Save annotated complex hcCNAs
 
