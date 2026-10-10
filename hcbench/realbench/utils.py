@@ -493,7 +493,6 @@ def process_variant_data(base_input_path, output_dir, min_dp=2, min_cells=3, pre
 
     os.makedirs(output_dir, exist_ok=True)
     
-    print("-" * 30)
     print(f"Processing data from: {base_input_path}")
     print(f"Output directory: {output_dir}")
 
@@ -504,7 +503,6 @@ def process_variant_data(base_input_path, output_dir, min_dp=2, min_cells=3, pre
     
     AD = scipy.io.mmread(ad_path).tocsr()
     DP = scipy.io.mmread(dp_path).tocsr()
-    print(f"Matrix shape: {AD.shape}")
 
 
     VAF = sparse_divide(AD, DP)
@@ -545,21 +543,20 @@ def process_variant_data(base_input_path, output_dir, min_dp=2, min_cells=3, pre
     
 
     print("Processing complete.")
-    print("-" * 30)
 
 
 def match_snvs_to_bins(snv_df, cna_df):
     """
-    将 SNV 映射到对应的 Bin 索引。
+    Map SNVs to their corresponding bin indices.
     
-    参数:
-    snv_df : DataFrame, 包含列 ['chrom', 'pos']
-    cna_df : DataFrame, 包含列 ['region']
+    Parameters:
+    snv_df : DataFrame with columns ['chrom', 'pos']
+    cna_df : DataFrame with column ['region']
     
-    返回:
-    snv_to_bin_idx : np.array, 长度等于 snv_df 的行数。
-                     值为对应的 bin 在 cna_df 中的 index。
-                     如果没找到对应 bin，值为 -1。
+    Returns:
+    snv_to_bin_idx : np.array with one entry per row of snv_df.
+                     Each value is the index of the corresponding bin in cna_df.
+                     Unmatched SNVs have a value of -1.
     """
 
     snv_to_bin_idx = np.full(len(snv_df), -1, dtype=int)
@@ -749,28 +746,19 @@ def calculate_llr(
     cn2_A = cna2_A_df.loc[:,common_cells].to_numpy()
     cn2_B = cna2_B_df.loc[:,common_cells].to_numpy()
 
-    print("cn2_B shape:", cn2_B.shape)
-    print("before snv_indices2 min/max:", int(snv_indices2.min()), int(snv_indices2.max()))
-    print("unique bins in snv_indices2:", len(np.unique(snv_indices2)))
 
     snv_indices1 = snv_indices1[pos1]
     snv_indices2 = snv_indices2[pos2]
 
-    print("cn2_B shape:", cn2_B.shape)
-    print("after snv_indices2 min/max:", int(snv_indices2.min()), int(snv_indices2.max()))
-    print("unique bins in snv_indices2:", len(np.unique(snv_indices2)))
 
     ll1 = calc_method_ll_from_bins(snv_v1, snv_r1, snv_indices1, cn1_A, cn1_B)
     ll2 = calc_method_ll_from_bins(snv_v2, snv_r2, snv_indices2, cn2_A, cn2_B)
 
-    # # 需要修改成两个工具共同的snv
     mask = (~np.isnan(ll1)) & (~np.isnan(ll2))
     ll1 = ll1[mask]
     ll2 = ll2[mask]
     snv_scores = ll1 - ll2
     llr_obs = snv_scores.sum()
-    print(f"ll1 : {ll1[:5]}")
-    print(f"ll2 : {ll2[:5]}")
 
 
     boot_totals = bootstrap_llr(snv_scores, n_boot=n_perm, random_state=0)

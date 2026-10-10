@@ -258,11 +258,9 @@ class RealBench:
 
                 truth = pd.read_csv(path1)
                 pred = pd.read_csv(path2)
-                print("align before", pred.shape)
 
                 truth,pred = align_cna_bins(truth,pred)
 
-                print("align after", pred.shape)
 
 
                 rmse, scc, acc = evaluate_haplotype_predictions(pred, truth, haplotype)
@@ -395,7 +393,7 @@ class RealBench:
         cell_lists: List[List[str]],
         variant_pos_dfs: List[pd.DataFrame]
     ):
-        # 1) common cells 只算一次
+        # 1) Compute common cells once.
         common_cells = intersect_cells_from_cna(tool_hap1_files, tool_hap2_files)
         if len(common_cells) == 0:
             raise ValueError("The intersection of cells across all tools is empty.")
@@ -469,12 +467,12 @@ class RealBench:
                 dup_n = int(AD_df.index.duplicated(keep=False).sum())
                 print(f"[{gt_name}] Found duplicated variant_key rows: {dup_n}. Summing duplicates...")
 
-                # (a) AD/DP 对重复 key 求和
+                # (a) Sum AD/DP counts for duplicate keys.
                 AD_df = AD_df.groupby(level=0).sum()
                 DP_df = DP_df.groupby(level=0).sum()
 
-                # (b) variant_f 压缩到每个 key 一行，顺序对齐 AD_df.index
-                #     用 groupby(level=0).first() 保留 ref/alt 等信息时也可扩展
+                # (b) Collapse variant_f to one row per key, aligned with AD_df.index.
+                #     Keep the first ref/alt and other metadata values for each key.
                 tmp = variant_f.copy()
                 tmp["variant_key"] = variant_key.values
                 variant_f_u = tmp.groupby("variant_key", sort=False).first()
@@ -487,8 +485,6 @@ class RealBench:
 
             snv_to_bin_idx = match_snvs_to_bins(variant_f, cnaA.reset_index())
             snv_to_bin_list.append(snv_to_bin_idx)
-            print(f"{gt_name } snv_indices min/max:", int(snv_to_bin_idx.min()), int(snv_to_bin_idx.max()))
-            print("unique bins in snv_indices:", len(np.unique(snv_to_bin_idx)))
 
             cnaA = cnaA.loc[:, common_cells]
             cnaB = cnaB.loc[:, common_cells]
@@ -501,9 +497,6 @@ class RealBench:
                 # if i == j:
                 #     continue
                 print(f"Calculating LLR under GT={name1} - > Tool1={name1} vs Tool2={name2}")
-                print(f"AD1: {AD_list[i].head()}, DP1: {DP_list[i].head()}")
-                print(f"AD2: {AD_list[j].head()}, DP2: {DP_list[j].head()}")
-                print(f"snv_to_bin1: {snv_to_bin_list[i][:5]}, snv_to_bin2: {snv_to_bin_list[j][:5]}")
 
 
                 result = calculate_llr(
@@ -520,7 +513,6 @@ class RealBench:
                 result["Tool2"] = name2
                 result["n_common_cells"] = len(common_cells)
                 results.append(result)
-                print(result)
 
         final_df = pd.DataFrame(results)
         out = os.path.join(self.output_dir, "major_minor_cn_vs_vaf.csv")
@@ -581,7 +573,6 @@ class RealBench:
                     categorize_and_save(gt_h2, p_h2, save_dir, tool2, cond, hap_list[1])
 
                     res = process_folder_for_metrics(save_dir, tool2, hap_list)
-                    print(res)
                     for htype, metrics in res.items():
                         row = {"Type": folder, "Haplotype": htype, "Tool1": tool1, "Tool2": tool2}
                         row.update(metrics)
@@ -730,16 +721,12 @@ class RealBench:
                 if not (pair_df_segment_1.empty or pair_df_segment_2.empty):
                     tool1_df, tool2_df = align_cna_bins(pair_df_segment_1, pair_df_segment_2)
 
-                    print(f"tool1 : {tool1_df.head()}")
-                    print(f"tool2 : {tool2_df.head()}")
                     
                     cols_except_region = [c for c in tool1_df.columns if c != "region"]
                     tool1_df = tool1_df.dropna(subset=cols_except_region, how="all")
                     cols_except_region = [c for c in tool2_df.columns if c != "region"]
                     tool2_df = tool2_df.dropna(subset=cols_except_region, how="all")
 
-                    print(f"tool1 after drop : {tool1_df.head()}")
-                    print(f"tool2 after drop : {tool2_df.head()}")
 
 
                 summary_df, overlap_detail_df = compare_pair_dfs(
@@ -893,7 +880,6 @@ class RealBench:
             for f_h1, f_h2, name in zip(tool_hap1_cna_files, tool_hap2_cna_files, tool_names):
                 t1 = read_and_drop_empty(f_h1)
                 t2 = read_and_drop_empty(f_h2)
-                print(f"shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
 
 
                 g1_df, t1_df = align_cna_bins(g1.copy(), t1.copy())
@@ -904,7 +890,6 @@ class RealBench:
                 g2_df.set_index("region",inplace=True)
                 t2_df.set_index("region",inplace=True)
 
-                print(f"After align change shape: {g1_df.shape}, hap1 shape: {t1_df.shape},hap2 shape: {t2_df.shape}")
 
                 g1_bin, _ = phase_to_binary(g1_df, g2_df)
 

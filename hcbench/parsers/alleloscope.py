@@ -132,21 +132,6 @@ class AlleloscopeParser(CNAParser):
         out_t.index.name = "region"
         return out_t
 
-    # def run(self):
-    #     """
-    #     Main entry point for parsing Alleloscope output.
-    #     Converts the RDS files into a unified haplotype CNA matrix.
-    #     """
-    #     print("[hcbench] Parsing Alleloscope RDS files...")
-    #     df = self.before_pivot()
-
-    #     self._check_output_path()
-    #     output_file = os.path.join(self.output_path, "haplotype_combined.csv")
-    #     df.to_csv(output_file)
-    #     print(f"[hcbench] {self.__class__.__name__} parsed CNA file saved to {output_file}")
-
-    #     if self.split_haplotype:
-    #         self._postprocess_haplotype(df)
 
     def get_cluster(self, cluster_file_path):
         """

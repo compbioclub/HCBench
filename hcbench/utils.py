@@ -136,7 +136,6 @@ def evaluate_haplotype_predictions(
 
         pred_a, pred_b = split_from_combined(pred_df)
         truth_a,truth_b = split_from_combined(truth_df)
-        print("complete ")
         rmse = (safe_rmse(pred_a, truth_a) + safe_rmse(pred_b, truth_b)) /2
         scc  = ( safe_spearman(pred_a, truth_a) + safe_spearman(pred_b, truth_b))/2
 
@@ -155,12 +154,6 @@ def calc_bin_metrics(gdf: pd.DataFrame, pdf: pd.DataFrame) -> Dict[str, Optional
         y_true = gdf.values.flatten()
         y_pred = pdf.values.flatten()
 
-        print(
-            "gdf:", gdf.shape,
-            "pdf:", pdf.shape,
-            "y_true:", len(y_true),
-            "y_pred:", len(y_pred)
-        )
 
         if len(y_true) == 0 or len(y_pred) == 0:
             print("WARNING: empty matrix!")
@@ -429,7 +422,6 @@ def _get_ref_path(filename):
 def load_centromeres(genome="hg38"):
         print(f"[hcbench] Loading {genome} centromere data")
         df = pd.read_csv(_get_ref_path(f"{genome}_centromeres.csv"))
-        # print(f"[hcbench] Loading centromere data from {data_path}...")
         return df
 
 def _classify_size(start, end, small_size, mid_size):
@@ -494,7 +486,6 @@ def _classify_whole_arm_events(
         if (left == 0 or right == 0) and (covers_p or covers_q):
             return "ARM-DEL"  # arm loss
         if (left > 1 or right > 1) and (covers_p or covers_q) and (left != 0 and right != 0):
-            # print("ARM-DUP DEBUG:", ch, start, end, "p_end", p_end, "q_start", q_start, "chr_len", chr_len, "covers_p", covers_p, "covers_q", covers_q, "val", val)
             return "ARM-DUP"  # arm gain
 
         return _classify_cnv(val)
@@ -544,7 +535,6 @@ def _mark_arm_events(df, centromeres_df, THRESH=0.8, ARM_DUP_SET = {"DUP", "ARM-
     def _mark(g):
         if g["type"].isin({"WGD", "WCD","WCL"}).all():
             return g
-        # print("Processing group: ", g.head())
         chrom = g["Segment"].iloc[0].split(":")[0]
         ch = chrom if chrom.startswith("chr") else "chr" + chrom
         g["Start"] = g["Start"].astype(int)
@@ -737,7 +727,6 @@ def annotate_segments(
         for cell, row in df.iterrows():
             chrom = start = end = cur_val = None
             cur_bin = []
-            # print(f"Processing cell: {cell}")
 
             for key, val in row.items():
                 chrom_new = key.split(":")[0]
@@ -974,7 +963,7 @@ def get_seg_cna_event_num(df):
         .reset_index(name="seg_uniq_per_cell")
     )
 
-    # Step 2: 对每个 (size, type) 把各 cell 的 unique 数量相加
+    # Step 2: Sum per-cell unique segment counts for each (size, type).
     seg_level_cna_event_counts = (
         cell_seg_uniq
         .groupby(["size", "type"])["seg_uniq_per_cell"]
@@ -1092,7 +1081,7 @@ def merge_adjacent_segments(df_grp: pd.DataFrame) -> pd.DataFrame:
     df["Start"] = df["Start"].astype(int)
     df["End"] = df["End"].astype(int)
 
-    # 组内按坐标排序，保证“相邻行”语义正确
+    # Sort within the group by coordinates so adjacent rows are in genomic order.
     df = df.sort_values(["Start", "End"], kind="mergesort").reset_index(drop=True)
 
     merged_rows = []
@@ -1105,9 +1094,9 @@ def merge_adjacent_segments(df_grp: pd.DataFrame) -> pd.DataFrame:
         same_cna = (cur["Clone1_CNA"] == nxt["Clone1_CNA"])
 
         if is_contiguous and same_cna:
-            # 合并：延长当前段
+            # Merge by extending the current segment.
             cur["End"] = int(nxt["End"])
-            # 如果你也希望 region 自动更新，可以最后统一生成；这里先不动
+            # Leave region unchanged; it can be regenerated after merging if needed.
         else:
             merged_rows.append(cur)
             cur = nxt.copy()
@@ -1537,17 +1526,12 @@ def eval_mismatch_switch_gt(g1: pd.DataFrame, g2: pd.DataFrame,
 
     mask_1 = g1_g != -1; mask_2 = g2_g != -1
 
-    print(f"mismatch total diff {(mask_1 != mask_2).sum().sum()}")
-    print(f"mask1: { mask_1.sum().sum()}")
-    print(f"mask2: { mask_2.sum().sum()}")
 
 
     mm = ((h1_g != g1_g) & mask_1).sum().sum()
     pm = ((h2_g != g2_g) & mask_2).sum().sum()
 
     total_m = mask_1.sum().sum()
-    print(f"mask1: { mask_1.sum().sum()}")
-    print(f"mask2: { mask_2.sum().sum()}")
 
 
     # switch error
@@ -1566,7 +1550,7 @@ def eval_mismatch_switch_gt(g1: pd.DataFrame, g2: pd.DataFrame,
     h2_cur, h2_next = h2_n[:, :-1], h2_n[:, 1:]
 
     valid1 = (g1_cur != -1) & (g1_next != -1)
-    # hap2 相邻 bin 同时有效
+    # Both adjacent hap2 bins must be valid.
     valid2 = (g2_cur != -1) & (g2_next != -1)
 
 
@@ -1602,9 +1586,6 @@ def eval_mismatch_switch_homorozygous_included_predict(g1: pd.DataFrame, g2: pd.
 
     mask_1 = g1_g != -1; mask_2 = g2_g != -1
 
-    print(f"mismatch total diff {(mask_1 != mask_2).sum(axis = 0).shape}")
-    print(f"mask1: { mask_1.sum(axis = 0).shape}")
-    print(f"mask2: { mask_2.sum(axis = 0).shape}")
 
 
     mm = ((h1_g != g1_g) & mask_1).sum(axis = 0)
@@ -1671,8 +1652,6 @@ def eval_mismatch_switch_homorozygous_included(g1: pd.DataFrame, g2: pd.DataFram
     pm = ((h2_g != g2_g)).sum().sum()
 
     total_m = h1_g.size
-    print(f"mask1: { total_m}")
-    # print(f"mask2: { mask_2.sum().sum()}")
 
 
     # switch error
@@ -1691,7 +1670,7 @@ def eval_mismatch_switch_homorozygous_included(g1: pd.DataFrame, g2: pd.DataFram
     h2_cur, h2_next = h2_n[:, :-1], h2_n[:, 1:]
 
     # valid1 = (g1_cur != -1) & (g1_next != -1)
-    # # hap2 相邻 bin 同时有效
+    # Optional validity filter for adjacent hap2 bins.
     # valid2 = (g2_cur != -1) & (g2_next != -1)
 
 
@@ -1734,17 +1713,12 @@ def eval_mismatch_switch_both(g1: pd.DataFrame, g2: pd.DataFrame,
     mask_1 = (g1_g != -1) & (h1_g != -1)
     mask_2 = (g2_g != -1) & (h2_g != -1)
 
-    print(f"mismatch total diff {(mask_1 != mask_2).sum().sum()}")
-    print(f"mask1: { mask_1.sum().sum()}")
-    print(f"mask2: { mask_2.sum().sum()}")
 
 
     mm = ((h1_g != g1_g) & mask_1).sum().sum()
     pm = ((h2_g != g2_g) & mask_2).sum().sum()
 
     total_m = mask_1.sum().sum()
-    print(f"mask1: { mask_1.sum().sum()}")
-    print(f"mask2: { mask_2.sum().sum()}")
 
 
     # switch error
@@ -1763,7 +1737,7 @@ def eval_mismatch_switch_both(g1: pd.DataFrame, g2: pd.DataFrame,
     h2_cur, h2_next = h2_n[:, :-1], h2_n[:, 1:]
 
     valid1 = (g1_cur != -1) & (g1_next != -1) & (h1_cur != -1) & (h1_next != -1)
-    # hap2 相邻 bin 同时有效
+    # Both adjacent hap2 bins must be valid.
     valid2 = (g2_cur != -1) & (g2_next != -1) & (h2_cur != -1) & (h2_next != -1)
 
 
@@ -1857,7 +1831,6 @@ def _mask_by_mode(pred, gt, mode):
 def simu_cell_mismatch_error(pred_CN, actual_CN, mode):
 
     pred, gt = align(pred_CN, actual_CN)
-    print(f"Aligned CN shapes: pred {pred.shape}, gt {gt.shape} \n {pred.head()}")
 
     pred_arr = pred.to_numpy().T
     gt_arr = gt.to_numpy().T
@@ -1973,7 +1946,7 @@ def find_mirrored_subclone_pairs(
             "Cell2_id"
         ]
 
-        # 如果输入是空表，直接返回结构一致的空结果
+        # Return an empty result with the same columns for empty input.
     if df.empty:
         return pd.DataFrame(columns=output_cols)
     results = []
@@ -1981,7 +1954,7 @@ def find_mirrored_subclone_pairs(
     for seg, subdf in df.groupby(segment_col):
         seg_size = subdf[size_col].iloc[0] if size_col in subdf.columns else None
 
-        # 每个CNA state对应哪些cell
+        # Map each CNA state to its cells.
         state_to_cells = (
             subdf.groupby(value_col)[cell_col]
             .apply(list)
@@ -2001,7 +1974,7 @@ def find_mirrored_subclone_pairs(
             if mirror not in state_to_cells:
                 continue
 
-            # 避免 3|0 vs 0|3 和 0|3 vs 3|0 重复记两次
+            # Count 3|0 vs 0|3 and 0|3 vs 3|0 only once.
             pair_key = tuple(sorted([state, mirror]))
             if pair_key in visited:
                 continue
@@ -2014,7 +1987,7 @@ def find_mirrored_subclone_pairs(
             if len(cells1) < min_cells_per_state or len(cells2) < min_cells_per_state:
                 continue
 
-            # 两两展开，并保证 Cell1_id < Cell2_id
+            # Expand cell pairs and enforce Cell1_id < Cell2_id in string order.
             for cell_a in cells1:
                 for cell_b in cells2:
                     if cell_a == cell_b:
@@ -2042,7 +2015,7 @@ def find_mirrored_subclone_pairs(
 
 def parse_cna(cna):
     """
-    把 '2|1' 解析成 (2, 1)
+    Parse '2|1' as (2, 1).
     """
     if pd.isna(cna):
         return (np.nan, np.nan)
@@ -2073,11 +2046,11 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
     key_cols_with_size = ["size","region", "Cell1_id", "Cell2_id","Cell1_CNA", "Cell2_CNA"]
 
 
-    # 去重，避免重复记录影响统计
+    # Remove duplicate records to avoid affecting the statistics.
     df1 = df1.drop_duplicates(subset=key_cols_with_size )
     df2 = df2.drop_duplicates(subset=key_cols_with_size )
 
-    # 只保留比较需要的列，并重命名
+    # Keep and rename only the columns needed for comparison.
     df1 = df1[["size", "region", "Cell1_id", "Cell2_id", "Cell1_CNA", "Cell2_CNA"]].rename(columns={
         "Cell1_CNA": f"Cell1_CNA_{tool1_name}",
         "Cell2_CNA": f"Cell2_CNA_{tool1_name}",
@@ -2088,7 +2061,7 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
         "Cell2_CNA": f"Cell2_CNA_{tool2_name}",
     })
 
-    # overlap：按 size + region + Cell1_id + Cell2_id
+    # Match overlaps by size, region, Cell1_id and Cell2_id.
     overlap_df = pd.merge(
         df1,
         df2,
@@ -2096,12 +2069,11 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
         how="inner"
     )
 
-    # ACC：两边CNA都完全一致
+    # ACC requires matching CNA states for both cells across the two tools.
     overlap_df["CNA_match"] = (
         (overlap_df[f"Cell1_CNA_{tool1_name}"] == overlap_df[f"Cell1_CNA_{tool2_name}"]) &
         (overlap_df[f"Cell2_CNA_{tool1_name}"] == overlap_df[f"Cell2_CNA_{tool2_name}"])
     )
-    print(overlap_df.head())
 
     if overlap_df.empty:
         return summary_null, overlap_df
@@ -2114,7 +2086,7 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
             lambda x: pd.Series(parse_cna(x))
         )
 
-    # 每条 overlap 记录的 squared error
+    # Compute the squared error for each overlap record.
     overlap_df["squared_error"] = (
         (overlap_df[f"c1a_{tool1_name}"] - overlap_df[f"c1a_{tool2_name}"]) ** 2 +
         (overlap_df[f"c1b_{tool1_name}"] - overlap_df[f"c1b_{tool2_name}"]) ** 2 +
@@ -2122,7 +2094,7 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
         (overlap_df[f"c2b_{tool1_name}"] - overlap_df[f"c2b_{tool2_name}"]) ** 2
     )
 
-    # 统计每个 size 下各自记录数
+    # Count records for each tool and overlaps by size.
     n1_by_size = df1.groupby("size").size().rename(f"n_{tool1_name}")
     n2_by_size = df2.groupby("size").size().rename(f"n_{tool2_name}")
     overlap_n_by_size = overlap_df.groupby("size").size().rename("overlap_n")

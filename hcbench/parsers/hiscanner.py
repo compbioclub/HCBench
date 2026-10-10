@@ -52,17 +52,6 @@ class HiscannerParser(CNAParser):
 
         return merged_df
 
-    # def run(self):
-    #     print("[hcbench] Parsing Hiscanner files...")
-    #     df = self.before_pivot()
-
-    #     self._check_output_path()
-    #     output_file = os.path.join(self.output_path, "haplotype_combined.csv")
-    #     df.to_csv(output_file)
-    #     print(f"[hcbench] {self.__class__.__name__} parsed CNA file saved to {output_file}")
-
-    #     if self.split_haplotype:
-    #         self._postprocess_haplotype(df)
 
     def get_bin_counts(self, counts_col = "OBS"):
 

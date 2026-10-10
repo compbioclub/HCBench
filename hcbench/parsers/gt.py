@@ -46,52 +46,6 @@ class GTParser(CNAParser):
         return wide_df
 
 
-    # def run(self):
-    #     print(f"[hcbench] Parsing ground truth CNV: {self.input_path}")
-
-    #     wide_df = pd.read_csv(self.input_path, index_col=0)
-
-    #     result = split_and_process_haplotype(wide_df)
-
-    #     os.makedirs(self.output_path, exist_ok=True)
-    #     result["hap1"].to_csv(os.path.join(self.output_path, "haplotype_1.csv"))
-    #     result["hap2"].to_csv(os.path.join(self.output_path, "haplotype_2.csv"))
-    #     result["minor"].to_csv(os.path.join(self.output_path, "minor.csv"))
-    #     result["major"].to_csv(os.path.join(self.output_path, "major.csv"))
-    #     result["combined"].to_csv(os.path.join(self.output_path, "minor_major.csv"))
-
-    #     print(f"[hcbench] Saved haplotype split results → {self.output_path}")
-
-    #     if self.annotate_segment:
-
-    #         annotated_df = self._annotate_segments(wide_df)
-    #         annotated_path = os.path.join(self.output_path, "ground_truth_classified.csv")
-    #         annotated_df.to_csv(annotated_path, index=False)
-    #         print(f"[hcbench] Saved size/type classification → {annotated_path}")
-
-    #         mirrored_df = self.find_mirrored_clones(wide_df)
-    #         mirrored_path = os.path.join(self.output_path, "mirrored_clones.csv")
-    #         mirrored_df.to_csv(mirrored_path, index=False)
-    #         print(f"[hcbench] Saved mirrored clone events → {mirrored_path}")
-
-    #         return {
-    #             "hap1": result["hap1"],
-    #             "hap2": result["hap2"],
-    #             "minor": result["minor"],
-    #             "major": result["major"],
-    #             "combined": result["combined"],
-    #             "classified": annotated_df,
-    #             "mirrored": mirrored_df
-    #         }
-        
-    #     else:
-    #         return {
-    #             "hap1": result["hap1"],
-    #             "hap2": result["hap2"],
-    #             "minor": result["minor"],
-    #             "major": result["major"],
-    #             "combined": result["combined"],
-    #         }
 
     def annotate_segments(
         self, cna_df_path, threshold=0.9, detect_cnv_type=False,

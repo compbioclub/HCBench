@@ -53,10 +53,11 @@ class ChiselParser(CNAParser):
 
     def run(self):
         """
-        Run the original CNAParser pipeline twice (without modifying CNAParser/BaseParser):
+        Run the original CNAParser pipeline for the configured value columns:
         - Once for the first value column -> {output_path}_clone_level
         - Once for the second value column -> {output_path}_cell_level
 
+        With one configured column, run once using the current output_path.
         Each run reuses CNAParser.run() exactly as-is; we only switch
         self.value_col and self.output_path before calling super().run().
         """

@@ -13,7 +13,6 @@ class MatricBaseParser(CNAParser):
         cna_df.set_index("bin", inplace=True)
         cna_df.index.name = "region"
 
-        print(cna_df.head())
 
         return cna_df
 

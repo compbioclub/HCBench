@@ -42,8 +42,6 @@ class CNReinParser(CNAParser):
         cells_npz = np.load(cell_name_path)
         cell_names = cells_npz["arr_0"]  # shape: (n_cells,)
 
-        print("Counts shape:", counts.shape)
-        print("Cell names shape:", cell_names.shape)
 
         if counts.shape[0] != len(cell_names):
             raise ValueError(f"counts shape:  {counts.shape}, cell_names shape: {len(cell_names)}")

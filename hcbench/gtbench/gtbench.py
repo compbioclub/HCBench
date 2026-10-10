@@ -73,16 +73,13 @@ class GTBench:
             print(name)
             pred = read_and_drop_empty(path)
 
-            print(f"gt shape: {truth_df.shape}, {name} shape: {pred.shape}")
             pred = split_all_regions(pred.set_index("region"), profile_bin_size)
             # pred = pred.reset_index().rename(columns={"index": "region"})
 
             truth,pred = align(truth_df,pred)
-            print(f"after align gt shape: {truth.shape}, {name} shape: {pred.shape}")
 
             rmse, scc, acc = evaluate_haplotype_predictions(pred, truth, haplotype)
             results.append({"Tool": name, "RMSE": rmse, "SCC": scc, "ACC": acc})
-            print(results)
 
         df = pd.DataFrame(results)
         out = os.path.join(self.output_dir, outfile)
@@ -491,7 +488,6 @@ class GTBench:
                 h2 = self._onset_join(change_truth, p_h2, 'hap2')
                 comb = pd.concat([h1, h2], ignore_index=True)
 
-                print(f"{change_truth['Type'].unique().tolist()}: {change_truth['Type'].shape}")
 
                 gt = comb['Change']
                 pd_p = comb["Parent_predict_num"]
@@ -556,7 +552,6 @@ class GTBench:
             g1, t1 =  align(g1_r, t1)
             g2, t2 =  align(g2_r, t2)
 
-            print(f"After align change shape: {g1.shape}, hap1 shape: {t1.shape},hap2 shape: {t2.shape}")
 
             
             g1_bin, _ = self._phase_to_binary(g1, g2)
@@ -627,7 +622,6 @@ class GTBench:
 
             change_df = change_df.dropna()
             combined = self._mirror_merge(change_df, pred)
-            print(combined.head())
             if combined.empty:
                 rows.append({"Tool": name, "RMSE": float("nan"), "ACC": float("nan")})
                 continue
@@ -814,7 +808,6 @@ class GTBench:
 
             na_ratio, na_cnt, total = evaluate_NA_ratio(pred)
             results.append({"Tool": name, "NA_ratio": na_ratio, "NA_count": na_cnt, "Total": total})
-            print(results)
 
         df = pd.DataFrame(results)
         out = os.path.join(self.output_dir, outfile)
@@ -880,7 +873,6 @@ class GTBench:
             }
 
         cell_colmap = build_prefix_map(cell_vals)
-        print("merged:" , merged.head())
 
         arr = merged.to_numpy()      # shape = (n_rows, n_cols)
         n = arr.shape[0]
@@ -1061,7 +1053,6 @@ class GTBench:
 
             tool_cna_df_long = split_all_regions(tool_cna_df_long.set_index("region"), profile_bin_size)
             tool_cna_df_long = tool_cna_df_long.reset_index().rename(columns={"index": "region"})
-            print(tool_cna_df_long.head())
 
             result2 = get_segment_metric(gt_annotated_df,tool_cna_df_long)
             
@@ -1220,7 +1211,6 @@ class GTBench:
             cell_count = len(set(pred.columns[1:]))
 
             results.append({"Tool": name, "cell_num": cell_count})
-            print(results)
 
         df = pd.DataFrame(results)
         out = os.path.join(self.output_dir, outfile)
