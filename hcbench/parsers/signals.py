@@ -50,7 +50,7 @@ class SignalsParser(CNAParser):
 
     def get_bin_counts(self, bin_count_file_path):
         
-        p = SignalsParser(ref_genome="hg38",cell_list=self.cell_list,input_path = bin_count_file_path, output_path = self.output_path)
+        p = SignalsParser(genome=self.genome, bin_size=self.bin_size,cell_list=self.cell_list,input_path = bin_count_file_path, output_path = self.output_path)
         p.value_col = 'reads'
         p.add_chr_prefix = False
         df = p.before_pivot()

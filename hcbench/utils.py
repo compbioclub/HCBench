@@ -687,6 +687,7 @@ def annotate_segments(
         chromosomes: Optional[List[str]] = None,
         save_annotated_df: bool = False,
         annotated_outfile: str = "annotated_segments.csv",
+        *, bin_size=None,
     ) -> pd.DataFrame:
 
         """Annotate selected chromosomes; optionally save combined/per-chromosome CSVs.
@@ -700,6 +701,8 @@ def annotate_segments(
             )]
 
         def finish(result):
+            if bin_size is not None:
+                result = result.loc[result["size"].isin(allowed_event_sizes(bin_size, small_size, mid_size))].copy()
             if save_annotated_df:
                 save_annotated_segments(result, annotated_outfile, chromosomes)
             return result
@@ -812,6 +815,15 @@ def annotate_segments(
 
         return finish(final_df)
 
+def allowed_event_sizes(bin_size, small_size=None, mid_size=None):
+    """Use annotation defaults to select categories supported by the resolution."""
+    if small_size is None:
+        small_size = annotate_segments.__defaults__[0]
+    if mid_size is None:
+        mid_size = annotate_segments.__defaults__[1]
+    return [size for size in ("focal", "medium", "broad")
+            if size == "broad" or bin_size <= (small_size if size == "focal" else mid_size)]
+
 def get_cell_profile_size(cn_df):
 
     groups = cn_df.T.groupby(list(cn_df.index), sort=False)
@@ -845,8 +857,8 @@ def get_cluster_size(cluster_df: pd.DataFrame) -> pd.DataFrame:
     out.index.name = "cell"
     return out
 
-def get_segment_overlap_ratio(gt_annotated_df, pred_annotated_df):
-    sizes = ['focal', 'medium', 'broad']
+def get_segment_overlap_ratio(gt_annotated_df, pred_annotated_df, *, sizes=None):
+    sizes = sizes if sizes is not None else ['focal', 'medium', 'broad']
     type_list = sorted(set(gt_annotated_df["type"].unique()) | set(pred_annotated_df["type"].unique()))
     cols = ['cell', 'region']
 
@@ -873,8 +885,8 @@ def get_segment_overlap_ratio(gt_annotated_df, pred_annotated_df):
 
     return res
 
-def get_segment_metric_both(gt_annotated_df, pred_annotated_df):
-    sizes = ['focal', 'medium', 'broad']
+def get_segment_metric_both(gt_annotated_df, pred_annotated_df, *, sizes=None):
+    sizes = sizes if sizes is not None else ['focal', 'medium', 'broad']
     type_list = set(gt_annotated_df['type'].unique()).intersection(set(pred_annotated_df['type'].unique()))
     cols = ['cell', 'region']
 
@@ -910,8 +922,8 @@ def get_segment_metric_both(gt_annotated_df, pred_annotated_df):
     res = pd.DataFrame(out, columns=['Size','Type', 'ACC', 'SCC', 'RMSE'])
     return res
 
-def get_segment_metric(gt_annotated_df, pred_df):
-    sizes = ['focal', 'medium', 'broad']
+def get_segment_metric(gt_annotated_df, pred_df, *, sizes=None):
+    sizes = sizes if sizes is not None else ['focal', 'medium', 'broad']
     type_list = gt_annotated_df['type'].unique()
     cols = ['cell', 'region']
     pred_s = pred_df.drop_duplicates()
@@ -2025,12 +2037,12 @@ def parse_cna(cna):
     a, b = cna.split("|")
     return float(a), float(b)
 
-def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2"):
+def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2", *, sizes=None):
 
     summary_null = pd.DataFrame({
-            "size": ['focal','broad','medium']
+            "size": sizes if sizes is not None else ['focal','broad','medium']
         })
-    summary_null["overlap_n"] = 0
+    summary_null["overlap_n"] = np.nan if sizes is not None else 0
     summary_null["ACC"] = np.nan
     summary_null["RMSE"] = np.nan
     summary_null['Tool1'] = tool1_name
@@ -2039,6 +2051,9 @@ def compare_pair_dfs(pair_df1, pair_df2, tool1_name="tool1", tool2_name="tool2")
     
     df1 = pair_df1.copy()
     df2 = pair_df2.copy()
+    if sizes is not None:
+        df1 = df1.loc[df1["size"].isin(sizes)].copy()
+        df2 = df2.loc[df2["size"].isin(sizes)].copy()
 
     if df1.empty or df2.empty:
         return summary_null, None

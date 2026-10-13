@@ -23,7 +23,6 @@ class AlleloscopeParser(CNAParser):
         genotypes_rds_path,
         seg_table_rds_path,
         barcode_path=None,
-        bin_size=None,
         add_chr_prefix=True,
         start_offset=1,
          **kwargs
@@ -31,7 +30,6 @@ class AlleloscopeParser(CNAParser):
         super().__init__(input_path=None,*args, **kwargs)
         self.genotypes_rds_path = genotypes_rds_path
         self.seg_table_rds_path = seg_table_rds_path
-        self.bin_size = bin_size
         self.add_chr_prefix = add_chr_prefix
         self.start_offset = start_offset
         self.barcode_path = barcode_path

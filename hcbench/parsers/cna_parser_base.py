@@ -16,17 +16,23 @@ class CNAParser(BaseParser):
     split_haplotype: bool = True   
 
 
-    def __init__(self, *args, ref_genome: str = "hg38",cell_list = None, bin_size = None,expand_bins: bool = False, **kwargs):
-        self.ref_genome = ref_genome
-        self.cell_list = cell_list
+    def __init__(self, *args, bin_size: int, genome: str, cell_list = None,expand_bins: bool = False, **kwargs):
+        if isinstance(bin_size, (bool, np.bool_)) or not isinstance(bin_size, (int, np.integer)) or bin_size <= 0:
+            raise ValueError("bin_size must be a positive integer")
+        if genome not in ("hg19", "hg38"):
+            raise ValueError("genome must be hg19 or hg38")
         self.bin_size = bin_size
+        self.genome = genome
+        self.cell_list = cell_list
         self.expand_bins = expand_bins
         super().__init__(*args, **kwargs)
+        print(f"Bin size: {self.bin_size} bp")
+        print(f"Genome: {self.genome}")
 
     def annotate_segments(
         self, cna_df_path, threshold=0.8, detect_cnv_type=True,
         out_file="annotated_segments.csv", *, small_size=3_000_000,
-        mid_size=10_000_000, genome=None, chromosomes=None,
+        mid_size=10_000_000, chromosomes=None,
     ):
         """Manually annotate a standardized region-by-cell CSV; run is unchanged."""
         from ..utils import annotate_segments, save_annotated_segments
@@ -35,7 +41,7 @@ class CNAParser(BaseParser):
         df.set_index("region", inplace=True)
         annotated_df = annotate_segments(
             df.T, small_size=small_size, mid_size=mid_size,
-            genome=self.ref_genome if genome is None else genome,
+            genome=self.genome, bin_size=self.bin_size,
             threshold=threshold, detect_cnv_type=detect_cnv_type,
             chromosomes=chromosomes,
         )
@@ -153,8 +159,8 @@ class CNAParser(BaseParser):
         return os.path.join(os.path.dirname(os.path.dirname(__file__)), "ref", filename)
 
     def _build_cna_df(self,cna_df):
-        print(f"[hcbench] Loading {self.ref_genome} centromere data")
-        df_ref = pd.read_csv(self._get_ref_path(f"{self.ref_genome}_centromeres.csv"))
+        print(f"[hcbench] Loading {self.genome} centromere data")
+        df_ref = pd.read_csv(self._get_ref_path(f"{self.genome}_centromeres.csv"))
 
         df_ref["chrom"] = df_ref["chrom"].astype(str)
 

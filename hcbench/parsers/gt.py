@@ -50,12 +50,12 @@ class GTParser(CNAParser):
     def annotate_segments(
         self, cna_df_path, threshold=0.9, detect_cnv_type=False,
         out_file="ground_truth_classified.csv", *, small_size=3_000_000,
-        mid_size=10_000_000, genome=None, chromosomes=None,
+        mid_size=10_000_000, chromosomes=None,
     ):
         """Keep the GT call defaults/path while using the shared annotation core."""
         super().annotate_segments(
             cna_df_path, threshold, detect_cnv_type, out_file,
-            small_size=small_size, mid_size=mid_size, genome=genome,
+            small_size=small_size, mid_size=mid_size,
             chromosomes=chromosomes,
         )
 
@@ -66,7 +66,7 @@ class GTParser(CNAParser):
         ):
 
         gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
-        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, genome=self.ref_genome)
+        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, genome=self.genome, bin_size=self.bin_size)
         gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
 
         gt_cna_event_counts = get_seg_cna_event_num(gt_annotated_df)

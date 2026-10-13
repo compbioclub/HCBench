@@ -116,38 +116,38 @@ def load_centromeres(genome="hg38"):
     df = pd.read_csv(get_ref_path(f"{genome}_centromeres.csv"))
     return df
 
-def annotate_segments(df, small_size: int = 5_000_000,mid_size: int = 20_000_000,
-        genome: str = "hg38",):
+# def annotate_segments(df, small_size: int = 5_000_000,mid_size: int = 20_000_000,
+#         genome: str = "hg38",):
     
-    centromeres_df = load_centromeres(genome)
-    records = []
+#     centromeres_df = load_centromeres(genome)
+#     records = []
 
-    for region, row in df.iterrows():
-        chrom, coords = region.split(":")
-        start, end = map(int, coords.split("-"))
+#     for region, row in df.iterrows():
+#         chrom, coords = region.split(":")
+#         start, end = map(int, coords.split("-"))
 
-        for cell, val in row.items():
-            if pd.isna(val):
-                continue
-            sval = str(val)
-            if sval in ("1|1", "nan|nan"):
-                continue
+#         for cell, val in row.items():
+#             if pd.isna(val):
+#                 continue
+#             sval = str(val)
+#             if sval in ("1|1", "nan|nan"):
+#                 continue
 
-            size_label = classify_size(start, end, small_size, mid_size)
-            type_label = classify_whole_arm_events(
-                sval, chrom, start, end, centromeres_df
-            )
-            records.append(
-                {
-                    "cell": cell,
-                    "region": region,
-                    "value": sval,
-                    "size": size_label,
-                    "type": type_label,
-                }
-            )
+#             size_label = classify_size(start, end, small_size, mid_size)
+#             type_label = classify_whole_arm_events(
+#                 sval, chrom, start, end, centromeres_df
+#             )
+#             records.append(
+#                 {
+#                     "cell": cell,
+#                     "region": region,
+#                     "value": sval,
+#                     "size": size_label,
+#                     "type": type_label,
+#                 }
+#             )
 
-    return pd.DataFrame(records)
+#     return pd.DataFrame(records)
 
 def classify_size(start, end, small_size, mid_size):
         size = int(end) - int(start) + 1

@@ -1,4 +1,4 @@
-from hcbench.utils import _chromosome_mask, save_annotated_segments, load_annotated_segments, align_annotated_segments
+from hcbench.utils import allowed_event_sizes, _chromosome_mask, save_annotated_segments, load_annotated_segments, align_annotated_segments
 # hcbench/realbench/realbench.py
 import gzip
 from operator import gt
@@ -20,12 +20,20 @@ from scipy.stats import ttest_rel
 
 class RealBench:
 
-    def __init__(self, output_dir: str = "./output"):
+    def __init__(self, bin_size: int, genome: str, output_dir: str = "./output"):
+        if isinstance(bin_size, (bool, np.bool_)) or not isinstance(bin_size, (int, np.integer)) or bin_size <= 0:
+            raise ValueError("bin_size must be a positive integer")
+        if genome not in ("hg19", "hg38"):
+            raise ValueError("genome must be hg19 or hg38")
+        self.bin_size = bin_size
+        self.genome = genome
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
+        print(f"Bin size: {self.bin_size} bp")
+        print(f"Genome: {self.genome}")
 
     def focal_genes_and_pathways(
-        self, annotated_inputs, *, genome="hg38", resource_dir=None,
+        self, annotated_inputs, *, resource_dir=None,
         gtf_path=None, gene_sets=None, libraries=None,
         workers=2, annotation_mode="full", resume=False, background="genome",
         min_query_size=3, min_set_size=10, max_set_size=500, min_overlap=3,
@@ -40,12 +48,16 @@ class RealBench:
         """
         from ..utils import run_focal_gene_pathway_analysis
 
+        if "focal" not in allowed_event_sizes(self.bin_size):
+            print("Skipping focal gene/pathway analysis at the configured bin size")
+            return None
+
         if (not isinstance(outprefix, str) or not outprefix
                 or outprefix in {".", ".."} or any(c in outprefix for c in "/\\\x00")):
             raise ValueError("outprefix must be a single nonempty directory name")
         return run_focal_gene_pathway_analysis(
             annotated_inputs, os.path.join(self.output_dir, outprefix),
-            genome=genome, resource_dir=resource_dir, gtf_path=gtf_path,
+            genome=self.genome, resource_dir=resource_dir, gtf_path=gtf_path,
             gene_sets=gene_sets,
             libraries=libraries, workers=workers, annotation_mode=annotation_mode,
             resume=resume, background=background, min_query_size=min_query_size,
@@ -595,7 +607,7 @@ class RealBench:
         outprefix: str = "complex_hccnas_",
         save_annotated_df: bool = False,
         chromosomes: Optional[List[str]] = None,
-        *, annotated_files=None, genome: str = "hg38",
+        *, annotated_files=None,
     ):
         """Annotate each tool once, then split event tables for pairwise metrics.
 
@@ -633,9 +645,11 @@ class RealBench:
                 df = df.dropna(subset=cols_except_region, how="all")
                 annotated = annotate_segments(
                     df.set_index("region").T, detect_cnv_type=True,
-                    threshold=threshold, chromosomes=chromosomes, genome=genome,
+                    threshold=threshold, chromosomes=chromosomes, genome=self.genome,
+                    bin_size=self.bin_size,
                 )
                 annotated = load_annotated_segments(annotated)
+            annotated = annotated.loc[annotated["size"].isin(allowed_event_sizes(self.bin_size))].copy()
             annotations.append(annotated)
             if save_annotated_df:
                 output_file = os.path.join(
@@ -662,8 +676,8 @@ class RealBench:
                     annotations[i], annotations[j]
                 )
 
-                result_overlap = get_segment_overlap_ratio(tool1_annotated_df, tool2_annotated_df)
-                result_metric = get_segment_metric_both(tool1_annotated_df, tool2_annotated_df)
+                result_overlap = get_segment_overlap_ratio(tool1_annotated_df, tool2_annotated_df, sizes=allowed_event_sizes(self.bin_size))
+                result_metric = get_segment_metric_both(tool1_annotated_df, tool2_annotated_df, sizes=allowed_event_sizes(self.bin_size))
 
                 result_overlap["Tool1"] = name1
                 result_overlap["Tool2"] = name2
@@ -692,7 +706,7 @@ class RealBench:
         for i in range(len(tool_names)):
             df = pd.read_csv(tool_cna_files[i], index_col=0)
 
-            cna_annotated_df = annotate_segments(df.T, detect_cnv_type=False)
+            cna_annotated_df = annotate_segments(df.T, detect_cnv_type=False, bin_size=self.bin_size, genome=self.genome)
             cna_annotated_df['region'] = cna_annotated_df['Chrom'] + ":" + cna_annotated_df['Start'].astype(str) + "-" + cna_annotated_df['End'].astype(str)
             if use_segemnt:
                 tool_annotated_df = cna_annotated_df[['cell','Segment','size','value']].drop_duplicates().copy()
@@ -721,6 +735,7 @@ class RealBench:
                     return None
 
 
+                tool1_df, tool2_df = pair_df_segment_1, pair_df_segment_2
                 if not (pair_df_segment_1.empty or pair_df_segment_2.empty):
                     tool1_df, tool2_df = align_cna_bins(pair_df_segment_1, pair_df_segment_2)
 
@@ -736,7 +751,8 @@ class RealBench:
                     tool1_df,
                     tool2_df,
                     tool1_name=tool_names[i],
-                    tool2_name=tool_names[j]
+                    tool2_name=tool_names[j],
+                    sizes=allowed_event_sizes(self.bin_size),
                 )
 
                 result.append(summary_df)

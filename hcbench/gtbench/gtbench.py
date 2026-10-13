@@ -1,4 +1,4 @@
-from hcbench.utils import _chromosome_mask, save_annotated_segments
+from hcbench.utils import allowed_event_sizes, _chromosome_mask, save_annotated_segments
 # hcbench/gtbench/gtbench.py
 from math import nan
 from operator import gt
@@ -28,9 +28,17 @@ from ..realbench.utils import create_lazac_input,get_final_parsimony_score
 
 class GTBench:
 
-    def __init__(self, output_dir: str = "./output"):
+    def __init__(self, bin_size: int, genome: str, output_dir: str = "./output"):
+        if isinstance(bin_size, (bool, np.bool_)) or not isinstance(bin_size, (int, np.integer)) or bin_size <= 0:
+            raise ValueError("bin_size must be a positive integer")
+        if genome not in ("hg19", "hg38"):
+            raise ValueError("genome must be hg19 or hg38")
+        self.bin_size = bin_size
+        self.genome = genome
         self.output_dir = output_dir
         os.makedirs(self.output_dir, exist_ok=True)
+        print(f"Bin size: {self.bin_size} bp")
+        print(f"Genome: {self.genome}")
 
 
     @staticmethod
@@ -60,7 +68,7 @@ class GTBench:
         cna_profile_file: str,
         tool_names: List[str],
         haplotype: str = "combined",
-        profile_bin_size = 100000,
+
         outfile: str = "cna_values.csv",
         index_col: Optional[int] = 0,
     ) -> pd.DataFrame:
@@ -73,7 +81,7 @@ class GTBench:
             print(name)
             pred = read_and_drop_empty(path)
 
-            pred = split_all_regions(pred.set_index("region"), profile_bin_size)
+            pred = split_all_regions(pred.set_index("region"), self.bin_size)
             # pred = pred.reset_index().rename(columns={"index": "region"})
 
             truth,pred = align(truth_df,pred)
@@ -95,7 +103,7 @@ class GTBench:
         profile_hap1_cna_file: str,
         profile_hap2_cna_file: str,
         type: str = "hcCNA",
-        profile_bin_size = 100000,
+
         outfile: str = "cna_states.csv",
     ) -> pd.DataFrame:
 
@@ -121,8 +129,8 @@ class GTBench:
             p_h1 = pd.read_csv(f_h1).fillna(-1) 
             p_h2 = pd.read_csv(f_h2).fillna(-1)
 
-            p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size)
-            p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size)
+            p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size)
+            p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size)
 
             gt_h1, p_h1 =  align(gt_h1_r, p_h1)
             gt_h2, p_h2 =  align(gt_h2_r, p_h2)
@@ -167,7 +175,7 @@ class GTBench:
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
-        profile_bin_size = 100000,
+
         outfile: str = "cn_change_at_onset.csv",
     ) -> pd.DataFrame:
 
@@ -176,7 +184,7 @@ class GTBench:
         if 'Haplotype' in change_truth.columns:
             change_truth['Haplotype'] = self._normalize_hap_label(change_truth['Haplotype'])
 
-        change_truth = split_all_regions(change_truth.set_index("Segment"), profile_bin_size)
+        change_truth = split_all_regions(change_truth.set_index("Segment"), self.bin_size)
         change_truth = change_truth.reset_index().rename(columns={"index": "Segment"})
 
         results = []
@@ -185,9 +193,9 @@ class GTBench:
             p_h1 = read_and_drop_empty(f_h1)
             p_h2 = read_and_drop_empty(f_h2)
 
-            p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size)
+            p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size)
             p_h1 = p_h1.reset_index().rename(columns={"index": "region"})
-            p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size)
+            p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size)
             p_h2 = p_h2.reset_index().rename(columns={"index": "region"})
 
 
@@ -242,7 +250,7 @@ class GTBench:
         changes_file: str,
         tree_file: str,
         outfile: str = "complex_hccna_stability.csv",
-        profile_bin_size = 100000
+
     ) -> pd.DataFrame:
 
         tree = Phylo.read(tree_file, "newick")
@@ -250,7 +258,7 @@ class GTBench:
 
         change_df = self._add_check_list(tree, change_df)
 
-        change_df = split_all_regions(change_df.set_index("Segment"), profile_bin_size)
+        change_df = split_all_regions(change_df.set_index("Segment"), self.bin_size)
         change_df = change_df.reset_index().rename(columns={"index": "Segment"})
 
         if 'Haplotype' in change_df.columns:
@@ -262,9 +270,9 @@ class GTBench:
             p_h1 = read_and_drop_empty(f_h1)
             p_h2 = read_and_drop_empty(f_h2)
 
-            p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size)
+            p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size)
             p_h1 = p_h1.reset_index().rename(columns={"index": "region"})
-            p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size)
+            p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size)
             p_h2 = p_h2.reset_index().rename(columns={"index": "region"})
 
             proc = change_df.copy()
@@ -350,13 +358,13 @@ class GTBench:
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
-        profile_bin_size = 100000,
+
         outfile: str = "complex_hccna_at_onset.csv",
     ) -> pd.DataFrame:
 
         change_truth = read_and_drop_empty(changes_file)
 
-        change_truth = split_all_regions(change_truth.set_index("Segment"), profile_bin_size)
+        change_truth = split_all_regions(change_truth.set_index("Segment"), self.bin_size)
         change_truth = change_truth.reset_index().rename(columns={"index": "Segment"})
 
 
@@ -367,9 +375,9 @@ class GTBench:
         for f_h1, f_h2, name in zip(tool_hap1_cna_files, tool_hap2_cna_files, tool_names):            
             p_h1 = read_and_drop_empty(f_h1); p_h2 = read_and_drop_empty(f_h2)
 
-            p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size)
+            p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size)
             p_h1 = p_h1.reset_index().rename(columns={"index": "region"})
-            p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size)
+            p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size)
             p_h2 = p_h2.reset_index().rename(columns={"index": "region"})
 
 
@@ -462,7 +470,7 @@ class GTBench:
         tool_names: List[str],
         changes_file: str,
         outfile: str = "parental_cn_at_onset.csv",
-        profile_bin_size = 100000
+
     ) -> pd.DataFrame:
 
         change_truth_r = read_and_drop_empty(changes_file)
@@ -470,15 +478,15 @@ class GTBench:
             change_truth_r['Haplotype'] = self._normalize_hap_label(change_truth_r['Haplotype'])
         results = []
 
-        change_truth_r = split_all_regions(change_truth_r.set_index("Segment"), profile_bin_size)
+        change_truth_r = split_all_regions(change_truth_r.set_index("Segment"), self.bin_size)
         change_truth_r = change_truth_r.reset_index().rename(columns={"index": "Segment"})
 
         for f_h1, f_h2, name in zip(tool_hap1_cna_files, tool_hap2_cna_files, tool_names):
             p_h1 = read_and_drop_empty(f_h1); p_h2 = read_and_drop_empty(f_h2)
 
-            p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size)
+            p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size)
             p_h1 = p_h1.reset_index().rename(columns={"index": "region"})
-            p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size)
+            p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size)
             p_h2 = p_h2.reset_index().rename(columns={"index": "region"})
 
             for t in change_truth_r['Type'].unique().tolist():
@@ -530,7 +538,7 @@ class GTBench:
         ground_truth_hap1_file: str,
         ground_truth_hap2_file: str,
         outprefix = "global_cn_phasing",
-        profile_bin_size = 100000,
+
         mode = "heterozygous-only",
         is_clone = False,
     ) -> pd.DataFrame:
@@ -547,8 +555,8 @@ class GTBench:
             t1 = read_and_drop_empty(f_h1)
             t2 = read_and_drop_empty(f_h2)
 
-            t1 = split_all_regions(t1.set_index("region"), profile_bin_size)
-            t2 = split_all_regions(t2.set_index("region"), profile_bin_size)
+            t1 = split_all_regions(t1.set_index("region"), self.bin_size)
+            t2 = split_all_regions(t2.set_index("region"), self.bin_size)
             g1, t1 =  align(g1_r, t1)
             g2, t2 =  align(g2_r, t2)
 
@@ -592,7 +600,7 @@ class GTBench:
         tool_cna_files: List[str],
         tool_names: List[str],
         changes_file: str,
-        profile_bin_size =100000,
+
         cal_event_level = False,
         outfile: str = "mirrored_subclonal_cnas.csv",
     ) -> pd.DataFrame:
@@ -607,7 +615,7 @@ class GTBench:
 
         change_df_r['Segment'] = change_df_r['region']
 
-        change_truth_r = split_all_regions(change_df_r.set_index("region"), profile_bin_size)
+        change_truth_r = split_all_regions(change_df_r.set_index("region"), self.bin_size)
         change_truth_r = change_truth_r.reset_index().rename(columns={"index": "region"})
 
         rows = []
@@ -615,7 +623,7 @@ class GTBench:
         for path, name in zip(tool_cna_files, tool_names):
             pred = read_and_drop_empty(path)
 
-            pred = split_all_regions(pred.set_index("region"), profile_bin_size)
+            pred = split_all_regions(pred.set_index("region"), self.bin_size)
             pred = pred.reset_index().rename(columns={"index": "region"})
 
             change_df = change_truth_r
@@ -795,7 +803,7 @@ class GTBench:
             self,
             tool_cna_files: List[str],
             tool_names: List[str],
-            profile_bin_size = 100000,
+
             outfile: str = "NA_ratio_results.csv",
         ) -> pd.DataFrame:
 
@@ -805,7 +813,7 @@ class GTBench:
             print(name)
             pred = pd.read_csv(path)
 
-            pred = split_all_regions(pred.set_index("region"), profile_bin_size)
+            pred = split_all_regions(pred.set_index("region"), self.bin_size)
             pred = pred.reset_index().rename(columns={"index": "region"})
 
             na_ratio, na_cnt, total = evaluate_NA_ratio(pred)
@@ -823,13 +831,13 @@ class GTBench:
         size_file: str,
         level : str,
         outfile: str = "detect_size_acc.csv",
-        profile_bin_size = 100000
+
         ):
 
 
         size_truth = read_and_drop_empty(size_file)
 
-        size_truth = split_all_regions(size_truth.set_index("Segment"), profile_bin_size)
+        size_truth = split_all_regions(size_truth.set_index("Segment"), self.bin_size)
         size_truth = size_truth.reset_index().rename(columns={"index": "Segment"})
 
         results = []
@@ -837,7 +845,7 @@ class GTBench:
         for f_h, name in zip(tool_cna_files, tool_names):            
             pred = read_and_drop_empty(f_h)
 
-            pred = split_all_regions(pred.set_index("region"), profile_bin_size)
+            pred = split_all_regions(pred.set_index("region"), self.bin_size)
             pred = pred.reset_index().rename(columns={"index": "region"})
 
             if level == "cell":
@@ -1001,81 +1009,102 @@ class GTBench:
 
         df_mean.to_csv(os.path.join(self.output_dir, f"mean_{outfile}"), index=False)
 
-    def complex_hccnas(self,
-        gt_cna_file: str,
+    def complex_hccnas(
+        self,
+        gt_cna_file: Optional[str],
         tool_cna_files: List[str],
         tool_names: List[str],
-        profile_bin_size = 100000,
-        threshold = 0.8,
-        outprefix: str = "complex_hccnas_",
-        level = "cell",
-        changes_file: Optional[str] = '',
-        save_annotated_df: bool = False,
-        chromosomes: Optional[List[str]] = None,
-        *, genome: str = "hg38",
-        ):
 
-        gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
-        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes, genome=genome)
-        gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
+        threshold: float = 0.8,
+        outprefix: str = "complex_hccnas_",
+        chromosomes: Optional[List[str]] = None,
+        *,
+        gt_annotated_df: Optional[pd.DataFrame] = None,
+    ):
+        # GT annotation
+        if gt_annotated_df is None:
+            if gt_cna_file is None:
+                raise ValueError(
+                    "gt_cna_file is required when gt_annotated_df is None."
+                )
+
+            gt_profile = pd.read_csv(gt_cna_file, index_col=0)
+
+            gt_annotated_df = annotate_segments(
+                gt_profile.T,
+                detect_cnv_type=True,
+                threshold=threshold,
+                chromosomes=chromosomes,
+                genome=self.genome,
+                bin_size=self.bin_size,
+            )
+        else:
+            gt_annotated_df = gt_annotated_df.copy()
+
+        gt_annotated_df = gt_annotated_df.loc[gt_annotated_df["size"].isin(allowed_event_sizes(self.bin_size))].copy()
+
+        # Add region column if missing
+        if "region" not in gt_annotated_df.columns:
+            gt_annotated_df["region"] = (
+                gt_annotated_df["Chrom"].astype(str)
+                + ":"
+                + gt_annotated_df["Start"].astype(str)
+                + "-"
+                + gt_annotated_df["End"].astype(str)
+            )
 
         metric_results = []
- 
+
         for f, name in zip(tool_cna_files, tool_names):
 
             tool_cna_df = read_and_drop_empty(f)
-            if chromosomes is not None:
-                tool_cna_df = tool_cna_df.loc[_chromosome_mask(
-                    tool_cna_df["region"].str.split(":").str[0], chromosomes
-                )]
-            if save_annotated_df:
-                tool_annotated_df = annotate_segments(
-                    tool_cna_df.set_index("region").T,
-                    detect_cnv_type=True, threshold=threshold, chromosomes=chromosomes, genome=genome,
-                )
-                tool_annotated_df["region"] = (
-                    tool_annotated_df["Chrom"].astype(str) + ":"
-                    + tool_annotated_df["Start"].astype(str) + "-"
-                    + tool_annotated_df["End"].astype(str)
-                )
-                save_annotated_segments(
-                    tool_annotated_df,
-                    os.path.join(self.output_dir, f"{outprefix}annotated", f"{name}_annotated.csv"),
-                    chromosomes,
-                )
 
+            if chromosomes is not None:
+                tool_cna_df = tool_cna_df.loc[
+                    _chromosome_mask(
+                        tool_cna_df["region"].str.split(":").str[0],
+                        chromosomes,
+                    )
+                ]
 
             tool_cna_df_long = (
-                pd.DataFrame(tool_cna_df)
-                .melt(id_vars="region",
-                        var_name="cell",
-                        value_name="value")
-                .dropna(subset=["value"])
+                tool_cna_df
+                .melt(
+                    id_vars="region",
+                    var_name="cell",
+                    value_name="value",
                 )
+                .dropna(subset=["value"])
+            )
 
-            tool_cna_df_long = split_all_regions(tool_cna_df_long.set_index("region"), profile_bin_size)
-            tool_cna_df_long = tool_cna_df_long.reset_index().rename(columns={"index": "region"})
+            tool_cna_df_long = split_all_regions(
+                tool_cna_df_long.set_index("region"),
+                self.bin_size,
+            )
 
-            result2 = get_segment_metric(gt_annotated_df,tool_cna_df_long)
-            
-            result2['Tool'] = name
+            tool_cna_df_long = (
+                tool_cna_df_long
+                .reset_index()
+                .rename(columns={"index": "region"})
+            )
 
+            result2 = get_segment_metric(
+                gt_annotated_df,
+                tool_cna_df_long, sizes=allowed_event_sizes(self.bin_size),
+            )
+
+            result2["Tool"] = name
             metric_results.append(result2)
-
-        # if level == "clone":
-        #     mirror_result = self.mirrored_subclonal_cnas(
-        #         tool_cna_files= tool_cna_files,
-        #         tool_names= tool_names,
-        #         changes_file= changes_file,
-        #         profile_bin_size=profile_bin_size
-        #     )
-        #     mirror_result['Type'] = "Mirrored-Subclonal-CNA"
-
-        #     metric_results.append(mirror_result)
 
         metric_df = pd.concat(metric_results, ignore_index=True)
 
-        metric_df.to_csv(os.path.join(self.output_dir, f"{outprefix}metrics.csv"), index=False)
+        metric_df.to_csv(
+            os.path.join(
+                self.output_dir,
+                f"{outprefix}metrics.csv",
+            ),
+            index=False,
+        )
 
 
     # def seg_mirrored_subclonal(self,
