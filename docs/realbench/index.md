@@ -6,7 +6,33 @@ As ground truth is generally unavailable for real datasets, most metrics describ
 
 The examples below compare Alleloscope and CHISEL. Replace the input paths and `tools` list with your own results. `acCNA` refers to allele- and cell/clone-specific CNAs, while `hcCNA` refers to haplotype- and cell/clone-specific CNAs.
 
-## Setup
+## Prepare inputs and initialize
+
+`bin_size` and `genome` are required when creating a CNA parser, `GTBench`, or `RealBench`:
+
+- `bin_size`: a positive integer in base pairs, such as `100000` for 100 kb. Use the resolution of your CNA data.
+- `genome`: `"hg19"` or `"hg38"`, matching your input coordinates.
+
+Methods use this configuration. Initialization prints:
+
+```text
+Bin size: 100000 bp
+Genome: hg38
+```
+
+With the default event-size thresholds, analysis is available for:
+
+| CNA `bin_size` | Event categories |
+| --- | --- |
+| `<= 3,000,000` bp | focal, medium, broad |
+| `> 3,000,000` and `<= 10,000,000` bp | medium, broad |
+| `> 10,000,000` bp | broad |
+
+Event length is `End - Start + 1`: focal is below 3 Mb, medium is from 3 Mb through 10 Mb, and broad is above 10 Mb. Whole-chromosome and whole-genome events are reported as broad. Categories unavailable at your resolution have no annotation or category-metric rows; a missing comparison is reported as NA rather than evidence of no events.
+
+The category limits apply to complex-event annotation and mirrored-event analysis. If `bin_size > 3,000,000`, focal gene/pathway analysis prints a skip message, returns `None`, and writes no new enrichment results.
+
+Run this setup once before the method examples. Standardized CNA matrices have a first `region` column and remaining cell columns. Clone files have `cell_id` and `clone_id`; all callers should describe the same sample and genome assembly.
 
 Run the examples from the repository root, or set `example_dir` to the location of your `exp/` directory. Input files remain separate from analysis outputs. Both `exp/Alleloscope/` and `exp/CHISEL/` contain `bin_counts.csv`, `clusters.csv`, `haplotype_1.csv`, `haplotype_2.csv`, `haplotype_combined.csv`, `major.csv`, `minor.csv`, and `minor_major.csv`. All input lists below follow the same tool order.
 
@@ -16,12 +42,14 @@ from hcbench.realbench import RealBench
 
 example_dir = Path("exp")
 output_dir = "output/realbench_examples"
-realbench_runner = RealBench(output_dir=output_dir)
+realbench_runner = RealBench(output_dir=output_dir, bin_size=100000, genome="hg38")
 
 tools = ["Alleloscope", "CHISEL"]
 ```
 
 ------
+
+Outputs are saved under `output_dir`; it is created during initialization. `cna_values()` writes `{outfile_prefix}_rmse.csv`, `{outfile_prefix}_scc.csv`, and `{outfile_prefix}_acc.csv` as caller-by-caller matrices and returns `None`. Clone assignment comparisons return ARI/AMI DataFrames and save CSV matrices. Sections below describe inputs needed beyond CNA profiles.
 
 ## CNA Detection
 
@@ -288,20 +316,23 @@ realbench_runner.complex_hccnas(
     tool_names=tools,
     threshold=0.8,
     outprefix="complex_hccnas_0.8",
+    save_annotated_df=True,
 )
 ```
 
-By default, `complex_hccnas()` annotates the input CN profiles and compares complex hcCNA calls between tools. Use `genome="hg38"` (default) or `genome="hg19"` to match the reference genome of your data. The default annotation threshold is `0.8`.
+`complex_hccnas()` writes `complex_hccnas_0.8overlap.csv` and `complex_hccnas_0.8metrics.csv` in `output_dir` for this example, and returns `None`. The annotation threshold defaults to `0.8`. Missing category comparisons are NA; categories unavailable at the configured resolution are omitted.
 
 To save the annotated events for each tool, set `save_annotated_df=True`. The files are written to `{output_dir}/{outprefix}annotated/` as `{tool}_annotated.csv`. You can also use `chromosomes=["chr1", "chr2"]` to limit the analysis to selected chromosomes; both `"chr1"` and `"1"` formats are accepted. By default, all chromosomes are included.
 
 #### Use existing annotated CNA files
 
-If your CN profiles have already been annotated, provide the annotation tables directly to avoid repeating this step:
-
-To reuse previously annotated events, first generate them with `save_annotated_df=True` (or through the Parser). Supply the resulting file paths in `annotated_files`, keyed by caller. For the example above, annotations are saved under `{output_dir}/complex_hccnas_0.8annotated/`:
+Use the annotation CSVs saved by the preceding call or produced by a parser. Supply one file per caller:
 
 ```python
+annotated_files = {
+    tool: f"{output_dir}/complex_hccnas_0.8annotated/{tool}_annotated.csv"
+    for tool in tools
+}
 realbench_runner.complex_hccnas(
     annotated_files=annotated_files,
     outprefix="complex_hccnas_reused_",
@@ -310,7 +341,7 @@ realbench_runner.complex_hccnas(
 
 Each tool requires one combined CSV file with the columns `cell`, `Chrom`, `Start`, `End`, `value`, `Segment`, `size`, and `type`. Coordinates must be positive, 1-based, and inclusive. The files should contain the complete independently annotated events, rather than only focal events or events derived from pairwise-aligned data. You can also pass a list of file paths through `annotated_files`, together with matching `tool_names`. Do not use `tool_cna_files` and `annotated_files` in the same call.
 
-The comparison aligns event intervals using shared genomic boundaries while retaining each tool's original event types, sizes, and CN values. Regions without an annotated event are not automatically classified as neutral. The resulting `overlap.csv` and `metrics.csv` report pairwise agreement across shared cell/region entries and event categories; these metrics are not base-pair-weighted measures of event overlap.
+The comparison aligns event intervals using shared genomic boundaries using each tool's event types, sizes, and CN values. Regions without an annotated event are not automatically classified as neutral. The resulting `overlap.csv` and `metrics.csv` report pairwise agreement across shared cell/region entries and event categories; these metrics are not base-pair-weighted measures of event overlap.
 
 For instructions on generating annotated CNA tables, see [Parser annotation](../parsers/index.md).
 
@@ -336,47 +367,29 @@ realbench_runner.mirrored_subclonal_cnas(
 
 Identify genes overlapping focal complex hcCNA events, run pathway over-representation analysis (ORA), and compare affected gene and pathway sets between callers and resolutions using Jaccard similarity (JS).
 
-#### Prepare gene and pathway annotations
+This analysis requires the `RealBench` initialization `bin_size` to be at most the focal threshold, currently 3,000,000 bp. At exactly 3 Mb it is allowed; above 3 Mb the method prints the configured bin size and threshold, skips analysis, returns `None`, and creates no new enrichment results.
 
-This analysis requires annotated hcCNA events, a gene annotation (GTF) file, and pathway gene sets. HCBench includes three pathway libraries: `MSigDB_Hallmark_2020`, `Reactome_2022`, and `KEGG_2021_Human`.
-
-For gene annotation, HCBench uses [GENCODE v46 (hg38)](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/gencode.v46.annotation.gtf.gz) or [GENCODE v46lift37 (hg19)](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_46/GRCh37_mapping/gencode.v46lift37.annotation.gtf.gz). If `gtf_path` is not specified, the appropriate GTF file is downloaded automatically when needed and cached in `~/.cache/hcbench/resources/genes/<genome>/`. Alternatively, provide the path to a local GTF file using `gtf_path`. Make sure `genome` matches the genomic coordinates in your CNA files.
-
-By default, all three bundled pathway libraries are available. Use `libraries` to select specific libraries, `gene_sets` to provide custom GMT files, or `resource_dir` to use a custom resource directory. When using the bundled libraries, you can leave `resource_dir` unset.
-
-#### Run focal genes and pathways analysis
-
-Generate annotated hcCNA events before running this analysis. Set `annotated_inputs` to records containing `sample`, `tool`, `bin_size`, and `files` for each caller and resolution. To run offline, set `gtf_path` to a locally available GTF file:
+Install the `enrichment` extra and use the annotation files saved by the complex-event example above. Their resolution labels below match the 100 kb initialization. HCBench downloads and caches a matching GTF when needed; to run offline, provide a local `gtf_path`.
 
 ```python
-# Focal genes and pathways
-annotated_inputs=[
-            {
-                "sample": "sample1",
-                "tool": "Alleloscope",
-                "bin_size": "5Mb",
-                "files": f"{output_dir}/complex_hccnas_0.8annotated/Alleloscope_annotated.csv"
-            },
-            {
-                "sample": "sample1",
-                "tool": "CHISEL",
-                "bin_size": "5Mb",
-                "files": [
-                    f"{output_dir}/complex_hccnas_0.8annotated/CHISEL_annotated.csv",
-                ]
-            }
-        ]
-realbench_runner.focal_genes_and_pathways(
-    annotated_inputs=annotated_inputs,
-    genome="hg38",
-    gtf_path=None,  # optionally replace None with a local GTF path
-    # outprefix="focal_genes_and_pathways"
+annotated_inputs = [
+    {
+        "sample": "sample1",
+        "tool": tool,
+        "bin_size": "100kb",
+        "files": f"{output_dir}/complex_hccnas_0.8annotated/{tool}_annotated.csv",
+    }
+    for tool in tools
+]
+result = realbench_runner.focal_genes_and_pathways(
+    annotated_inputs,
+    workers=1,
 )
+if result is not None:
+    print(result["output_dir"])
 ```
 
-Each entry in `annotated_inputs` identifies a sample, a caller, a bin size, and its annotated CNA file(s). You can provide either a combined CSV covering multiple chromosomes or a list of chromosome-specific CSV files. Multiple entries allow comparisons across callers and resolutions.
-
-The analysis reports genes overlapping focal hcCNA events, over-representation analysis (ORA) results, gene- and pathway-level Jaccard similarities, and summary statistics. See the output files for results from each sample, caller, and resolution.
+Results are saved under `output_dir/focal_genes_and_pathways/`, including `group_summary.csv`, `focal_pathways_significant.csv`, `consistency_jaccard.csv`, and `enrichment_status.csv`. Read the status file before interpreting an absent pathway result. See the [focal gene and pathway tutorial](focal_genes_and_pathways.md) for input requirements, local references, background choices, and return values.
 
 ------
 
@@ -386,7 +399,7 @@ Compare genome-wide CN phasing between callers at the cell level.
 
 ### Global CN phasing
 
-Calculate mismatch error between inferred CN phases in shared cells. With `mode="heterozygous-only"`, comparisons are restricted to heterozygous loci informative in both callers; lower mismatch error indicates greater agreement.
+Calculate mismatch error between inferred CN phases in shared cells. With `mode="Shared-heterozygous"`, comparisons are restricted to heterozygous loci informative in both callers; lower mismatch error indicates greater agreement.
 
 ```python
 # Global CN phasing
@@ -400,7 +413,7 @@ realbench_runner.global_cn_phasing(
         f"{example_dir}/CHISEL/haplotype_2.csv",
     ],
     tool_names=tools,
-    mode = "heterozygous-only",
-    # outprefix = "global_cn_phasing_heterozygous-only"
+    mode = "Shared-heterozygous",
+    # outprefix = "global_cn_phasing_Shared-heterozygous"
 )
 ```

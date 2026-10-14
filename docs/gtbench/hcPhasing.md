@@ -10,7 +10,7 @@ global_cn_phasing(
     ground_truth_hap2_file: str,
     outprefix="global_cn_phasing",
 
-    mode="heterozygous-only",
+    mode="Shared-heterozygous",
     is_clone=False,
 ) -> pd.DataFrame
 ```
@@ -22,7 +22,7 @@ It converts both GT and tool haplotype CN profiles into a **binary phasing repre
 - **mismatch error** (per cell or per clone)
 - **switch error** (per cell or per clone)
 
-It supports evaluation at **cell-level** (default) or **clone-level** (`is_clone=True`), and allows different evaluation modes (e.g., heterozygous-only).
+It supports evaluation at **cell-level** (default) or **clone-level** (`is_clone=True`), and allows different evaluation modes (e.g., Shared-heterozygous).
 
 ------
 
@@ -36,7 +36,7 @@ It supports evaluation at **cell-level** (default) or **clone-level** (`is_clone
 | `ground_truth_hap1_file` | `str`       | Path to ground-truth haplotype-1 CNA matrix CSV.             |
 | `ground_truth_hap2_file` | `str`       | Path to ground-truth haplotype-2 CNA matrix CSV.             |
 | `outprefix`              | `str`       | Prefix for the output CSV filename. Default: `"global_cn_phasing"`.  |
-| `mode`                   | `str`       | Evaluation mode passed to mismatch/switch error functions. Default: `"heterozygous-only"`. |
+| `mode`                   | `str`       | Evaluation mode passed to mismatch/switch error functions. Default: `"Shared-heterozygous"`. |
 | `is_clone`               | `bool`      | If `True`, compute errors per clone label; otherwise per cell. Default: `False`. |
 
 ------
@@ -121,7 +121,7 @@ Both mismatch and switch error functions are called with:
 
 - predicted binary matrix `t1_bin`
 - GT binary matrix `g1_bin`
-- `mode` (e.g., `"heterozygous-only"`)
+- `mode` (e.g., `"Shared-heterozygous"`)
 
 ```python
 mismatch_error_result = eval_mismatch_fn(t1_bin, g1_bin, mode)
@@ -152,7 +152,7 @@ os.path.join(self.output_dir, f"{outprefix}_{mode}.csv")
 Default example:
 
 ```
-{self.output_dir}/global_cn_phasing_heterozygous-only.csv
+{self.output_dir}/global_cn_phasing_Shared-heterozygous.csv
 ```
 
 The output is **long-format**, with one row per cell/clone (depending on `is_clone`) per tool.
@@ -199,7 +199,7 @@ df = bench.global_cn_phasing(
     ground_truth_hap2_file="/path/to/gt/hap2.csv",
     outprefix="global_cn_phasing",
 
-    mode="heterozygous-only",
+    mode="Shared-heterozygous",
     is_clone=False,
 )
 

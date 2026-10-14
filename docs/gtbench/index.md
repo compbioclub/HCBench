@@ -181,6 +181,29 @@ bench.global_tumor_clones(
 
 Evaluates clustering accuracy stratified by clone size using Clone Size Deviation (CSD). It measures whether specific clones (regardless of size) are being merged into larger clusters (positive deviation) or "shattered" into many small groups (negative deviation).
 
+First, generate the GT `clusters.csv` from HCDSIM's `profile/barcodes.txt`. The barcode file has no header and contains one cell ID per line. In HCDSIM cell IDs, the prefix before the first underscore identifies the clone; for example, `clone1_cell1` belongs to `clone1`.
+
+```python
+from pathlib import Path
+import pandas as pd
+
+df = pd.read_csv(
+    "/path/to/HCDSIM/profile/barcodes.txt",
+    sep="\t",
+    comment=None,
+    index_col=False,
+    header=None,
+    names=["cell_id"],
+)
+df["clone_id"] = df["cell_id"].str.split("_", n=1).str[0]
+
+gt_cluster_file = Path("results/gt/clusters.csv")
+gt_cluster_file.parent.mkdir(parents=True, exist_ok=True)
+df.to_csv(gt_cluster_file, index=False)
+```
+
+This writes a CSV with `cell_id` and `clone_id` columns. Keep the full cell IDs so they match those in the caller cluster files. Use the generated GT file with the `bench` initialized above:
+
 ```python
 # Rare and dominant clones
 bench.rare_and_dominant_clones(
@@ -188,7 +211,7 @@ bench.rare_and_dominant_clones(
         "/path/to/signals/clusters.csv",
         "/path/to/seacon/clusters.csv",
     ],
-    gt_cluster_file="/path/to/gt/clusters.csv",
+    gt_cluster_file=str(gt_cluster_file),
     tool_names=[
         "signals",
         "seacon",
@@ -321,6 +344,54 @@ bench.cna_phylogeny(
 )
 ```
 
+### Prepare size-specific change tables
+
+Before running the four onset and stability analyses below, split the HCDSIM `cell_changes.csv` and `clone_changes.csv` tables by event size. Use `Length` in base pairs: focal is below 3,000,000 bp, medium is from 3,000,000 through 10,000,000 bp, and broad is above 10,000,000 bp. Keep the other change-table columns for the benchmark methods.
+
+The following example reads both files from your HCDSIM profile directory and saves one CSV per size present in each table. Replace the input directory with yours. Missing or nonnumeric lengths must be corrected before classification.
+
+```python
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+profile_dir = Path("/path/to/HCDSIM/profile")
+changes_by_level = {}
+
+for level in ("cell", "clone"):
+    df = pd.read_csv(profile_dir / f"{level}_changes.csv")
+    df["Length"] = pd.to_numeric(df["Length"], errors="coerce")
+    if df["Length"].isna().any():
+        raise ValueError(f"Correct missing or nonnumeric Length values in {level}_changes.csv")
+
+    df["size"] = np.select(
+        [
+            df["Length"] < 3_000_000,
+            (df["Length"] >= 3_000_000) & (df["Length"] <= 10_000_000),
+        ],
+        ["focal", "medium"],
+        default="broad",
+    )
+
+    output_dir = Path("results/gt") / f"{level}-level"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    changes_by_level[level] = {}
+    if level == "cell":
+        df.rename(columns = {
+            "Clone": "Parent",
+            "Cell": "Child"
+        }, inplace=True)
+
+    for size in df["size"].unique():
+        out_file = output_dir / f"{level}_changes_split_annotated_{size}.csv"
+        df.loc[df["size"] == size].to_csv(out_file, index=False)
+        changes_by_level[level][size] = out_file
+```
+
+Cell-level files are saved under `results/gt/cell-level/` with names such as `cell_changes_split_annotated_focal.csv`; clone-level files are saved under `results/gt/clone-level/` with names such as `clone_changes_split_annotated_focal.csv`. Categories absent from an input table produce no file.
+
+The examples below use the cell-level files. For clone-level analysis, select `changes_by_level["clone"]` and supply matching clone-level haplotype matrices. For stability analysis, the tree node names must match the parent and child identifiers in the chosen change table. These methods evaluate the supplied change file; use one size-specific file per call.
+
 ### Parental CN at onset
 
 **Are parent CNs of complex hcCNAs correct at onset?** Assesses whether the model correctly identifies the pre-event (parental) copy number state at the exact moment an alteration arises during evolution, using metrics like ACC and RMSE.
@@ -337,17 +408,21 @@ bench.cna_phylogeny(
 
 **Are complex hcCNAs stable throughout evolution?** Evaluates whether a detected alteration is correctly tracked as a stable, heritable state across all descendant clones following its initial onset.
 
+Run the preparation step above first. This loop evaluates only sizes that have a change file and are supported by `bench.bin_size`: all three sizes up to 3 Mb, medium/broad above 3 Mb through 10 Mb, and broad above 10 Mb.
+
 ```python
-# Evolution-onset benchmarks: run for focal / medium / broad changes
+# Run after preparing the size-specific change tables above
 # Parental CN at onset: parental_cn_at_onset
 # CN change at onset: cn_change_at_onset
 # Complex hcCNA at onset: complex_hccna_at_onset
 # Complex hcCNA stability: complex_hccna_stability
+change_files = changes_by_level["cell"]
 event_sizes = ["broad"]
 if bench.bin_size <= 10_000_000:
     event_sizes.insert(0, "medium")
 if bench.bin_size <= 3_000_000:
     event_sizes.insert(0, "focal")
+event_sizes = [size for size in event_sizes if size in change_files]
 for size in event_sizes:
 
     bench.parental_cn_at_onset(
@@ -363,7 +438,7 @@ for size in event_sizes:
             "signals",
             "seacon",
         ],
-        changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
+        changes_file=str(change_files[size]),
         outfile=f"parental_cn_at_onset_{size}.csv",
     )
 
@@ -380,7 +455,7 @@ for size in event_sizes:
             "signals",
             "seacon",
         ],
-        changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
+        changes_file=str(change_files[size]),
         outfile=f"cn_change_at_onset_{size}.csv",
     )
 
@@ -397,7 +472,7 @@ for size in event_sizes:
             "signals",
             "seacon",
         ],
-        changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
+        changes_file=str(change_files[size]),
         outfile=f"complex_hccna_at_onset_{size}.csv",
     )
 
@@ -414,7 +489,7 @@ for size in event_sizes:
             "signals",
             "seacon",
         ],
-        changes_file=f"/path/to/gt/cell/cell_changes_split_annotated_{size}.csv",
+        changes_file=str(change_files[size]),
         tree_file="/path/to/tree/tree_new.newick",
         outfile=f"complex_hccna_stability_{size}.csv",
     )
@@ -432,8 +507,13 @@ This section assesses the final "burden" of complex hcCNAs. Rather than looking 
 
 Compares predicted complex hcCNA profiles against the ground truth (GT) using RMSE, SCC, and ACC to assess numerical agreement and exact matches of haplotype-specific CN values.
 
+Use the `bench` initialized above. Supply either a combined GT CNA matrix through `gt_cna_file`, or an existing GT annotation DataFrame through `gt_annotated_df`. Keep `tool_cna_files` and `tool_names` in the same order.
+
+#### Evaluate from a GT CNA matrix
+
+When you have a combined GT matrix, `complex_hccnas()` annotates it before comparing the caller profiles:
+
 ```python
-# Complex hcCNAs
 bench.complex_hccnas(
     tool_cna_files=[
         "/path/to/signals/haplotype_combined.csv",
@@ -442,14 +522,19 @@ bench.complex_hccnas(
     gt_cna_file="/path/to/gt/cell/haplotype_combined.csv",
     tool_names=["signals", "seacon"],
     threshold=0.8,
-
-    outprefix="complex_hccnas_thre0.8",
+    outprefix="complex_hccnas_",
 )
 ```
 
-#### Prepare GT event annotations
+The default `threshold=0.8` controls whole-chromosome/genome event annotation. Use `chromosomes=["chr1", "chr2"]` to restrict GT annotation and caller profiles to selected chromosomes.
 
-`complex_hccnas()` writes `{outprefix}metrics.csv` under `bench.output_dir` and returns `None`. Each row reports `Size`, `Type`, `ACC`, `SCC`, `RMSE`, and `Tool` for an available event category. Its `threshold=0.8` controls whole-chromosome/genome event annotation. To save GT annotations separately:
+#### Evaluate with existing GT annotations
+
+If you already have a GT annotation CSV, load it with pandas and pass the resulting DataFrame as `gt_annotated_df`. Set `gt_cna_file=None`; this argument must still be supplied. The method uses the supplied event labels directly, so `threshold` does not change them.
+
+The table needs `cell`, `value`, `size`, and `type`, plus either `region` or all three coordinate columns `Chrom`, `Start`, and `End`. Values use haplotype pairs such as `2|1`; size labels are `focal`, `medium`, or `broad`. Each row describes a cell and an input CNA region, with cell IDs and region coordinates matching the caller matrices at the configured bin resolution. A `Segment` column alone cannot replace these region coordinates.
+
+To create a suitable CSV from a combined GT matrix, save annotations with `detect_cnv_type=True`:
 
 ```python
 from pathlib import Path
@@ -459,8 +544,8 @@ Path("results/gt").mkdir(parents=True, exist_ok=True)
 gt_parser = GTParser(
     input_path="/path/to/gt/cell/haplotype_combined.csv",
     output_path="results/gt",
-    bin_size=100000,
-    genome="hg38",
+    bin_size=bench.bin_size,
+    genome=bench.genome,
 )
 gt_parser.annotate_segments(
     "/path/to/gt/cell/haplotype_combined.csv",
@@ -470,9 +555,31 @@ gt_parser.annotate_segments(
 )
 ```
 
-This saves `results/gt/ground_truth_classified.csv`. See [Parser annotation](../parsers/index.md) for annotation parameters. `chromosomes` on `bench.complex_hccnas()` restricts annotation and evaluation to selected chromosomes.
+This writes `results/gt/ground_truth_classified.csv`. `GTParser.annotate_segments()` returns `None`, so load the saved CSV for evaluation:
 
-For pairwise comparisons using previously annotated event files without GT, see [RealBench.complex_hccnas](../realbench/index.md).
+```python
+import pandas as pd
+
+gt_annotated_df = pd.read_csv(
+    "results/gt/ground_truth_classified.csv",
+    dtype={"cell": str, "Chrom": str, "value": str},
+)
+bench.complex_hccnas(
+    gt_cna_file=None,
+    gt_annotated_df=gt_annotated_df,
+    tool_cna_files=[
+        "/path/to/signals/haplotype_combined.csv",
+        "/path/to/seacon/haplotype_combined.csv",
+    ],
+    tool_names=["signals", "seacon"],
+    outprefix="complex_hccnas_",
+)
+```
+
+When supplying `gt_annotated_df` together with `chromosomes`, prepare the DataFrame with only those chromosomes; the method applies `chromosomes` to the caller profiles but does not filter the supplied GT table by chromosome. 
+
+Both input options write `{outprefix}metrics.csv` under `bench.output_dir` and return `None`. With the examples above, the filename is `complex_hccnas_metrics.csv`. Rows report `Size`, `Type`, `ACC`, `SCC`, `RMSE`, and `Tool`. Event categories excluded by `bench.bin_size` have no metric rows; comparisons without matching cell/region entries have missing metrics.
+
 
 ### Mirrored-subclonal-CNAs
 
@@ -489,9 +596,7 @@ bench.mirrored_subclonal_cnas(
         "signals",
         "seacon",
     ],
-    changes_file= "/path/to/gt/mirrored_subclonal_cnas_cnas.csv",
-
-    cal_event_level = True
+    changes_file= "/path/to/gt/mirrored_subclonal_cnas_cnas.csv"
 )
 ```
 
@@ -527,7 +632,7 @@ bench.global_cn_phasing(
     ],
     ground_truth_hap1_file="/path/to/gt/cell/haplotype_1.csv",
     ground_truth_hap2_file="/path/to/gt/cell/haplotype_2.csv",
-    mode="heterozygous-only",
+    mode="Shared-heterozygous",
     is_clone=False,
     outprefix="global_cn_phasing_both",
 )
@@ -548,7 +653,7 @@ bench.global_cn_phasing(
     ],
     ground_truth_hap1_file="/path/to/gt/cell/haplotype_1.csv",
     ground_truth_hap2_file="/path/to/gt/cell/haplotype_2.csv",
-    mode="homozygous-inclusive-pred",
+    mode="GT-heterozygous",
     is_clone=False,
     outprefix="global_cn_phasing_gt",
 )

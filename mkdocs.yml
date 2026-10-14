@@ -9,6 +9,7 @@ nav:
       - SIGNALS: parsers/signals.md
       - SEACON: parsers/seacon.md
       - CNRein: parsers/cnrein.md
+      - HCDSIM GT: parsers/gt.md
   - HCBench-sim:
       - Overview: gtbench/index.md
     #   - clusterConsistency : gtbench/clusterConsistency.md

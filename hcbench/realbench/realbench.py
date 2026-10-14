@@ -43,13 +43,19 @@ class RealBench:
 
         annotated_inputs contains sample/tool/bin_size/files records from
         independently annotated CNA. Results go to output_dir/outprefix.
+        The configured bin_size must not exceed the focal threshold (currently
+        3,000,000 bp). Coarser resolutions print a skip message and return None
+        without creating analysis results.
         No alignment or annotate_segments call is performed. With workers > 1,
         invoke from a multiprocessing-safe entry point (see the tutorial).
         """
         from ..utils import run_focal_gene_pathway_analysis
 
         if "focal" not in allowed_event_sizes(self.bin_size):
-            print("Skipping focal gene/pathway analysis at the configured bin size")
+            print(
+                f"Skipping focal gene/pathway analysis: bin_size={self.bin_size} bp "
+                f"exceeds the focal threshold of {annotate_segments.__defaults__[0]} bp"
+            )
             return None
 
         if (not isinstance(outprefix, str) or not outprefix
