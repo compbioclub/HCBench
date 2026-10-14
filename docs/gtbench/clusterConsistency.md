@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 global_tumor_clones(
     tool_clone_files: List[str],
     tool_names: List[str],
@@ -85,7 +85,7 @@ from hcbench.gtbench import gtbench
 # Suppose self.output_dir = "out/gt_output"
 
 gtbench_runner = gtbench.GTBench(
-    output_dir=f"out/gt_output/")
+    output_dir=f"out/gt_output/", bin_size=100000 , genome="hg38")
 
 tool_clone_files = [
     "out/chisel/clusters.csv",

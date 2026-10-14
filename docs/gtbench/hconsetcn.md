@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 parental_cn_at_onset(
     self,
     tool_hap1_cna_files: List[str],
@@ -8,7 +8,7 @@ parental_cn_at_onset(
     tool_names: List[str],
     changes_file: str,
     outfile: str = "parental_cn_at_onset.csv",
-    profile_bin_size=100000
+
 ) -> pd.DataFrame
 ```
 
@@ -16,7 +16,7 @@ This function evaluates **evolution onset (parent → child) copy-number change 
 
 Given a ground-truth “change list” (segments with known CNA changes and labels) and each tool’s haplotype-specific CNA profiles, it:
 
-1. Re-bins the ground-truth segments and tool CNA profiles to `profile_bin_size`.
+1. Re-bins the ground-truth segments and tool CNA profiles to the configured `bin_size`.
 2. Joins the change segments with predicted haplotype CN values (hap1 and hap2).
 3. For each change **Type** (e.g., DEL / LOH / gain classes, depending on your `changes_file`), computes:
    - **ACC**: accuracy of parent CN prediction under onset constraints
@@ -34,7 +34,6 @@ Given a ground-truth “change list” (segments with known CNA changes and labe
 | `tool_names`          | `List[str]` | Tool names used in result rows.                              |
 | `changes_file`        | `str`       | Path to the ground-truth change table (segments + change labels). |
 | `outfile`             | `str`       | Output filename for the summary table. Default: `"parental_cn_at_onset.csv"`. |
-| `profile_bin_size`    | `int`       | Bin size used to split/standardize both GT segments and predictions. Default: `100000` (100kb). |
 
 ------
 
@@ -52,13 +51,13 @@ Optional:
 
 - `Haplotype`: if present, will be normalized via `self._normalize_hap_label(...)`
 
-Implementation details:
+Processing:
 
 - loaded via `read_and_drop_empty(changes_file)`
 - rebinned using:
 
 ```python
-change_truth_r = split_all_regions(change_truth_r.set_index("Segment"), profile_bin_size)
+change_truth_r = split_all_regions(change_truth_r.set_index("Segment"), self.bin_size)
 change_truth_r = change_truth_r.reset_index().rename(columns={"index": "Segment"})
 ```
 
@@ -78,8 +77,8 @@ Each file is:
 - rebinned and converted back to a `region` column:
 
 ```python
-p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size).reset_index()
-p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size).reset_index()
+p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size).reset_index()
+p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size).reset_index()
 ```
 
 ------
@@ -169,7 +168,7 @@ Returns a `pd.DataFrame` containing the same summary table saved to CSV.
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.parental_cn_at_onset(
     tool_hap1_cna_files=[
@@ -182,7 +181,7 @@ df = bench.parental_cn_at_onset(
     ],
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/changes_onset.csv",
-    profile_bin_size=100000,
+
     outfile="parental_cn_at_onset.csv",
 )
 

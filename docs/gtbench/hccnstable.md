@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 complex_hccna_stability(
     self,
     tool_hap1_cna_files: List[str],
@@ -9,7 +9,7 @@ complex_hccna_stability(
     changes_file: str,
     tree_file: str,
     outfile: str = "complex_hccna_stability.csv",
-    profile_bin_size=100000
+
 ) -> pd.DataFrame
 ```
 
@@ -35,7 +35,6 @@ it builds a set of “stability checks” derived from the tree topology and the
 | `changes_file`        | `str`       | Path to the segment/change table used for stability checks (must include `Segment`, `Type`, and other fields used by internal helpers). |
 | `tree_file`           | `str`       | Path to the phylogenetic tree file in **Newick** format.     |
 | `outfile`             | `str`       | Output filename for the summary table. Default: `"complex_hccna_stability.csv"`. |
-| `profile_bin_size`    | `int`       | Bin size used to split/standardize both segments and predictions. Default: `100000` (100kb). |
 
 ------
 
@@ -79,7 +78,7 @@ change_df = self._add_check_list(tree, change_df)
 1. Re-bin segments:
 
 ```python
-change_df = split_all_regions(change_df.set_index("Segment"), profile_bin_size)
+change_df = split_all_regions(change_df.set_index("Segment"), self.bin_size)
 change_df = change_df.reset_index().rename(columns={"index": "Segment"})
 ```
 
@@ -98,8 +97,8 @@ Each file in `tool_hap1_cna_files` / `tool_hap2_cna_files` is expected to be a C
 They are loaded and re-binned:
 
 ```python
-p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size).reset_index()
-p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size).reset_index()
+p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size).reset_index()
+p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size).reset_index()
 ```
 
 ------
@@ -186,7 +185,7 @@ Returns a `pd.DataFrame` with columns:
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.complex_hccna_stability(
     tool_hap1_cna_files=[
@@ -200,7 +199,7 @@ df = bench.complex_hccna_stability(
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/changes_stability.csv",
     tree_file="/path/to/gt/tree.newick",
-    profile_bin_size=100000,
+
     outfile="complex_hccna_stability.csv",
 )
 

@@ -1827,10 +1827,10 @@ def _mask_by_mode(pred, gt, mode):
     if pred.shape != gt.shape:
         raise ValueError(f"Shape mismatch: pred{pred.shape} vs gt{gt.shape}")
 
-    if mode == "heterozygous-only":
+    if mode == "Shared-heterozygous":
 
         return (pred != -1) & (gt != -1)
-    elif mode == "homozygous-inclusive-pred":
+    elif mode == "GT-heterozygous":
 
         return (gt != -1)
     elif mode == "homozygous-inclusive-all":

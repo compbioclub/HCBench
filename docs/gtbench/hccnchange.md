@@ -1,13 +1,13 @@
 ## Function
 
-```python
+```text
 cn_change_at_onset(
     self,
     tool_hap1_cna_files: List[str],
     tool_hap2_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
-    profile_bin_size=100000,
+
     outfile: str = "cn_change_at_onset.csv",
 ) -> pd.DataFrame
 ```
@@ -16,7 +16,7 @@ This function evaluates **haplotype-specific copy-number change (CN change) pred
 
 Given a ground-truth change table (`changes_file`) and each tool’s haplotype CNA profiles (hap1 and hap2), it:
 
-1. Standardizes GT segments and tool CNA profiles to the same bin size (`profile_bin_size`).
+1. Standardizes GT segments and tool CNA profiles to the same bin size (`self.bin_size`).
 2. Joins GT change segments with predicted haplotype copy numbers using `_onset_join`.
 3. Produces predicted CN-change labels/values (`Change_predict`) and compares them to GT `Change`.
 4. Computes **RMSE** and **ACC** for CN-change prediction, stratified by change `Type`.
@@ -32,7 +32,6 @@ Given a ground-truth change table (`changes_file`) and each tool’s haplotype C
 | `tool_hap2_cna_files` | `List[str]` | List of tool CNA profile CSVs for haplotype 2. Must align with `tool_names`. |
 | `tool_names`          | `List[str]` | Tool names used in output rows.                              |
 | `changes_file`        | `str`       | Path to the ground-truth CN-change table (segments + change labels). |
-| `profile_bin_size`    | `int`       | Bin size used to split/standardize both GT segments and predictions. Default: `100000` (100kb). |
 | `outfile`             | `str`       | Output filename for the summary table. Default: `"cn_change_at_onset.csv"`. |
 
 ------
@@ -51,7 +50,7 @@ Optional:
 
 - `Haplotype`: if present, haplotype labels are normalized via `self._normalize_hap_label(...)`
 
-Implementation details:
+Processing:
 
 ```python
 change_truth = read_and_drop_empty(changes_file)
@@ -59,7 +58,7 @@ change_truth = read_and_drop_empty(changes_file)
 if "Haplotype" in change_truth.columns:
     change_truth["Haplotype"] = self._normalize_hap_label(change_truth["Haplotype"])
 
-change_truth = split_all_regions(change_truth.set_index("Segment"), profile_bin_size)
+change_truth = split_all_regions(change_truth.set_index("Segment"), self.bin_size)
 change_truth = change_truth.reset_index().rename(columns={"index": "Segment"})
 ```
 
@@ -74,8 +73,8 @@ Expected to be CNA matrices with:
 Each file is loaded via `read_and_drop_empty` and re-binned:
 
 ```python
-p_h1 = split_all_regions(p_h1.set_index("region"), profile_bin_size).reset_index()
-p_h2 = split_all_regions(p_h2.set_index("region"), profile_bin_size).reset_index()
+p_h1 = split_all_regions(p_h1.set_index("region"), self.bin_size).reset_index()
+p_h2 = split_all_regions(p_h2.set_index("region"), self.bin_size).reset_index()
 ```
 
 ------
@@ -163,7 +162,7 @@ Returns a `pd.DataFrame` with columns:
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.cn_change_at_onset(
     tool_hap1_cna_files=[
@@ -176,7 +175,7 @@ df = bench.cn_change_at_onset(
     ],
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/changes_cn_change.csv",
-    profile_bin_size=100000,
+
     outfile="cn_change_at_onset.csv",
 )
 

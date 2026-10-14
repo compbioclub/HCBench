@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 global_cn_phasing(
     self,
     tool_hap1_cna_files: List[str],
@@ -9,7 +9,7 @@ global_cn_phasing(
     ground_truth_hap1_file: str,
     ground_truth_hap2_file: str,
     outprefix="global_cn_phasing",
-    profile_bin_size=100000,
+
     mode="heterozygous-only",
     is_clone=False,
 ) -> pd.DataFrame
@@ -36,7 +36,6 @@ It supports evaluation at **cell-level** (default) or **clone-level** (`is_clone
 | `ground_truth_hap1_file` | `str`       | Path to ground-truth haplotype-1 CNA matrix CSV.             |
 | `ground_truth_hap2_file` | `str`       | Path to ground-truth haplotype-2 CNA matrix CSV.             |
 | `outprefix`              | `str`       | Prefix for the output CSV filename. Default: `"global_cn_phasing"`.  |
-| `profile_bin_size`       | `int`       | Bin size used to split/standardize regions before alignment. Default: `100000` (100kb). |
 | `mode`                   | `str`       | Evaluation mode passed to mismatch/switch error functions. Default: `"heterozygous-only"`. |
 | `is_clone`               | `bool`      | If `True`, compute errors per clone label; otherwise per cell. Default: `False`. |
 
@@ -82,11 +81,11 @@ t1 = read_and_drop_empty(f_h1)
 t2 = read_and_drop_empty(f_h2)
 ```
 
-1. Re-bin regions to `profile_bin_size`:
+1. Re-bin regions to the configured `bin_size`:
 
 ```python
-t1 = split_all_regions(t1.set_index("region"), profile_bin_size)
-t2 = split_all_regions(t2.set_index("region"), profile_bin_size)
+t1 = split_all_regions(t1.set_index("region"), self.bin_size)
+t2 = split_all_regions(t2.set_index("region"), self.bin_size)
 ```
 
 1. Align predictions with GT on common regions and samples:
@@ -184,7 +183,7 @@ Returns a `pd.DataFrame` containing the merged mismatch + switch error results f
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.global_cn_phasing(
     tool_hap1_cna_files=[
@@ -199,7 +198,7 @@ df = bench.global_cn_phasing(
     ground_truth_hap1_file="/path/to/gt/hap1.csv",
     ground_truth_hap2_file="/path/to/gt/hap2.csv",
     outprefix="global_cn_phasing",
-    profile_bin_size=100000,
+
     mode="heterozygous-only",
     is_clone=False,
 )

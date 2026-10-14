@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 cna_phylogeny(
     self,
     tool_cna_files: List[str],
@@ -135,7 +135,7 @@ Returns a `pd.DataFrame` containing:
 ```python
 from hcbench.realbench.realbench import RealBench
 
-bench = RealBench(output_dir="out/real_output")
+bench = RealBench(output_dir="out/real_output", bin_size=100000 , genome="hg38")
 
 bench.cna_phylogeny(
     tool_cna_files=[

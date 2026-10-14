@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 cna_states(
     self,
     tool_hap1_cna_files: List[str],
@@ -9,7 +9,7 @@ cna_states(
     profile_hap1_cna_file: str,
     profile_hap2_cna_file: str,
     type: str = "hcCNA",
-    profile_bin_size=100000,
+
     outfile: str = "cna_states.csv",
 ) -> pd.DataFrame
 ```
@@ -25,7 +25,7 @@ For each tool, the function:
 
 1. Loads GT haplotype CNA profiles (hap1/hap2 or minor/major).
 2. Loads tool predictions for hap1 and hap2.
-3. Re-bins regions to a uniform resolution (`profile_bin_size`) and aligns GT vs predictions.
+3. Re-bins regions to a uniform resolution (`self.bin_size`) and aligns GT vs predictions.
 4. For each CNA category (condition), saves category-specific bin tables into an output folder.
 5. Computes clone-level metrics within each category and aggregates results into one summary table.
 
@@ -41,7 +41,6 @@ For each tool, the function:
 | `profile_hap1_cna_file` | `str`       | Path to GT CNA profile CSV for haplotype 1 (or minor).       |
 | `profile_hap2_cna_file` | `str`       | Path to GT CNA profile CSV for haplotype 2 (or major).       |
 | `type`                  | `str`       | CNA type. Must be `"hcCNA"` or `"acCNA"`. Default: `"hcCNA"`. |
-| `profile_bin_size`      | `int`       | Bin size used to split regions for tool predictions before alignment. Default: `100000` (100kb). |
 | `outfile`               | `str`       | Output filename for the final aggregated result table. Default: `"cna_states.csv"`. |
 
 ------
@@ -65,13 +64,13 @@ Expected to be CSVs with:
 - `region` column
 - cell columns
 
-Implementation details:
+Processing:
 
 - tool predictions are loaded with `pd.read_csv(...).fillna(-1)`
 - regions are re-binned using:
 
 ```python
-split_all_regions(df.set_index("region"), profile_bin_size)
+split_all_regions(df.set_index("region"), self.bin_size)
 ```
 
 - GT and predictions are aligned by:
@@ -172,7 +171,7 @@ Returns a `pd.DataFrame` with the aggregated per-class, per-haplotype, per-clone
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.cna_states(
     tool_hap1_cna_files=[
@@ -187,7 +186,7 @@ df = bench.cna_states(
     profile_hap1_cna_file="/path/to/gt/hap1.csv",
     profile_hap2_cna_file="/path/to/gt/hap2.csv",
     type="hcCNA",
-    profile_bin_size=100000,
+
     outfile="cna_states.csv",
 )
 

@@ -1,13 +1,13 @@
 ## Function
 
-```python
+```text
 mirrored_subclonal_cnas(
     self,
     tool_cna_files: List[str],
     tool_names: List[str],
     changes_file: str,
-    profile_bin_size=100000,
-    outfile: str = "mirrored_subclonal_cnas_cnas_cnas.csv",
+    cal_event_level: bool = False,
+    outfile: str = "mirrored_subclonal_cnas.csv",
 ) -> pd.DataFrame
 ```
 
@@ -20,7 +20,7 @@ Given:
 
 it:
 
-1. Converts MSCNA event intervals into a `region` key and re-bins to `profile_bin_size`.
+1. Converts MSCNA event intervals into a `region` key and re-bins to the configured `bin_size`.
 2. Re-bins tool predictions to the same resolution.
 3. Merges GT MSCNA events with tool predictions using `_mirror_merge`.
 4. Computes:
@@ -38,8 +38,7 @@ Results are summarized per tool and written to disk.
 | `tool_cna_files`   | `List[str]` | List of tool CNA profile CSV files. Must align with `tool_names`. |
 | `tool_names`       | `List[str]` | Tool names used in result rows.                              |
 | `changes_file`     | `str`       | Path to the mirrored-subclone ground-truth table (MSCNA events). |
-| `profile_bin_size` | `int`       | Bin size used to split/standardize both GT events and predictions. Default: `100000` (100kb). |
-| `outfile`          | `str`       | Output filename for the summary table. Default: `"mirrored_subclonal_cnas_cnas_cnas.csv"`. |
+| `outfile`          | `str`       | Output filename for the summary table. Default: `"mirrored_subclonal_cnas.csv"`. |
 
 ------
 
@@ -65,8 +64,7 @@ These are combined into a genomic interval string:
 change_df_r["region"] = f"{Chromosome}:{Start}-{End}"
 ```
 
-Additional columns must exist that are required by `_mirror_merge(...)` and subsequent computations.
-From the downstream code, the merged table is expected to contain (after `_mirror_merge`) fields like:
+The event table also needs the paired clone identifiers and GT CNA fields used in the comparison. The merged result contains:
 
 - `Clone1_CNA`, `Clone2_CNA` (GT haplotype CNA encoded as `"hap1|hap2"`)
 - `Clone1_predict_CNA`, `Clone2_predict_CNA` (predicted haplotype CNA encoded as `"hap1|hap2"`)
@@ -74,7 +72,7 @@ From the downstream code, the merged table is expected to contain (after `_mirro
 GT events are re-binned:
 
 ```python
-change_truth_r = split_all_regions(change_df_r.set_index("region"), profile_bin_size)
+change_truth_r = split_all_regions(change_df_r.set_index("region"), self.bin_size)
 change_truth_r = change_truth_r.reset_index().rename(columns={"index": "region"})
 ```
 
@@ -89,7 +87,7 @@ Expected to be CNA matrices with:
 Tool predictions are re-binned similarly:
 
 ```python
-pred = split_all_regions(pred.set_index("region"), profile_bin_size).reset_index()
+pred = split_all_regions(pred.set_index("region"), self.bin_size).reset_index()
 ```
 
 ------
@@ -126,7 +124,7 @@ An event is counted as correct only if **all four** haplotype values match exact
 - Clone1 hap1 and hap2
 - Clone2 hap1 and hap2
 
-```python
+```text
 acc = mean(
     Clone1_pred_h1 == Clone1_gt_h1 AND
     Clone1_pred_h2 == Clone1_gt_h2 AND
@@ -147,7 +145,7 @@ se = (pred - gt)^2
 
 Then per-event RMSE-like aggregate is computed as:
 
-```python
+```text
 RMSE_result =
     sqrt(Clone1_hap1_error) +
     sqrt(Clone1_hap2_error) +
@@ -202,9 +200,9 @@ Returns a `pd.DataFrame` with columns:
 ## Example
 
 ```python
-from hcbench.gtbench.gtbench import GTBench
+from hcbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.mirrored_subclonal_cnas(
     tool_cna_files=[
@@ -213,8 +211,8 @@ df = bench.mirrored_subclonal_cnas(
     ],
     tool_names=["CHISEL", "SIGNALS"],
     changes_file="/path/to/gt/mirrored_subclone_events.csv",
-    profile_bin_size=100000,
-    outfile="mirrored_subclonal_cnas_cnas_cnas.csv",
+
+    outfile="mirrored_subclonal_cnas.csv",
 )
 
 print(df)

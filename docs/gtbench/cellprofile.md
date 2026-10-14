@@ -40,10 +40,10 @@ SIGNALS,980
 
 ## Example
 
-```python
+```text
 from hcbench.gtbench import gtbench
 
-runner = gtbench.GTBench(output_dir="out/gt_output/")
+runner = gtbench.GTBench(output_dir="out/gt_output/", bin_size=100000 , genome="hg38")
 
 tool_cna_files = [
     "out/chisel/haplotype_combined.csv",

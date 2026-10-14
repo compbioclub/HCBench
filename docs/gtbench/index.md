@@ -2,16 +2,46 @@
 
 `HCBench-sim` evaluates inferred hcCNA profiles against the hcCNA-bench GT. The evaluation is organized around five evaluation questions: CNA detection, clone detection, evolution tracking, accumulated complex hcCNA detection, and CN phasing.
 
-## Setup
+## Prepare inputs and initialize
+
+Prepare standardized caller CNA matrices and matching HCDSIM ground truth. Combined files use a first `region` column and one column per cell; split files contain one haplotype or allele per matrix. Clone files need `cell_id` and `clone_id`. Evolution-onset methods also need the corresponding GT change tables; stability analysis needs a Newick tree.
+
+Keep caller paths and `tool_names` in the same order. Use cell-level files together or clone-level files together. Replace all `/path/to/` paths below with your data. Run the setup block once before the method examples.
+
+`bin_size` and `genome` are required when creating a CNA parser, `GTBench`, or `RealBench`:
+
+- `bin_size`: a positive integer in base pairs, such as `100000` for 100 kb. Use the resolution of your CNA data.
+- `genome`: `"hg19"` or `"hg38"`, matching your input coordinates.
+
+Methods use this configuration. Initialization prints:
+
+```text
+Bin size: 100000 bp
+Genome: hg38
+```
+
+With the default event-size thresholds, analysis is available for:
+
+| CNA `bin_size` | Event categories |
+| --- | --- |
+| `<= 3,000,000` bp | focal, medium, broad |
+| `> 3,000,000` and `<= 10,000,000` bp | medium, broad |
+| `> 10,000,000` bp | broad |
+
+Event length is `End - Start + 1`: focal is below 3 Mb, medium is from 3 Mb through 10 Mb, and broad is above 10 Mb. Whole-chromosome and whole-genome events are reported as broad. Categories unavailable at your resolution have no annotation or category-metric rows; a missing comparison is reported as NA rather than evidence of no events.
+
+For evolution-onset analyses, supply change tables containing only the event categories appropriate for your resolution. Those methods read the change tables you provide. Phylogeny examples require `lazac` on `PATH`.
 
 ```python
 from hcbench.gtbench import GTBench
 
 # All benchmark outputs will be written under this directory
-bench = GTBench(output_dir="/path/to/results/gt_output/cell_level")
+bench = GTBench(output_dir="/path/to/results/gt_output/cell_level", bin_size=100000, genome="hg38")
 ```
 
 ------
+
+All files are saved under `bench.output_dir`. Methods with `outfile` use that filename; phasing uses `{outprefix}_{mode}.csv`. `cna_values()` returns its metrics DataFrame as well as saving the CSV. Methods that only save files, including `complex_hccnas()` and unique-profile counts/sizes, return `None`.
 
 ## CNA Detection
 
@@ -63,6 +93,7 @@ bench.cna_states(
     ],
     profile_hap1_cna_file="/path/to/gt/cell/minor.csv",
     profile_hap2_cna_file="/path/to/gt/cell/major.csv",
+    type="acCNA",
     outfile="cna_states_accna.csv",
 )
 ```
@@ -113,7 +144,7 @@ bench.cna_states(
     ],
     profile_hap1_cna_file="/path/to/gt/cell/haplotype_1.csv",
     profile_hap2_cna_file="/path/to/gt/cell/haplotype_2.csv",
-    type="hcCNA",                       # Keep only if your cna_states() signature supports it
+    type="hcCNA",
     outfile="cna_states_hccna.csv",
 )
 ```
@@ -248,7 +279,7 @@ This section evaluates whether inferred CN phylogenies and complex hcCNA evoluti
 
 **Are allele- and cell-specific CN phylogenies correct?**
 
-Applies a maximum parsimony criterion to reconstructed cell lineages. It measures Parsimony Score Deviation (PSD) to see if the inferred evolutionary history is artificially complex (indicating noise) or overly simplified.
+Calculates a parsimony score for each supplied CN profile. Include GT in the input list to compare its score with caller scores.
 
 ```python
 # acCNA phylogeny
@@ -271,7 +302,7 @@ bench.cna_phylogeny(
 
 **Are haplotype- and cell-specific CN phylogenies correct?**
 
-Calculates PSD using phased CN profiles as input to build the phylogeny, ensuring that the evolutionary relationships account for the specific parent-of-origin alleles.
+Calculates parsimony scores from phased CN profiles. The output lists each tool and its `Parsimony` score.
 
 ```python
 # hcCNA phylogeny
@@ -312,7 +343,12 @@ bench.cna_phylogeny(
 # CN change at onset: cn_change_at_onset
 # Complex hcCNA at onset: complex_hccna_at_onset
 # Complex hcCNA stability: complex_hccna_stability
-for size in ["focal", "medium", "broad"]:
+event_sizes = ["broad"]
+if bench.bin_size <= 10_000_000:
+    event_sizes.insert(0, "medium")
+if bench.bin_size <= 3_000_000:
+    event_sizes.insert(0, "focal")
+for size in event_sizes:
 
     bench.parental_cn_at_onset(
         tool_hap1_cna_files=[
@@ -406,46 +442,35 @@ bench.complex_hccnas(
     gt_cna_file="/path/to/gt/cell/haplotype_combined.csv",
     tool_names=["signals", "seacon"],
     threshold=0.8,
-    profile_bin_size=100000,
+
     outprefix="complex_hccnas_thre0.8",
 )
 ```
 
-The `threshold` parameter controls the similarity threshold used in complex hcCNA evaluation (default: `0.8`), while `profile_bin_size` specifies the GT profile resolution in base pairs (default: `100000`). The `genome` parameter selects the reference genome (`"hg38"` by default; `"hg19"` is also supported).
+#### Prepare GT event annotations
 
-#### Save annotated complex hcCNAs
-
-Set `save_annotated_df=True` to save annotated complex hcCNA events for each tool. The annotations are written to `{output_dir}/{outprefix}annotated/`, with one combined file per tool named `{tool}_annotated.csv`.
-
-Use `chromosomes` to restrict annotation and evaluation to selected chromosomes. For example, `chromosomes=["chr1", "chr2"]` selects chromosomes 1 and 2, while the default `None` includes all chromosomes. When specific chromosomes are provided, separate files such as `{tool}_annotated_chr1.csv` are also generated.
+`complex_hccnas()` writes `{outprefix}metrics.csv` under `bench.output_dir` and returns `None`. Each row reports `Size`, `Type`, `ACC`, `SCC`, `RMSE`, and `Tool` for an available event category. Its `threshold=0.8` controls whole-chromosome/genome event annotation. To save GT annotations separately:
 
 ```python
-bench.complex_hccnas(
-    gt_cna_file="/results/gt/haplotype_combined.csv",
-    tool_cna_files=[
-        "/results/chisel/haplotype_combined.csv"
-    ],
-    tool_names=["CHISEL"],
+from pathlib import Path
+from hcbench.parsers.gt import GTParser
+
+Path("results/gt").mkdir(parents=True, exist_ok=True)
+gt_parser = GTParser(
+    input_path="/path/to/gt/cell/haplotype_combined.csv",
+    output_path="results/gt",
+    bin_size=100000,
     genome="hg38",
-    save_annotated_df=True,
 )
-```
-
-Saved annotations are generated independently for each tool and do not affect GT-based metric calculations.
-
-#### Annotate GT complex hcCNAs
-
-GT complex hcCNA events can also be annotated separately using `GTParser.annotate_segments()`:
-
-```python
 gt_parser.annotate_segments(
-    "/results/gt/haplotype_combined.csv",
+    "/path/to/gt/cell/haplotype_combined.csv",
+    threshold=0.8,
     detect_cnv_type=True,
     out_file="ground_truth_classified.csv",
 )
 ```
 
-Set `detect_cnv_type=True` to classify CNA events. The annotation supports configurable thresholds, reference genomes, and chromosome selection.
+This saves `results/gt/ground_truth_classified.csv`. See [Parser annotation](../parsers/index.md) for annotation parameters. `chromosomes` on `bench.complex_hccnas()` restricts annotation and evaluation to selected chromosomes.
 
 For pairwise comparisons using previously annotated event files without GT, see [RealBench.complex_hccnas](../realbench/index.md).
 
@@ -465,7 +490,7 @@ bench.mirrored_subclonal_cnas(
         "seacon",
     ],
     changes_file= "/path/to/gt/mirrored_subclonal_cnas_cnas.csv",
-    profile_bin_size=100000,
+
     cal_event_level = True
 )
 ```
@@ -504,7 +529,7 @@ bench.global_cn_phasing(
     ground_truth_hap2_file="/path/to/gt/cell/haplotype_2.csv",
     mode="heterozygous-only",
     is_clone=False,
-    # outprefix="global_cn_phasing_both",        # Uncomment if your implementation supports outprefix
+    outprefix="global_cn_phasing_both",
 )
 
 # GT-heterozygous mode
@@ -525,7 +550,6 @@ bench.global_cn_phasing(
     ground_truth_hap2_file="/path/to/gt/cell/haplotype_2.csv",
     mode="homozygous-inclusive-pred",
     is_clone=False,
-    # outprefix="global_cn_phasing_gt",
+    outprefix="global_cn_phasing_gt",
 )
 ```
-

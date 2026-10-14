@@ -1,12 +1,12 @@
 ## Function
 
-```python
+```text
 complex_hccnas(
     self,
     gt_cna_file: str,
     tool_cna_files: List[str],
     tool_names: List[str],
-    profile_bin_size=100000,
+
     threshold=0.8,
     outprefix: str = "complex_hccnas_",
     level="cell",
@@ -29,11 +29,10 @@ A single metrics CSV is written to disk.
 | `gt_cna_file`      | `str`           | Path to GT CNA matrix CSV (regions × cells). The first column is treated as index when reading. |
 | `tool_cna_files`   | `List[str]`     | List of tool CNA profile CSVs. Must align with `tool_names`. |
 | `tool_names`       | `List[str]`     | Tool names used to label metric outputs.                     |
-| `profile_bin_size` | `int`           | Bin size used to split/standardize tool regions before metric computation. Default: `100000` (100kb). |
 | `threshold`        | `float`         | Threshold passed into `annotate_segments(...)` (used for complex_hccnas/CNV detection sensitivity). Default: `0.8`. |
 | `outprefix`        | `str`           | Prefix used for the output metrics filename. Default: `"complex_hccnas_"`. |
 | `level`            | `str`           | Placeholder for evaluation level (`"cell"` or `"clone"`). Currently only `"cell"` path is active. |
-| `changes_file`     | `Optional[str]` | Reserved for clone-level evaluation (commented out in current implementation). Default: `""`. |
+| `changes_file`     | `Optional[str]` | Optional change-table path accepted by the method; default: `""`. |
 
 ------
 
@@ -117,10 +116,10 @@ tool_cna_df_long = (
 )
 ```
 
-1. Re-bin/split regions to `profile_bin_size` resolution:
+1. Re-bin/split regions to the configured `bin_size` resolution:
 
 ```python
-tool_cna_df_long = split_all_regions(tool_cna_df_long.set_index("region"), profile_bin_size)
+tool_cna_df_long = split_all_regions(tool_cna_df_long.set_index("region"), self.bin_size)
 tool_cna_df_long = tool_cna_df_long.reset_index().rename(columns={"index": "region"})
 ```
 
@@ -170,7 +169,7 @@ This function does **not** explicitly return a value (runtime return is `None`).
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 bench.complex_hccnas(
     gt_cna_file="/path/to/gt/haplotype_combined.csv",
@@ -179,7 +178,7 @@ bench.complex_hccnas(
         "/path/to/signals/haplotype_combined.csv",
     ],
     tool_names=["CHISEL", "SIGNALS"],
-    profile_bin_size=100000,
+
     threshold=0.8,
     outprefix="complex_hccnas_",
 )

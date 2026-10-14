@@ -539,7 +539,7 @@ class GTBench:
         ground_truth_hap2_file: str,
         outprefix = "global_cn_phasing",
 
-        mode = "heterozygous-only",
+        mode = "Shared-heterozygous",
         is_clone = False,
     ) -> pd.DataFrame:
 

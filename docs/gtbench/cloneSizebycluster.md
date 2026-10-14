@@ -65,7 +65,7 @@ The function writes two CSV files to `self.output_dir`:
 from hcbench.gtbench import gtbench
 
 # Initialize the runner
-gtbench_runner = gtbench.GTBench(output_dir="out/gt_output/")
+gtbench_runner = gtbench.GTBench(output_dir="out/gt_output/", bin_size=100000 , genome="hg38")
 
 # Define inputs
 gt_path = "/home/jianganna/workspace/HCDSIM/data/new-gt/clusters.csv"

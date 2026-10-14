@@ -1,6 +1,6 @@
 ## Function
 
-```python
+```text
 unique_cna_profile_sizes(
     self,
     gt_cna_file: str,
@@ -47,7 +47,7 @@ chr1:1-100000,1|1,1|1,2|1
 chr1:100001-200000,1|1,1|1,2|1
 ```
 
-Implementation details from source:
+Input handling:
 
 - missing values are filled with `"1|1"`
 - for tool matrices, all-empty columns are dropped before processing
@@ -83,7 +83,7 @@ Grouped by GT `cluster_size`, numeric prediction columns are averaged:
 
 ## Return Type
 
-The function signature annotates `-> pd.DataFrame`, but current implementation does not explicitly return a value (runtime return is `None`).
+The method writes its CSV files and returns `None`.
 
 ------
 
@@ -92,7 +92,7 @@ The function signature annotates `-> pd.DataFrame`, but current implementation d
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 bench.unique_cna_profile_sizes(
     gt_cna_file="/path/to/gt/haplotype_combined.csv",

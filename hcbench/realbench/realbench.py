@@ -888,7 +888,7 @@ class RealBench:
         tool_hap2_cna_files: List[str],
         tool_names: List[str],
         outprefix = "global_cn_phasing",
-        mode = "heterozygous-only",
+        mode = "Shared-heterozygous",
     ) -> pd.DataFrame:
 
         rows = []

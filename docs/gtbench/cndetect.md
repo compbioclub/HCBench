@@ -1,13 +1,13 @@
 ## Function
 
-```python
+```text
 cna_values(
     self,
     tool_cna_files: List[str],
     cna_profile_file: str,
     tool_names: List[str],
     haplotype: str = "combined",
-    profile_bin_size=100000,
+
     outfile: str = "cna_values.csv",
     index_col: Optional[int] = 0,
 ) -> pd.DataFrame
@@ -18,7 +18,7 @@ This function evaluates **bin-level CNA detection performance** of multiple tool
 For each tool CNA matrix, it:
 
 1. Loads the tool CNA file and the reference CNA file.
-2. Splits tool regions into a uniform binning resolution (`profile_bin_size`).
+2. Splits tool regions into a uniform binning resolution (`self.bin_size`).
 3. Aligns tool predictions and reference profiles on common regions and cells.
 4. Computes evaluation metrics (**RMSE**, **SCC**, **ACC**) under a specified haplotype mode.
 5. Saves a summary CSV across all tools.
@@ -33,9 +33,8 @@ For each tool CNA matrix, it:
 | `cna_profile_file` | `str`           | Path to the reference (truth) CNA profile CSV file.          |
 | `tool_names`       | `List[str]`     | Tool names used in logs and the result table.                |
 | `haplotype`        | `str`           | Haplotype evaluation mode passed to `evaluate_haplotype_predictions`. Default: `"combined"`. |
-| `profile_bin_size` | `int`           | Bin size used to split regions in tool predictions before alignment. Default: `100000` (100kb). |
 | `outfile`          | `str`           | Output filename for the summary table. Default: `"cna_values.csv"`. |
-| `index_col`        | `Optional[int]` | (Currently unused in implementation.) Intended CSV index column specification. Default: `0`. |
+| `index_col`        | `Optional[int]` | Accepted for compatibility; the method reads the named `region` column. Default: `0`. |
 
 ------
 
@@ -57,14 +56,14 @@ chr1:1-100000,1|1,1|1,2|1
 chr1:100001-200000,1|1,1|1,2|1
 ```
 
-Implementation details:
+Processing:
 
 - Both truth and predictions are loaded with `read_and_drop_empty(...)` (drops empty columns/cells).
 - The truth dataframe is indexed by `"region"` (`truth_df.set_index("region", inplace=True)`).
 - Tool predictions are re-binned using:
 
 ```python
-pred = split_all_regions(pred.set_index("region"), profile_bin_size)
+pred = split_all_regions(pred.set_index("region"), self.bin_size)
 ```
 
 Then truth and pred are aligned with:
@@ -138,7 +137,7 @@ Returns a `pd.DataFrame` with one row per tool and the columns:
 ```python
 from hcbench.gtbench.gtbench import GTBench
 
-bench = GTBench(output_dir="out/gt_output")
+bench = GTBench(output_dir="out/gt_output", bin_size=100000 , genome="hg38")
 
 df = bench.cna_values(
     tool_cna_files=[
@@ -148,7 +147,7 @@ df = bench.cna_values(
     cna_profile_file="/path/to/gt/haplotype_combined.csv",
     tool_names=["CHISEL", "SIGNALS"],
     haplotype="combined",
-    profile_bin_size=100000,
+
     outfile="cna_values.csv",
 )
 print(df)
