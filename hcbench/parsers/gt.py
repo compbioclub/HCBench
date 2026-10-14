@@ -48,7 +48,7 @@ class GTParser(CNAParser):
 
 
     def annotate_segments(
-        self, cna_df_path, threshold=0.9, detect_cnv_type=False,
+        self, cna_df_path, threshold=0.8, detect_cnv_type=False,
         out_file="ground_truth_classified.csv", *, small_size=3_000_000,
         mid_size=10_000_000, chromosomes=None,
     ):
@@ -59,21 +59,21 @@ class GTParser(CNAParser):
             chromosomes=chromosomes,
         )
 
-    def segmentation(self,
-        gt_cna_file: str,
-        threshold = 0.8,
-        outprefix: str = "segmentation_",
-        ):
+    # def segmentation(self,
+    #     gt_cna_file: str,
+    #     threshold = 0.8,
+    #     outprefix: str = "segmentation_",
+    #     ):
 
-        gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
-        gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, genome=self.genome, bin_size=self.bin_size)
-        gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
+    #     gt_profile =  pd.read_csv(gt_cna_file,index_col=0)
+    #     gt_annotated_df = annotate_segments(gt_profile.T, detect_cnv_type=True, threshold=threshold, genome=self.genome, bin_size=self.bin_size)
+    #     gt_annotated_df['region'] = gt_annotated_df['Chrom'] + ":" + gt_annotated_df['Start'].astype(str) + "-" + gt_annotated_df['End'].astype(str)
 
-        gt_cna_event_counts = get_seg_cna_event_num(gt_annotated_df)
-        gt_cna_event_counts = gt_cna_event_counts.rename(columns={"bin_level_count": f"gt_bin_level_count",
-                                                                  "seg_level_count": f"gt_seg_level_count"})
+    #     gt_cna_event_counts = get_seg_cna_event_num(gt_annotated_df)
+    #     gt_cna_event_counts = gt_cna_event_counts.rename(columns={"bin_level_count": f"gt_bin_level_count",
+    #                                                               "seg_level_count": f"gt_seg_level_count"})
 
-        merged_cna_event_count = gt_cna_event_counts
-        merged_cna_event_count.to_csv(os.path.join(self.output_path, f"{outprefix}complex_cna_count.csv"), index=False)
+    #     merged_cna_event_count = gt_cna_event_counts
+    #     merged_cna_event_count.to_csv(os.path.join(self.output_path, f"{outprefix}complex_cna_count.csv"), index=False)
 
 
