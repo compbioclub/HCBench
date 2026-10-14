@@ -5,19 +5,24 @@ This module provides `AlleloscopeParser`, specialized for parsing **Alleloscope*
 Key features:
 
 - Read Alleloscope **RDS** outputs (genotypes and segmentation table) and convert them into a unified haplotype level CNA matrix
-- Optional region splitting by a user defined `bin_size`
+- Optional region splitting with `expand_bins=True` and the required `bin_size`
 - Parse Alleloscope cluster assignments into a standardized `clusters.csv`
 - Export bin-level count matrices as `bin_counts.csv`
 - Convert a cellSNP-like VAF long table into sparse matrix outputs
+
+`bin_size` (positive integer, bp) and `genome` (`"hg19"` or `"hg38"`) are required. Creating the parser prints both values. `expand_bins=False` leaves input CNA regions intact and prints that they will not be split. Set `expand_bins=True` to split each input region into pieces of at most `bin_size` bp before writing CNA matrices; the parser prints that splitting is enabled. The pieces keep the input CNA values. `bin_size` also controls event-analysis resolution when splitting is off. Install the `rds` extra to read RDS inputs.
 
 ## 🚀 Quick Start
 
 ### 🧬 1. Parse the CNA Matrix from RDS
 
 ```python
+from pathlib import Path
 from hcbench.parsers.alleloscope import AlleloscopeParser
 
-allelo_output = "/output/alleloscope/"
+Path("output/alleloscope").mkdir(parents=True, exist_ok=True)
+
+allelo_output = "output/alleloscope/"
 genotypes_rds = "/demo_output/alleloscope/output/rds/genotypes.rds"
 seg_table_rds = "/demo_output/alleloscope/output/rds/seg_table.rds"
 
@@ -26,8 +31,9 @@ alleloscope_parser = AlleloscopeParser(
     genotypes_rds_path=genotypes_rds,
     seg_table_rds_path=seg_table_rds,
     barcode_path=None,
-    bin_size=100000,          # set an integer to split regions, e.g. 100000
+    bin_size=100000,
     start_offset=1,         # shift start coordinate by +1 if needed
+    genome="hg38",
 )
 
 alleloscope_parser.run()
@@ -36,7 +42,7 @@ alleloscope_parser.run()
 After running, the parser will read the two RDS files and save results to the output directory, typically containing files, for example:
 
 ```
-/output/alleloscope/
+output/alleloscope/
   haplotype_combined.csv
   haplotype_1.csv
   haplotype_2.csv
@@ -55,7 +61,7 @@ alleloscope_parser.get_cluster(cluster_file)
 After running this command, the following standardized file will be created:
 
 ```
-/output/alleloscope/
+output/alleloscope/
   clusters.csv
 ```
 
@@ -78,7 +84,7 @@ alleloscope_parser.get_bin_counts(counts_file)
 After running this command, the following standardized file will be created:
 
 ```
-/output/alleloscope/
+output/alleloscope/
   bin_counts.csv
 ```
 
@@ -103,7 +109,7 @@ alleloscope_parser.get_VAF_matrix(
 Output:
 
 ```
-/output/alleloscope/
+output/alleloscope/
   VAF/
     cellSNP.VAF.filtered.mtx
     ...
@@ -118,11 +124,11 @@ AlleloscopeParser(
     output_path: str,
     genotypes_rds_path: str,
     seg_table_rds_path: str,
+    *, bin_size: int, genome: str,
+    expand_bins: bool = False,
     barcode_path: str | None = None,
-    bin_size: int | None = None,
     add_chr_prefix: bool = True,
     start_offset: int = 1,
-    **kwargs
 )
 ```
 
@@ -137,7 +143,7 @@ AlleloscopeParser(
 
 **`barcode_path`** (optional) :Path to a barcode mapping file used to remap cell IDs
 
-**`bin_size`** (optional) :If set, regions are split into fixed sized. 
+**`bin_size`** (required): Positive integer CNA resolution in base pairs.
 
 **`add_chr_prefix`** (default `True`) :Controls whether to prepend `"chr"` when forming the region label from the segmentation table.
 
@@ -151,7 +157,7 @@ Executes the standard pipeline for the CNA matrix:
 
 - Reads the provided `genotypes_rds_path` and `seg_table_rds_path`.
 - Standardizes genomic regions based on `start_offset` and `add_chr_prefix`.
-- Optionally splits regions into smaller bins if `bin_size` is provided.
+- Splits regions up to the initialization `bin_size` when `expand_bins=True`.
 - Writes the unified haplotype matrices directly into `output_path`.
 
 ------

@@ -122,10 +122,10 @@ class AlleloscopeParser(CNAParser):
         )
         out_t.index = out_t.index.map(lambda x: map_dict.get(str(x), str(x)))
 
-        # Optional: split regions by bin size
-        if self.bin_size is not None:
-            print(f"[hcbench] Splitting regions by bin size = {self.bin_size}")
-            out_t = split_all_regions(out_t, self.bin_size)
+        # # Optional: split regions by bin size
+        # if self.bin_size is not None:
+        #     print(f"[hcbench] Splitting regions by bin size = {self.bin_size}")
+        #     out_t = split_all_regions(out_t, self.bin_size)
 
         out_t.index.name = "region"
         return out_t

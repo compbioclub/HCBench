@@ -4,38 +4,49 @@ This module provides ChiselParser, specialized for parsing CHISEL outputs and ex
 
 Key features:
 
-- Run the existing  pipeline on CHISEL CNA tables
+- Run the parsing pipeline on CHISEL CNA tables
 - Optional **two-pass** execution to export two different value columns into: `clone_level/`,`cell_level/`
 - Parse CHISEL cluster assignments into a standardized `clusters.csv`
 - Export bin-level count matrices as `bin_counts.csv`
 - Convert a cellSNP-like VAF long table into sparse matrix outputs
+
+`bin_size` (positive integer, bp) and `genome` (`"hg19"` or `"hg38"`) are required. Creating the parser prints both values. `expand_bins=False` leaves input CNA regions intact and prints that they will not be split. Set `expand_bins=True` to split each input region into pieces of at most `bin_size` bp before writing CNA matrices; the parser prints that splitting is enabled. The pieces keep the input CNA values. `bin_size` also controls event-analysis resolution when splitting is off.
 
 ## 🚀 Quick Start
 
 ### 🧬  1. Parse the CNA Matrix
 
 ```
+from pathlib import Path
 from hcbench.parsers.chisel import ChiselParser
 
-chisel_input = "/demo_output/chisel/calls/calls.tsv"
-chisel_output = "/output/chisel/"
+Path("output/chisel").mkdir(parents=True, exist_ok=True)
 
-chisel_parser = ChiselParser(chisel_input, chisel_output,value_cols=["HAP_CN_CLONE", "HAP_CN_CELL"])
+chisel_input = "/demo_output/chisel/calls/calls.tsv"
+chisel_output = "output/chisel/"
+
+chisel_parser = ChiselParser(
+    input_path=chisel_input,
+    output_path=chisel_output,
+    bin_size=100000,
+    genome="hg38",
+    value_cols=["CORRECTED_HAP_CN", "HAP_CN"],
+)
 chisel_parser.run()
 ```
 
 After running, the parser will read `calls.tsv` and results are saved to the output directory, typically containing the following files:
 
 ```
-/output/chisel/
-├── clone-level/
+output/chisel/
+├── clone_level/
 │   └── haplotype_combined.csv
 │   └── haplotype_1.csv       
 │   └── haplotype_2.csv       
 │   └── minor.csv             
 │   └── major.csv             
 │   └── minor_major.csv
-├── cell-level/
+├── cell_level/
 │   └── haplotype_combined.csv
 │   └── haplotype_1.csv       
 │   └── haplotype_2.csv       
@@ -51,7 +62,7 @@ After running, the parser will read `calls.tsv` and results are saved to the out
 
 ### 🧬  2. Parse the Cluster File
 
-If you have a CHISEL cluster mapping file (commonly named `mapping.tsv`), you can parse it separately using the new `get_cluster()` method:
+If you have a CHISEL cluster mapping file (commonly named `mapping.tsv`), you can parse it separately using `get_cluster()`:
 
 ```
 cluster_file = "/demo_output/chisel/clones/mapping.tsv"
@@ -72,7 +83,7 @@ AAACCTGAGTGCTGCC    3233    Clone3233
 After running this command, the following standardized file will be created:
 
 ```
-/output/chisel/
+output/chisel/
 └──clusters.csv
 ```
 
@@ -94,7 +105,7 @@ chisel_parser.get_bin_counts()
 After running this command, the following standardized file will be created:
 
 ```
-/output/chisel/
+output/chisel/
 └──bin_counts.csv
 ```
 
@@ -111,7 +122,7 @@ chisel_parser.get_VAF_matrix(
 After running this command, the following standardized file will be created:
 
 ```
-/output/chisel/
+output/chisel/
 ├── VAF/
 │   └──cellSNP_*.mtx
 ```
@@ -120,13 +131,14 @@ After running this command, the following standardized file will be created:
 
 ## ⚙️ Initialization
 
-```python
+```text
 ChiselParser(
     input_path: str,
     output_path: str,
+    *, bin_size: int, genome: str,
+    expand_bins: bool = False,
     barcode_path: str | None = None,
     value_cols: list[str] | tuple[str, str] | None = None,
-    **kwargs
 )
 ```
 
@@ -185,7 +197,7 @@ Mapping is applied in:
 
 ### `ChiselParser.run()`
 
-- **Legacy mode (default)**: if `value_cols` is not provided (or only one column is configured), it runs once:
+- **Single-column mode (default)**: if `value_cols` is not provided (or only one column is configured), it runs once:
   - Uses `self.value_col` (default: `HAP_CN`)
   - Writes into `output_path`
 - **Two-pass mode**: if `value_cols` has length 2, it runs twice:

@@ -9,6 +9,8 @@ Key features:
 - Export bin-level count matrices as `bin_counts.csv`
 - Convert a VAF long table into sparse matrix outputs
 
+`bin_size` (positive integer, bp) and `genome` (`"hg19"` or `"hg38"`) are required. Creating the parser prints both values. `expand_bins=False` leaves input CNA regions intact and prints that they will not be split. Set `expand_bins=True` to split each input region into pieces of at most `bin_size` bp before writing CNA matrices; the parser prints that splitting is enabled. The pieces keep the input CNA values. `bin_size` also controls event-analysis resolution when splitting is off.
+
 ## 🚀 Quick Start
 
 ### 🧬 Exporting hscn_data.tsv from R
@@ -35,19 +37,22 @@ This will produce the file `hscn_data.tsv`, which is then used as input for the 
 ### 🧬 1. Parse the CNA Matrix
 
 ```python
+from pathlib import Path
 from hcbench.parsers.signals import SignalsParser
 
-signals_input = "/demo_output/signals/output/hscn_data.csv"
-signals_output = "/output/signals/"
+Path("output/signals").mkdir(parents=True, exist_ok=True)
 
-signals_parser = SignalsParser(input_path=signals_input, output_path=signals_output)
+signals_input = "/demo_output/signals/output/hscn_data.tsv"
+signals_output = "output/signals/"
+
+signals_parser = SignalsParser(input_path=signals_input, output_path=signals_output, bin_size=100000, genome="hg38")
 signals_parser.run()
 ```
 
 After running, the parser will read the input file and results are saved to the output directory, typically containing the following files:
 
 ```
-/output/signals/
+output/signals/
 ├── haplotype_combined.csv
 ├── haplotype_1.csv       
 ├── haplotype_2.csv       
@@ -81,7 +86,7 @@ AAACCTGAGTAATCCC,CloneA
 After running this command, the following standardized file will be created:
 
 ```
-/output/signals/
+output/signals/
 └── clusters.csv
 ```
 
@@ -99,7 +104,7 @@ signals_parser.get_bin_counts(bin_count_file)
 After running this command, the following standardized file will be created:
 
 ```
-/output/signals/
+output/signals/
 └── bin_counts.csv
 ```
 
@@ -118,7 +123,7 @@ signals_parser.get_VAF_matrix(
 After running this command, the following standardized directory and files will be created:
 
 ```
-/output/signals/
+output/signals/
 ├── VAF/
 │   └── cellSNP_*.mtx
 ```
@@ -131,7 +136,8 @@ After running this command, the following standardized directory and files will 
 SignalsParser(
     input_path: str,
     output_path: str,
-    **kwargs
+    *, bin_size: int, genome: str,
+    expand_bins: bool = False,
 )
 ```
 
@@ -176,7 +182,7 @@ Parses a Signals cluster mapping file and writes a standardized CSV.
 
 ### `SignalsParser.get_bin_counts(bin_count_file_path)`
 
-Creates a region-by-cell wide matrix of per-bin counts. Note that this initializes an internal temporary parser specifically configured for the `hg38` reference genome and targets the `reads` column without adding chromosome prefixes.
+Creates a region-by-cell wide matrix of per-bin counts. Note that this initializes an internal temporary parser specifically configured for the parser's `genome` and targets the `reads` column without adding chromosome prefixes.
 
 **Input**
 

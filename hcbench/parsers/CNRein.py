@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from .cna_parser_base import CNAParser
-from .utils import read_table_auto, split_all_regions
+from .utils import read_table_auto
 from ..utils import vcf_chr_files_to_ad_dp_mtx
 
 class CNReinParser(CNAParser):
@@ -20,11 +20,6 @@ class CNReinParser(CNAParser):
         df[self.value_col] = df["Haplotype 1"].astype(str) + "|" + df["Haplotype 2"].astype(str)
 
         cna_df = self.base_process(df)
-
-        if self.bin_size is not None:
-            cna_df = split_all_regions(cna_df, self.bin_size)
-
-            cna_df.index.name = "region"
 
         return cna_df
 

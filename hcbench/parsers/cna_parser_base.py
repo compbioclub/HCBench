@@ -28,6 +28,8 @@ class CNAParser(BaseParser):
         super().__init__(*args, **kwargs)
         print(f"Bin size: {self.bin_size} bp")
         print(f"Genome: {self.genome}")
+        print(f"Expand bins: {self.expand_bins}" +
+              (" (regions will be split)" if self.expand_bins else " (regions will not be split)"))
 
     def annotate_segments(
         self, cna_df_path, threshold=0.8, detect_cnv_type=True,
@@ -95,7 +97,8 @@ class CNAParser(BaseParser):
         df = self.before_pivot()
 
         if self.expand_bins:
-            df = self._build_cna_df(df)
+            df = split_all_regions(df, self.bin_size)
+            df.index.name = "region"
 
         if self.cell_list is not None:
             df = df.reindex(columns=self.cell_list)

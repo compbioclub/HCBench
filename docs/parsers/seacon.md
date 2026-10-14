@@ -9,19 +9,25 @@ Key features:
 - Export bin-level count matrices as `bin_counts.csv`, dynamically mapped to the standard regions extracted from the CNA output.
 - Convert a headerless, tab-separated VAF long table into sparse matrix outputs.
 
+`bin_size` (positive integer, bp) and `genome` (`"hg19"` or `"hg38"`) are required. Creating the parser prints both values. `expand_bins=False` leaves input CNA regions intact and prints that they will not be split. Set `expand_bins=True` to split each input region into pieces of at most `bin_size` bp before writing CNA matrices; the parser prints that splitting is enabled. The pieces keep the input CNA values. `bin_size` also controls event-analysis resolution when splitting is off.
+
 ## 🚀 Quick Start
 
 ### 🧬 1. Parse the CNA Matrix
 
 ```
+from pathlib import Path
 from hcbench.parsers.seacon import SeaconParser
 
-seacon_input = "/demo_output/seacon/cna_output.tsv"
-seacon_output = "/output/seacon/"
+Path("output/seacon").mkdir(parents=True, exist_ok=True)
+
+seacon_input = "/demo_output/seacon/calls.tsv"
+seacon_output = "output/seacon/"
 
 seacon_parser = SeaconParser(
     input_path=seacon_input, 
     output_path=seacon_output,
+    bin_size=100000, genome="hg38",
 )
 seacon_parser.run()
 ```
@@ -29,7 +35,7 @@ seacon_parser.run()
 After running, the parser will read the input file, split the haplotypes, and save the standardized files to the output directory. The output directory typically contains:
 
 ```
-/output/seacon/
+output/seacon/
 ├── minor.csv             
 ├── major.csv             
 └── minor_major.csv       
@@ -54,7 +60,7 @@ seacon_parser.get_bin_counts(counts_path=counts_file)
 After running this command, the following standardized file will be created:
 
 ```
-/output/seacon/
+output/seacon/
 └── bin_counts.csv
 ```
 
@@ -80,7 +86,7 @@ After running this command, the following standardized directory and Matrix Mark
 Plaintext
 
 ```
-/output/seacon/
+output/seacon/
 ├── VAF/
 │   ├── cellSNP_AD.mtx
 │   ├── cellSNP_DP.mtx
@@ -95,15 +101,9 @@ Python
 SeaconParser(
     input_path: str,
     output_path: str,
-    chrom_col: str = "chrom",
-    start_col: str = "start",
-    end_col: str = "end",
-    cell_col: str = "cell",
-    value_col: str = "CN",
-    start_offset: int = 0,
-    add_chr_prefix: bool = False,
+    *, bin_size: int, genome: str,
+    expand_bins: bool = False,
     output_haplotype: bool = False,
-    **kwargs
 )
 ```
 
@@ -188,156 +188,3 @@ prefix
 **Output**
 
 Creates a `VAF/` directory containing the Matrix Market (`.mtx`) files.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 📂 Input Files
-
-The output directory of **SEACON** typically includes a single main file containing copy number information for all cells:
-
-```
-demo_output/seacon/
-└── calls.tsv
-```
-
-- `calls.tsv` — the primary SEACON output file containing inferred copy number (CN) states per cell and genomic region.
-
-An example of `calls.tsv`:
-
-```
-cell	chrom	start	end	CN
-clone9_cell6	chr1	5000001	10000000	0,2
-clone9_cell6	chr1	15000001	20000000	0,2
-clone9_cell6	chr1	20000001	25000000	0,2
-clone9_cell6	chr1	25000001	30000000	0,2
-```
-
-The **required columns** are:
-
-```
-chrom, start, end, cell, CN
-```
-
-Each entry in the `CN` column may contain **comma-separated allele-specific copy numbers** (e.g. `"0,2"`).
- The parser automatically converts these values to a standardized `"hap1|hap2"` format (e.g. `"0|2"`).
-
-------
-
-## 📤 Output Files
-
-After parsing, the following file is generated in the specified output directory:
-
-```
-haplotype_combined.csv
-```
-
-- `haplotype_combined.csv` — standardized CNA matrix (regions × cells).
-   Each value represents the haplotype-level copy number in the format `"hap1|hap2"`.
-
-If `split_haplotype=True` is enabled in the base class,
- the parser will also produce additional derived matrices:
-
-```
-haplotype_1.csv
-haplotype_2.csv
-minor.csv
-major.csv
-minor_major.csv
-```
-
-------
-
-## ⚙️ Key Parameters
-
-| Parameter        | Description                                            | Default   |
-| ---------------- | ------------------------------------------------------ | --------- |
-| `chrom_col`      | Column name for chromosome.                            | `"chrom"` |
-| `start_col`      | Column name for region start.                          | `"start"` |
-| `end_col`        | Column name for region end.                            | `"end"`   |
-| `cell_col`       | Column name for cell ID.                               | `"cell"`  |
-| `value_col`      | Column name for copy number value.                     | `"CN"`    |
-| `start_plus_one` | Whether to shift start coordinates by +1.              | `False`   |
-| `add_chr_prefix` | Whether to enforce `"chr"` prefix on chromosome names. | `False`   |
-
-------
-
-## 🚀 Example Usage
-
-```
-from hcbench.parsers.seacon import SeaconParser
-
-seacon_input = "/demo_output/seacon/calls.tsv"
-seacon_output = "/output/seacon/"
-
-seacon_parser = SeaconParser(
-    input_path=seacon_input,
-    output_path=seacon_output
-)
-seacon_parser.run()
-```
-
-After running, the parser will read `calls.tsv`,
- convert `CN` values from `"x,y"` to `"x|y"`,
- and save the standardized file:
-
-```
-haplotype_combined.csv
-```
-
-in your output directory.
-
-------
