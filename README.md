@@ -78,3 +78,7 @@ With the default event-size thresholds, analysis is available for:
 Event length is `End - Start + 1`: focal is below 3 Mb, medium is from 3 Mb through 10 Mb, and broad is above 10 Mb. Whole-chromosome and whole-genome events are reported as broad. Categories unavailable at your resolution have no annotation or category-metric rows; a missing comparison is reported as NA rather than evidence of no events.
 
 `RealBench.focal_genes_and_pathways()` requires `bin_size <= 3,000,000`. At coarser resolutions it prints a skip message, returns `None`, and creates no new enrichment results. For supported resolutions, see the [focal gene and pathway tutorial](https://compbioclub.github.io/HCBench/realbench/focal_genes_and_pathways/).
+
+## License
+
+HCBench is released under the MIT License. See the [LICENSE](LICENSE) file for details.
