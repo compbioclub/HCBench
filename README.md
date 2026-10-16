@@ -1,4 +1,4 @@
-# HCBench
+# HCBench: A Standardized Benchmarking Framework for Single-Cell Haplotype- and Clone-Specific Copy Number Alteration Caller
 
 HCBench standardizes single-cell CNA caller outputs and evaluates them against simulated ground truth or against other callers.
 
